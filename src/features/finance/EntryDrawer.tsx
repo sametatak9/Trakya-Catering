@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { Trash2 } from 'lucide-react';
 import { todayISO } from '@/lib/dates';
 import { parseNum } from '@/lib/format';
@@ -75,7 +76,7 @@ export function EntryDrawer({ entry, defaultKind = 'gider', defaultCategory, onC
   };
 
   const remove = async () => {
-    if (!entry || !window.confirm('Kayıt silinsin mi?')) return;
+    if (!entry || !await askConfirm('Kayıt silinsin mi?')) return;
     try { await del.mutateAsync(entry.id); toast.ok('Silindi'); onClose(); } catch (e) { toast.error(e); }
   };
 

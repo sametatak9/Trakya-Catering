@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { Check, FileInput, FilePlus2, Sparkles, Trash2, Upload, X } from 'lucide-react';
 import { useCan } from '@/app/session';
 import { suggestCategory, type Suggestion } from '@/lib/categorize';
@@ -65,7 +66,7 @@ export function InvoicesPage() {
     } catch (e) { toast.error(e); }
   };
   const bulkDelete = async () => {
-    if (!window.confirm(`${sel.count} fatura silinsin mi? Onaylıysa bağlı ödenmemiş gider kaydı da kalkar.`)) return;
+    if (!await askConfirm(`${sel.count} fatura silinsin mi? Onaylıysa bağlı ödenmemiş gider kaydı da kalkar.`)) return;
     try { for (const id of sel.ids) await del.mutateAsync(id); toast.ok('Silindi'); sel.clear(); } catch (e) { toast.error(e); }
   };
   const approved = list.filter((i) => i.status === 'onaylandi');
@@ -317,7 +318,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
   };
 
   const remove = async () => {
-    if (!window.confirm('Fatura silinsin mi? Ödenmemiş gider kaydı da kalkar.')) return;
+    if (!await askConfirm('Fatura silinsin mi? Ödenmemiş gider kaydı da kalkar.')) return;
     try { await del.mutateAsync(invoice.id); toast.ok('Silindi'); onClose(); } catch (e) { toast.error(e); }
   };
 

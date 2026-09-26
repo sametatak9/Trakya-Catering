@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { BookmarkPlus, ChefHat, ChevronDown, ChevronRight, ListRestart, Plus, Trash2, Wand2, WandSparkles, X } from 'lucide-react';
 import { Link } from '@/app/router';
 import { useCan } from '@/app/session';
@@ -555,15 +556,15 @@ function BatchCard({ b, items, canEdit, customer, people }: { b: PrepBatchCost; 
                 )}
                 {items.some((i) => i.ingredient_id) && b.portions && (
                   <Button size="sm" icon={<BookmarkPlus className="w-3.5 h-3.5" />} loading={toRecipe.isPending}
-                    onClick={() => window.confirm(b.recipe_id
+                    onClick={() => void askConfirm(b.recipe_id
                       ? 'Bağlı reçetenin gramajları bu hazırlığa göre güncellensin mi? (1 porsiyon = hazırlanan ÷ porsiyon)'
                       : `“${b.dish_name}” reçete olarak kaydedilsin mi? (1 porsiyon = hazırlanan ÷ porsiyon)`)
-                      && toRecipe.mutate(id, { onSuccess: () => toast.ok('Reçete kaydedildi'), onError: toast.error })}>
+                      .then((ok) => ok && toRecipe.mutate(id, { onSuccess: () => toast.ok('Reçete kaydedildi'), onError: toast.error }))}>
                     {b.recipe_id ? 'Reçeteyi bu hazırlığa göre güncelle' : 'Reçete olarak kaydet'}
                   </Button>
                 )}
                 <Button size="sm" variant="danger" className="ml-auto" icon={<Trash2 className="w-3.5 h-3.5" />} loading={delBatch.isPending}
-                  onClick={() => window.confirm(`“${b.dish_name}” hazırlığı silinsin mi?`) && delBatch.mutate(id, { onSuccess: () => toast.ok('Silindi'), onError: toast.error })}>Sil</Button>
+                  onClick={() => void askConfirm(`“${b.dish_name}” hazırlığı silinsin mi?`).then((ok) => ok && delBatch.mutate(id, { onSuccess: () => toast.ok('Silindi'), onError: toast.error }))}>Sil</Button>
               </div>
             </>
           )}

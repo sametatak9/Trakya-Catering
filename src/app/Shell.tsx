@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { LogOut, Menu, Moon, RotateCcw, Sparkles, Sun, UserRound, X } from 'lucide-react';
 import { NotificationBell } from '@/features/assistant/Notifications';
 import { ChatButton } from '@/features/chat/ChatPanel';
@@ -93,7 +94,7 @@ function UserBox({ theme, onToggleTheme }: { theme: Theme; onToggleTheme: () => 
 /** Demo sürümünde her ekranda görünen küçük şerit: verilerin örnek olduğunu hatırlatır. */
 function DemoBadge() {
   const reset = async () => {
-    if (!window.confirm('Demo verileri ilk hâline dönsün mü? Yaptığınız değişiklikler silinir.')) return;
+    if (!await askConfirm('Demo verileri ilk hâline dönsün mü? Yaptığınız değişiklikler silinir.')) return;
     (await import('@/demo/server')).resetDemo();
     window.location.reload();
   };

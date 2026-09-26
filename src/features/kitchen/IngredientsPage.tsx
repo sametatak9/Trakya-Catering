@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { AlertTriangle, Plus, Search, Trash2, Wheat } from 'lucide-react';
 import { useCan } from '@/app/session';
 import { ALLERGENS, INGREDIENT_CATEGORIES, PRICE_STALE_DAYS, STOCK_UNITS, unitInfo } from '@/lib/domain';
@@ -190,7 +191,7 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
   };
 
   const remove = async () => {
-    if (!ingredient || !window.confirm(`"${ingredient.name}" silinsin mi? Reçetelerde kullanılıyorsa silinemez; pasife alın.`)) return;
+    if (!ingredient || !await askConfirm(`"${ingredient.name}" silinsin mi? Reçetelerde kullanılıyorsa silinemez; pasife alın.`)) return;
     try { await del.mutateAsync(ingredient.id); toast.ok('Hammadde silindi'); onClose(); } catch (e) { toast.error(e); }
   };
 

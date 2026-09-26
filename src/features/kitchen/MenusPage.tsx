@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { Plus, Trash2, UtensilsCrossed, X } from 'lucide-react';
 import { useCan } from '@/app/session';
 import { MEALS, MENU_KINDS, ROLES } from '@/lib/domain';
@@ -214,7 +215,7 @@ function MenuForm({ id, onClose, canEdit, initial, initialItems, recipes }: {
   };
 
   const remove = async () => {
-    if (!id || !window.confirm(`"${h.name}" menüsü silinsin mi?`)) return;
+    if (!id || !await askConfirm(`"${h.name}" menüsü silinsin mi?`)) return;
     try { await del.mutateAsync(id); toast.ok('Menü silindi'); onClose(); } catch (e) { toast.error(e); }
   };
 

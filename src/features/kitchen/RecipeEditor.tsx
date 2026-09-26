@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { ArrowLeft, Calculator, History, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import { Link, useRouter } from '@/app/router';
 import { useCan } from '@/app/session';
@@ -181,7 +182,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
   const snaps = snapshots.data ?? [];
 
   const remove = async () => {
-    if (!id || !window.confirm(`"${h.name}" reçetesi silinsin mi? Menülerde kullanılıyorsa silinemez; pasife alın.`)) return;
+    if (!id || !await askConfirm(`"${h.name}" reçetesi silinsin mi? Menülerde kullanılıyorsa silinemez; pasife alın.`)) return;
     try { await del.mutateAsync(id); toast.ok('Reçete silindi'); go('/receteler'); } catch (e) { toast.error(e); }
   };
 

@@ -5,6 +5,7 @@ import { App } from './app/App';
 import { RouterProvider } from './app/router';
 import { SessionProvider } from './app/session';
 import { ToastProvider } from './ui/toast';
+import { ConfirmHost } from './ui/confirm';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')!).render(
         <RouterProvider>
           <ToastProvider>
             <App />
+            <ConfirmHost />
           </ToastProvider>
         </RouterProvider>
       </SessionProvider>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { CheckCheck, ClipboardList, Copy, Plus, Trash2 } from 'lucide-react';
 import { Link } from '@/app/router';
 import { useCan } from '@/app/session';
@@ -50,7 +51,7 @@ export function OrdersPage() {
     try { await updateMany.mutateAsync(items); toast.ok(`${items.length} sipariş güncellendi`); sel.clear(); } catch (e) { toast.error(e); }
   };
   const bulkDelete = async () => {
-    if (!window.confirm(`${sel.count} sipariş silinsin mi?`)) return;
+    if (!await askConfirm(`${sel.count} sipariş silinsin mi?`)) return;
     try { for (const id of sel.ids) await del.mutateAsync(id); toast.ok(`${sel.count} sipariş silindi`); sel.clear(); } catch (e) { toast.error(e); }
   };
 
@@ -103,7 +104,7 @@ export function OrdersPage() {
     const items = rows.filter((o) => o.status === 'bekliyor' || o.status === 'onaylandi')
       .map((o) => ({ id: o.id, patch: { status: 'teslim_edildi', delivered_qty: o.delivered_qty ?? o.ordered_qty } }));
     if (items.length === 0) return;
-    if (!window.confirm(`${items.length} sipariş "teslim edildi" yapılsın mı? Teslim edilen tutarlar gelir (alacak) olarak kaydedilir.`)) return;
+    if (!await askConfirm(`${items.length} sipariş "teslim edildi" yapılsın mı? Teslim edilen tutarlar gelir (alacak) olarak kaydedilir.`)) return;
     try { await updateMany.mutateAsync(items); toast.ok('Teslimler kaydedildi'); } catch (e) { toast.error(e); }
   };
 
@@ -233,7 +234,7 @@ export function OrdersPage() {
                       <td className="pr-3">
                         {canEdit && (
                           <button type="button" className="p-1.5 rounded-lg text-ink-3 hover:text-stop hover:bg-stop-soft" aria-label="Siparişi sil"
-                            onClick={() => window.confirm('Sipariş silinsin mi?') && del.mutate(o.id, { onSuccess: () => toast.ok('Silindi'), onError: toast.error })}>
+                            onClick={() => void askConfirm('Sipariş silinsin mi?').then((ok) => ok && del.mutate(o.id, { onSuccess: () => toast.ok('Silindi'), onError: toast.error }))}>
                             <Trash2 className="w-4 h-4" />
                           </button>
                         )}

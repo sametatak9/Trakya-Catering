@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { askConfirm } from '@/ui/confirm';
 import { FolderPlus, Plus, TrendingDown } from 'lucide-react';
 import { addMonths, lastMonths, monthLabel, monthRange, todayISO, monthKey, shortDay } from '@/lib/dates';
 import { monthlyByCategory, trend } from '@/lib/finance';
@@ -75,7 +76,7 @@ export function ExpensesPage() {
   const bulkDelete = async () => {
     const own = selectedRows.filter((r) => r.source === 'manuel');
     if (own.length === 0) return toast.error('Yalnız elle girilen kayıtlar silinebilir; fatura kayıtları faturadan yönetilir');
-    if (!window.confirm(`${own.length} elle girilmiş gider silinsin mi?`)) return;
+    if (!await askConfirm(`${own.length} elle girilmiş gider silinsin mi?`)) return;
     try { for (const r of own) await delEntry.mutateAsync(r.id); toast.ok(`${own.length} kayıt silindi`); sel.clear(); } catch (e) { toast.error(e); }
   };
 

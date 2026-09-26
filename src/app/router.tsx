@@ -1,18 +1,24 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 interface RouterApi { path: string; go: (path: string) => void }
+
+/** VITE_ROUTER=hash: adres çubuğu yerine #/yol kullanılır (statik barındırma, gömülü önizleme). */
+const HASH = import.meta.env.VITE_ROUTER === 'hash';
+const currentPath = () => (HASH ? window.location.hash.replace(/^#/, '') || '/' : window.location.pathname || '/');
+export const hrefFor = (path: string) => (HASH ? `#${path}` : path);
 const Ctx = createContext<RouterApi>({ path: '/', go: () => undefined });
 
 export function RouterProvider({ children }: { children: ReactNode }) {
-  const [path, setPath] = useState(() => window.location.pathname || '/');
+  const [path, setPath] = useState(currentPath);
   useEffect(() => {
-    const onPop = () => setPath(window.location.pathname || '/');
+    const onPop = () => setPath(currentPath());
     window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
+    window.addEventListener('hashchange', onPop);
+    return () => { window.removeEventListener('popstate', onPop); window.removeEventListener('hashchange', onPop); };
   }, []);
   const go = useCallback((next: string) => {
-    if (next === window.location.pathname) return;
-    window.history.pushState({}, '', next);
+    if (next === currentPath()) return;
+    window.history.pushState({}, '', hrefFor(next));
     setPath(next);
     window.scrollTo({ top: 0 });
   }, []);
@@ -37,7 +43,7 @@ export function matchPath(pattern: string, path: string): Record<string, string>
 export function Link({ to, className, children }: { to: string; className?: string; children: ReactNode }) {
   const { go } = useRouter();
   return (
-    <a href={to} className={className}
+    <a href={hrefFor(to)} className={className}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
         e.preventDefault();

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "build:demo": "VITE_DEMO=1 vite build"
+    "build:demo": "VITE_DEMO=1 vite build",
+    "build:demo-static": "VITE_DEMO=1 VITE_ROUTER=hash vite build --base ./ --outDir dist-demo"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",

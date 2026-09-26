@@ -22,6 +22,7 @@ bun run dev            # http://localhost:3000
 | `bun run test` | Birim testleri (maliyet matematiği, biçimlendirme) |
 | `bun run build` | Üretim derlemesi |
 | `bun run build:demo` | Tanıtım (demo) derlemesi — Supabase gerekmez |
+| `bun run build:demo-static` | Demo, `#/yol` yönlendirmeli ve göreli yollu (her statik barındırmada çalışır) |
 
 SQL senaryo testleri: `supabase/tests/*.sql` (transaction içinde çalışır, `ROLLBACK` ile biter).
 
