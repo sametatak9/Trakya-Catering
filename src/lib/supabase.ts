@@ -1,0 +1,32 @@
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
+
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+/** Ortam değişkenleri eksikse uygulama sahte veriye düşmez; kurulum ekranı gösterilir. */
+export const supabaseConfigured = Boolean(url && key);
+
+export const supabase = createClient<Database>(url || 'https://invalid.local', key || 'missing', {
+  auth: { persistSession: true, autoRefreshToken: true },
+});
+
+/** Supabase hatasını kullanıcıya gösterilebilir Türkçe mesaja çevirir. */
+export function describeError(err: unknown): string {
+  const e = err as { code?: string; message?: string } | null;
+  if (!e) return 'Bilinmeyen hata';
+  switch (e.code) {
+    case '42501':
+    case 'PGRST116': return 'Bu işlem için yetkiniz yok ya da kayıt bulunamadı.';
+    case '23505': return 'Aynı isim/kodla bir kayıt zaten var.';
+    case '23503': return 'Bu kayıt başka kayıtlarda kullanıldığı için silinemez.';
+    case '23514': return 'Girilen değer kurallara uymuyor (ör. negatif miktar, %100 fire).';
+    default: return e.message || 'Beklenmeyen hata';
+  }
+}
+
+/** { data, error } sonucunu açar; hata varsa fırlatır (react-query onError'a düşer). */
+export function unwrap<R extends { data: unknown; error: unknown }>(res: R): NonNullable<R['data']> {
+  if (res.error) throw res.error;
+  return res.data as NonNullable<R['data']>;
+}

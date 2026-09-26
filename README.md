@@ -1,0 +1,44 @@
+# Trakya Catering · Üretim & Maliyet ERP
+
+Toplu yemek fabrikası ERP'si. Akış: reçete (gramaj) → D-1 sipariş → hammadde patlatma (MRP) → stok → sevkiyat irsaliyesi → toplu e-fatura → aylık net kâr.
+
+**Stack:** React 19 · Vite · TypeScript · Tailwind v4 · TanStack Query · Supabase (Auth + Postgres + RLS)
+
+## Kurulum
+
+```bash
+bun install            # veya npm install
+cp .env.example .env.local
+bun run dev            # http://localhost:3000
+```
+
+İlk kayıt olan kullanıcı otomatik **yönetici** olur. Sonraki kullanıcılar kayıt olur ve yönetici *Ekip & Yetkiler* ekranından rol atayana kadar hiçbir veriye erişemez.
+
+## Komutlar
+
+| Komut | İş |
+|---|---|
+| `bun run lint` | TypeScript kontrolü |
+| `bun run test` | Birim testleri (maliyet matematiği, biçimlendirme) |
+| `bun run build` | Üretim derlemesi |
+
+SQL senaryo testleri: `supabase/tests/*.sql` (transaction içinde çalışır, `ROLLBACK` ile biter).
+
+## Maliyet matematiği
+
+- Reçete satırı **net** miktar tutar (temizlenmiş, tencereye giren; g / ml / adet).
+- **Brüt** (depodan çıkan) = net / (1 − fire% / 100)
+- Satır maliyeti = brüt (stok biriminde) × son alış fiyatı
+- Porsiyon maliyeti = Σ satır · Menü maliyeti = Σ (porsiyon maliyeti × porsiyon katsayısı)
+
+Doğruluk kaynağı veritabanıdır (`v_recipe_lines`, `v_recipe_costs`, `v_menu_costs`, `recipe_scale()`); `src/lib/cost.ts` aynı formülü editördeki canlı önizleme için kullanır.
+
+> Örnek: 1.200 porsiyon Orman Kebabı → 144 kg net / 160 kg brüt kuşbaşı (%10 fire). Porsiyon maliyeti 83,99 ₺.
+
+## Roller
+
+`yonetici`, `asci_basi`, `depo`, `satinalma`, `muhasebe`, `sofor`, `musteri` (portal). Yetkiler **RLS** ile veritabanında uygulanır; hiçbir tabloda `using (true)` yoktur. Tüm değişiklikler `audit_log`'a yazılır.
+
+## Yol haritası
+
+Bkz. [`docs/PLAN.md`](docs/PLAN.md). Bu sürüm: Faz 1 (temel, güvenlik, tasarım) + Faz 2 (hammadde, reçete, menü, maliyet).

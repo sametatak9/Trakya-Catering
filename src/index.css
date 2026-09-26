@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   TRAKYA HASADI — tasarım token'ları
+   Kiremit (pul biber) + Ayçiçeği + Un/krem zemin + Sıcak kömür mürekkep.
+   Tüm renkler tek yerden; koyu tema [data-theme="dark"] ile.
+   ===================================================================== */
+:root {
+  --tc-surface: #FBF8F2;
+  --tc-surface-2: #F4EFE5;
+  --tc-card: #FFFFFF;
+  --tc-line: #EAE3D6;
+  --tc-line-strong: #D8CDBA;
+  --tc-ink: #221F1B;
+  --tc-ink-2: #4A443C;
+  --tc-ink-3: #857B6D;
+  --tc-brand: #B4432A;
+  --tc-brand-strong: #963520;
+  --tc-brand-soft: #F7E4DE;
+  --tc-on-brand: #FFFFFF;
+  --tc-accent: #E9A822;
+  --tc-accent-strong: #B97F0A;
+  --tc-accent-soft: #FBEFCF;
+  --tc-ok: #0F766E;
+  --tc-ok-soft: #DDF0EC;
+  --tc-wait: #B45309;
+  --tc-wait-soft: #FCEBD5;
+  --tc-stop: #C2261F;
+  --tc-stop-soft: #FBE1DE;
+  --tc-info: #2563EB;
+  --tc-info-soft: #E0E9FC;
+  --tc-shadow: 34 31 27;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --tc-surface: #16140F;
+  --tc-surface-2: #1C1914;
+  --tc-card: #201D18;
+  --tc-line: #332E27;
+  --tc-line-strong: #463F35;
+  --tc-ink: #F3EEE6;
+  --tc-ink-2: #D2C9BC;
+  --tc-ink-3: #9B9083;
+  --tc-brand: #E0694E;
+  --tc-brand-strong: #EC8468;
+  --tc-brand-soft: #3A221B;
+  --tc-on-brand: #1A0D09;
+  --tc-accent: #F2BC45;
+  --tc-accent-strong: #F6CD6E;
+  --tc-accent-soft: #3A2F16;
+  --tc-ok: #3CB6A9;
+  --tc-ok-soft: #14302C;
+  --tc-wait: #F0A34C;
+  --tc-wait-soft: #3A2A14;
+  --tc-stop: #F2766B;
+  --tc-stop-soft: #3E1A17;
+  --tc-info: #7FA5F5;
+  --tc-info-soft: #18243E;
+  --tc-shadow: 0 0 0;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-surface: var(--tc-surface);
+  --color-surface-2: var(--tc-surface-2);
+  --color-card: var(--tc-card);
+  --color-line: var(--tc-line);
+  --color-line-strong: var(--tc-line-strong);
+  --color-ink: var(--tc-ink);
+  --color-ink-2: var(--tc-ink-2);
+  --color-ink-3: var(--tc-ink-3);
+  --color-brand: var(--tc-brand);
+  --color-brand-strong: var(--tc-brand-strong);
+  --color-brand-soft: var(--tc-brand-soft);
+  --color-on-brand: var(--tc-on-brand);
+  --color-accent: var(--tc-accent);
+  --color-accent-strong: var(--tc-accent-strong);
+  --color-accent-soft: var(--tc-accent-soft);
+  --color-ok: var(--tc-ok);
+  --color-ok-soft: var(--tc-ok-soft);
+  --color-wait: var(--tc-wait);
+  --color-wait-soft: var(--tc-wait-soft);
+  --color-stop: var(--tc-stop);
+  --color-stop-soft: var(--tc-stop-soft);
+  --color-info: var(--tc-info);
+  --color-info-soft: var(--tc-info-soft);
+
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html, body { background: var(--tc-surface); color: var(--tc-ink); }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  ::selection { background: var(--tc-accent-soft); color: var(--tc-ink); }
+  :focus-visible { outline: 2px solid var(--tc-accent); outline-offset: 2px; }
+}
+
+@layer components {
+  .tc-card {
+    background: var(--tc-card);
+    border: 1px solid var(--tc-line);
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgb(var(--tc-shadow) / 0.04), 0 8px 24px -12px rgb(var(--tc-shadow) / 0.10);
+  }
+  .tc-input {
+    width: 100%;
+    background: var(--tc-card);
+    border: 1px solid var(--tc-line-strong);
+    border-radius: 12px;
+    padding: 9px 12px;
+    font-size: 14px;
+    color: var(--tc-ink);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .tc-input::placeholder { color: var(--tc-ink-3); }
+  .tc-input:focus { outline: none; border-color: var(--tc-brand); box-shadow: 0 0 0 3px var(--tc-brand-soft); }
+  .tc-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  /* Başlık şeridindeki ince ayçiçeği çizgisi — markanın imzası */
+  .tc-harvest-rule {
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--tc-brand) 0 38%, var(--tc-accent) 38% 100%);
+  }
+  .tc-scroll { scrollbar-width: thin; scrollbar-color: var(--tc-line-strong) transparent; }
+}
+
+@keyframes tc-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.tc-toast-in { animation: tc-toast-in .2s ease-out; }
