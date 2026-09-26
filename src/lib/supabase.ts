@@ -6,7 +6,25 @@ import type { Database } from './database.types';
  * Supabase'e hiç bağlanmaz; istekleri tarayıcı içindeki demo sunucusu yanıtlar (src/demo).
  * Gerçek kurulumda bu kod ayrı parçada kalır ve hiç yüklenmez.
  */
-export const DEMO = import.meta.env.VITE_DEMO === '1';
+function demoRequested(): boolean {
+  if (import.meta.env.VITE_DEMO === '1') return true;
+  try {
+    // Müşteriye giden link: …/?demo  (tarayıcıda hatırlanır; ?canli ile çıkılır)
+    const q = new URLSearchParams(window.location.search);
+    if (q.has('demo')) localStorage.setItem('tc_mode', 'demo');
+    if (q.has('canli')) localStorage.removeItem('tc_mode');
+    return localStorage.getItem('tc_mode') === 'demo';
+  } catch { return false; }
+}
+export const DEMO = demoRequested();
+/** Gerçek (Supabase) kurulum bu derlemede tanımlı mı — demodan "gerçek sisteme geç" için */
+export const REAL_AVAILABLE = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) && import.meta.env.VITE_DEMO !== '1';
+
+/** Demo ↔ gerçek sistem geçişi (sayfa yeniden yüklenir) */
+export function switchMode(mode: 'demo' | 'canli') {
+  try { if (mode === 'demo') localStorage.setItem('tc_mode', 'demo'); else localStorage.removeItem('tc_mode'); } catch { /* yok say */ }
+  window.location.href = window.location.pathname + (mode === 'demo' ? '?demo' : '');
+}
 
 const url = DEMO ? 'https://demo.trakyacatering.test' : (import.meta.env.VITE_SUPABASE_URL as string | undefined);
 const key = DEMO ? 'demo' : (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);

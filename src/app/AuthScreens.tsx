@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Calculator, ChefHat, Clock3, Crown, KeyRound, LogOut, Megaphone, Salad, ShoppingCart, Sparkles, Truck, Warehouse } from 'lucide-react';
 import { DEMO_USERS, demoEmail } from '@/demo/users';
 import { ROLE_LABELS, type AppRole } from '@/lib/domain';
-import { DEMO, supabase, supabaseConfigured } from '@/lib/supabase';
+import { DEMO, REAL_AVAILABLE, supabase, supabaseConfigured, switchMode } from '@/lib/supabase';
 import { Logo } from '@/ui/Logo';
 import { Button, ErrorNote, Field } from '@/ui/primitives';
 import { signOut } from './session';
@@ -91,6 +91,9 @@ function DemoLogin() {
         ))}
       </div>
       {error && <div className="mt-3"><ErrorNote>{error}</ErrorNote></div>}
+      {REAL_AVAILABLE && (
+        <button type="button" onClick={() => switchMode('canli')} className="mt-5 text-sm text-ink-3 hover:text-brand">Ekip hesabıyla gerçek sisteme giriş →</button>
+      )}
     </AuthFrame>
   );
 }
@@ -169,6 +172,11 @@ function RealLogin() {
           {mode === 'login' ? 'Giriş yap' : 'Hesap oluştur'}
         </Button>
       </form>
+      <button type="button" onClick={() => switchMode('demo')}
+        className="mt-6 w-full rounded-2xl ring-1 ring-line bg-card px-4 py-3 text-left hover:ring-brand/60 transition">
+        <span className="block text-sm font-bold text-ink">Canlı demoyu gez</span>
+        <span className="block text-xs text-ink-3 mt-0.5">Örnek verilerle, şifresiz; gerçek kayıtlara dokunmaz.</span>
+      </button>
       {!bootstrap && (
         <button type="button" className="mt-5 text-sm text-ink-3 hover:text-brand"
           onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); setInfo(null); }}>
