@@ -1,0 +1,332 @@
+﻿kod,yemek_adi,kategori,alt_kategori,ogun,kaynak
+YM-0001,Mercimek Çorbası,corba,mercimekli,kahvalti|ogle|aksam,SART-HALIC
+YM-0002,Ezogelin Çorbası,corba,mercimekli,kahvalti|ogle|aksam,SART-HALIC
+YM-0003,Yeşil Mercimek Çorbası,corba,mercimekli,ogle|aksam,SEKTOR
+YM-0004,Düğün Çorbası,corba,etli,ogle|aksam,SART-HALIC
+YM-0005,Yayla Çorbası,corba,yogurtlu,ogle|aksam,SART-HALIC
+YM-0006,Pirinç Çorbası,corba,tahilli,ogle|aksam,SART-HALIC
+YM-0007,Sebze Çorbası,corba,sebzeli,ogle|aksam,SART-HALIC
+YM-0008,Arap Aşı Çorbası,corba,tavuklu,ogle|aksam,SART-HALIC
+YM-0009,Brokoli Çorbası,corba,sebzeli,ogle|aksam,SART-HALIC
+YM-0010,Tavuk Çorbası,corba,tavuklu,ogle|aksam,SART-HALIC
+YM-0011,Tarhana Çorbası,corba,tahilli,kahvalti|ogle|aksam,SART-HALIC
+YM-0012,Oba Çorbası,corba,tahilli,ogle|aksam,SART-HALIC
+YM-0013,Abant Çorbası,corba,tahilli,ogle|aksam,SART-HALIC
+YM-0014,Kafkas Çorbası,corba,tahilli,ogle|aksam,SART-HALIC
+YM-0015,Domates Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0016,Şehriye Çorbası,corba,tahilli,ogle|aksam,SEKTOR
+YM-0017,Mantar Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0018,Kremalı Tavuk Çorbası,corba,tavuklu,ogle|aksam,SEKTOR
+YM-0019,Toyga Çorbası,corba,yogurtlu,ogle|aksam,SEKTOR
+YM-0020,Lebeniye Çorbası,corba,yogurtlu,ogle|aksam,SEKTOR
+YM-0021,Analı Kızlı Çorbası,corba,etli,ogle|aksam,SEKTOR
+YM-0022,İşkembe Çorbası,corba,etli,kahvalti|ogle|aksam,SEKTOR
+YM-0023,Kelle Paça Çorbası,corba,etli,kahvalti|ogle|aksam,SEKTOR
+YM-0024,Beyran Çorbası,corba,etli,ogle|aksam,SEKTOR
+YM-0025,Bulgur Çorbası,corba,tahilli,ogle|aksam,SEKTOR
+YM-0026,Un Çorbası,corba,tahilli,ogle|aksam,SEKTOR
+YM-0027,Havuç Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0028,Balkabağı Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0029,Pırasa Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0030,Patates Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0031,Kabak Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0032,Karnabahar Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0033,Mısır Çorbası,corba,sebzeli,ogle|aksam,SEKTOR
+YM-0034,Nohut Çorbası,corba,bakliyat,ogle|aksam,SEKTOR
+YM-0035,Kuru Fasulye Çorbası,corba,bakliyat,ogle|aksam,SEKTOR
+YM-0036,Ekşili Köfte Çorbası,corba,etli,ogle|aksam,SEKTOR
+YM-0037,Sultan Çorbası,corba,tavuklu,ogle|aksam,SEKTOR
+YM-0038,Erişte Çorbası,corba,tahilli,ogle|aksam,SEKTOR
+YM-0039,Kesme Çorbası,corba,tahilli,ogle|aksam,SEKTOR
+YM-0040,Mahluta Çorbası,corba,mercimekli,ogle|aksam,SEKTOR
+YM-0041,Tutmaç Çorbası,corba,yogurtlu,ogle|aksam,SEKTOR
+YM-0042,Balık Çorbası,corba,balikli,ogle|aksam,SEKTOR
+YM-0043,Bahçıvan Kebabı,ana_yemek,etli_kebap,ogle|aksam,SART-HALIC
+YM-0044,Tas Kebabı,ana_yemek,etli_kebap,ogle|aksam,SART-HALIC
+YM-0045,Çiftlik Kebabı,ana_yemek,etli_kebap,ogle|aksam,SART-HALIC
+YM-0046,İslim Kebabı,ana_yemek,etli_kebap,ogle|aksam,SART-HALIC
+YM-0047,Orman Kebabı,ana_yemek,etli_kebap,ogle|aksam,SART-HALIC
+YM-0048,Beğendili Kebap,ana_yemek,etli_kebap,ogle|aksam,SART-HALIC
+YM-0049,Hünkar Beğendi,ana_yemek,etli_kebap,ogle|aksam,SEKTOR
+YM-0050,Ankara Tava,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0051,Et Haşlama,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0052,Et Kızartma,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0053,Et Döner,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0054,Et Sote,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0055,Rosto Et,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0056,Kuzu Kızartma,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0057,Şehriyeli Güveç,ana_yemek,etli,ogle|aksam,SART-HALIC
+YM-0058,Et Kavurma,ana_yemek,etli,ogle|aksam,SEKTOR
+YM-0059,Etli Güveç,ana_yemek,etli,ogle|aksam,SEKTOR
+YM-0060,Kuzu Tandır,ana_yemek,etli,ogle|aksam,SEKTOR
+YM-0061,Kağıt Kebabı,ana_yemek,etli,ogle|aksam,SEKTOR
+YM-0062,Tandır Kebabı,ana_yemek,etli,ogle|aksam,SEKTOR
+YM-0063,Etli Nohut,ana_yemek,etli_bakliyat,ogle|aksam,SEKTOR
+YM-0064,Etli Kuru Fasulye,ana_yemek,etli_bakliyat,ogle|aksam,SEKTOR
+YM-0065,Etli Barbunya,ana_yemek,etli_bakliyat,ogle|aksam,SEKTOR
+YM-0066,Etli Yeşil Mercimek,ana_yemek,etli_bakliyat,ogle|aksam,SEKTOR
+YM-0067,İzmir Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0068,Dalyan Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0069,Kadınbudu Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0070,Sulu Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0071,Kuru Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0072,Rosto Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0073,Fırın Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0074,Terbiyeli Köfte,ana_yemek,kofte,ogle|aksam,SART-HALIC
+YM-0075,Izgara Köfte,ana_yemek,kofte,ogle|aksam,SEKTOR
+YM-0076,Türlü Köfte,ana_yemek,kofte,ogle|aksam,SEKTOR
+YM-0077,Patatesli Köfte,ana_yemek,kofte,ogle|aksam,SEKTOR
+YM-0078,Hasanpaşa Köfte,ana_yemek,kofte,ogle|aksam,SEKTOR
+YM-0079,Sebzeli Köfte,ana_yemek,kofte,ogle|aksam,SEKTOR
+YM-0080,İnegöl Köfte,ana_yemek,kofte,ogle|aksam,SEKTOR
+YM-0081,Kıymalı Karnabahar,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0082,Fırında Patates,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0083,Karnıyarık,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0084,Patlıcan Musakka,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0085,Etli Biber Dolma,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0086,Etli Kabak Dolma,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0087,Patates Oturtma,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0088,Kıymalı Mantı,ana_yemek,kiymali,ogle|aksam,SART-HALIC
+YM-0089,Kıymalı Ispanak,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0090,Kıymalı Pırasa,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0091,Kıymalı Kabak,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0092,Kıymalı Patates,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0093,Kıymalı Bezelye,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0094,Patates Musakka,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0095,Kabak Musakka,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0096,Lahana Sarma,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0097,Etli Yaprak Sarma,ana_yemek,kiymali,ogle|aksam,SEKTOR
+YM-0098,Etli Taze Fasulye,ana_yemek,etli_sebze,ogle|aksam,SART-HALIC
+YM-0099,Etli Bezelye,ana_yemek,etli_sebze,ogle|aksam,SART-HALIC
+YM-0100,Etli Bamya,ana_yemek,etli_sebze,ogle|aksam,SART-HALIC
+YM-0101,Etli Karnabahar,ana_yemek,etli_sebze,ogle|aksam,SART-HALIC
+YM-0102,Etli Türlü,ana_yemek,etli_sebze,ogle|aksam,SART-HALIC
+YM-0103,Etli Kereviz,ana_yemek,etli_sebze,ogle|aksam,SEKTOR
+YM-0104,Etli Pırasa,ana_yemek,etli_sebze,ogle|aksam,SEKTOR
+YM-0105,Etli Enginar,ana_yemek,etli_sebze,ogle|aksam,SEKTOR
+YM-0106,Tavuk Haşlama,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0107,Fırın Tavuk,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0108,Tavuk Şinitzel,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0109,Tavuk Sote,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0110,Tavuk Külbastı,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0111,Tavuk Topkapı,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0112,Hindi Sote,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0113,Hindi Rosto,ana_yemek,tavuklu,ogle|aksam,SART-HALIC
+YM-0114,Tavuk Döner,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0115,Tavuk But Izgara,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0116,Tavuk Izgara,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0117,Tavuk Pirzola,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0118,Tavuk Kanat,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0119,Tavuk Güveç,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0120,Tavuklu Bezelye,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0121,Tavuk Fajita,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0122,Köri Soslu Tavuk,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0123,Kremalı Mantarlı Tavuk,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0124,Çıtır Tavuk,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0125,Tavuk Kebabı,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0126,Tavuk Tantuni,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0127,Piliç Baget,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0128,Çerkez Tavuğu,ana_yemek,tavuklu,ogle|aksam,SEKTOR
+YM-0129,Fırın Levrek,ana_yemek,balik,ogle|aksam,SART-HALIC
+YM-0130,Fırın Çipura,ana_yemek,balik,ogle|aksam,SART-HALIC
+YM-0131,Alabalık Izgara,ana_yemek,balik,ogle|aksam,SART-HALIC
+YM-0132,Hamsi Tava,ana_yemek,balik,ogle|aksam,SEKTOR
+YM-0133,Palamut Izgara,ana_yemek,balik,ogle|aksam,SEKTOR
+YM-0134,Somon Izgara,ana_yemek,balik,ogle|aksam,SEKTOR
+YM-0135,Mezgit Tava,ana_yemek,balik,ogle|aksam,SEKTOR
+YM-0136,Balık Buğulama,ana_yemek,balik,ogle|aksam,SEKTOR
+YM-0137,Balık Köfte,ana_yemek,balik,ogle|aksam,SEKTOR
+YM-0138,Hamsili Pilav,ana_yemek,balik,ogle|aksam,SEKTOR
+YM-0139,Kuru Fasulye,sebze,bakliyat,ogle|aksam,SART-HALIC
+YM-0140,Nohut,sebze,bakliyat,ogle|aksam,SART-HALIC
+YM-0141,Bezelye,sebze,sebze,ogle|aksam,SART-HALIC
+YM-0142,Taze Fasulye,sebze,sebze,ogle|aksam,SEKTOR
+YM-0143,Türlü,sebze,sebze,ogle|aksam,SEKTOR
+YM-0144,Ispanak,sebze,sebze,ogle|aksam,SEKTOR
+YM-0145,Pırasa,sebze,sebze,ogle|aksam,SEKTOR
+YM-0146,Kabak Yemeği,sebze,sebze,ogle|aksam,SEKTOR
+YM-0147,Patates Yemeği,sebze,sebze,ogle|aksam,SEKTOR
+YM-0148,Karnabahar Yemeği,sebze,sebze,ogle|aksam,SEKTOR
+YM-0149,Bamya,sebze,sebze,ogle|aksam,SEKTOR
+YM-0150,Mantar Sote,sebze,sebze,ogle|aksam,SEKTOR
+YM-0151,Sebze Sote,sebze,sebze,ogle|aksam,SEKTOR
+YM-0152,Fırın Sebze,sebze,sebze,ogle|aksam,SEKTOR
+YM-0153,Mücver,sebze,sebze,ogle|aksam,SEKTOR
+YM-0154,Barbunya,sebze,bakliyat,ogle|aksam,SEKTOR
+YM-0155,Yeşil Mercimek,sebze,bakliyat,ogle|aksam,SEKTOR
+YM-0156,Sebzeli Nohut,sebze,bakliyat,ogle|aksam,SEKTOR
+YM-0157,Zeytinyağlı Pırasa,sebze,zeytinyagli,ogle|aksam,SART-HALIC
+YM-0158,Zeytinyağlı Taze Fasulye,sebze,zeytinyagli,ogle|aksam,SART-HALIC
+YM-0159,Zeytinyağlı Dolma,sebze,zeytinyagli,ogle|aksam,SART-HALIC
+YM-0160,Zeytinyağlı Sarma,sebze,zeytinyagli,ogle|aksam,SART-HALIC
+YM-0161,Zeytinyağlı Enginar,sebze,zeytinyagli,ogle|aksam,SART-HALIC
+YM-0162,Zeytinyağlı Kereviz,sebze,zeytinyagli,ogle|aksam,SART-HALIC
+YM-0163,Zeytinyağlı Barbunya,sebze,zeytinyagli,ogle|aksam,SEKTOR
+YM-0164,Zeytinyağlı Bamya,sebze,zeytinyagli,ogle|aksam,SEKTOR
+YM-0165,Zeytinyağlı Kabak,sebze,zeytinyagli,ogle|aksam,SEKTOR
+YM-0166,Zeytinyağlı Brokoli,sebze,zeytinyagli,ogle|aksam,SEKTOR
+YM-0167,Zeytinyağlı Karnabahar,sebze,zeytinyagli,ogle|aksam,SEKTOR
+YM-0168,İmam Bayıldı,sebze,zeytinyagli,ogle|aksam,SEKTOR
+YM-0169,Şakşuka,sebze,zeytinyagli,ogle|aksam,SEKTOR
+YM-0170,Barbunya Pilaki,sebze,zeytinyagli,ogle|aksam,SART-HALIC
+YM-0171,Biber Kızartma,sebze,kizartma,ogle|aksam,SART-HALIC
+YM-0172,Patlıcan Kızartma,sebze,kizartma,ogle|aksam,SART-HALIC
+YM-0173,Patates Kızartması,sebze,kizartma,kahvalti|ogle|aksam,SART-HALIC
+YM-0174,Kabak Kızartma,sebze,kizartma,ogle|aksam,SART-HALIC
+YM-0175,Karışık Kızartma,sebze,kizartma,ogle|aksam,SART-HALIC
+YM-0176,Patates Püresi,sebze,garnitur,ogle|aksam,SART-HALIC
+YM-0177,Haşlanmış Sebze,sebze,garnitur,ogle|aksam,SART-HALIC
+YM-0178,Söğüş Sebze,sebze,garnitur,ogle|aksam,SART-HALIC
+YM-0179,Közlenmiş Sebze,sebze,garnitur,ogle|aksam,SEKTOR
+YM-0180,Pirinç Pilavı,pilav_makarna,pilav,ogle|aksam,SART-HALIC
+YM-0181,Bulgur Pilavı,pilav_makarna,pilav,ogle|aksam,SART-HALIC
+YM-0182,İç Pilav,pilav_makarna,pilav,ogle|aksam,SART-HALIC
+YM-0183,Gökçesu Pilavı,pilav_makarna,pilav,ogle|aksam,SART-HALIC
+YM-0184,Şehriyeli Pilav,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0185,Nohutlu Pilav,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0186,Sebzeli Pilav,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0187,Domatesli Pilav,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0188,Özbek Pilavı,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0189,Perde Pilavı,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0190,Etli Pilav,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0191,Tavuklu Pilav,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0192,Mercimekli Bulgur Pilavı,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0193,Domatesli Bulgur Pilavı,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0194,Şehriyeli Bulgur Pilavı,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0195,Meyhane Pilavı,pilav_makarna,pilav,ogle|aksam,SEKTOR
+YM-0196,Peynirli Makarna,pilav_makarna,makarna,ogle|aksam,SART-HALIC
+YM-0197,Domates Soslu Makarna,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0198,Kıymalı Makarna,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0199,Fırın Makarna,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0200,Kremalı Makarna,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0201,Ton Balıklı Makarna,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0202,Sebzeli Makarna,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0203,Spagetti Bolonez,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0204,Erişte,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0205,Mantı,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0206,Kuskus,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0207,Lazanya,pilav_makarna,makarna,ogle|aksam,SEKTOR
+YM-0208,Su Böreği,pilav_makarna,borek,ogle|aksam,SART-HALIC
+YM-0209,Kol Böreği,pilav_makarna,borek,ogle|aksam,SART-HALIC
+YM-0210,Sigara Böreği,pilav_makarna,borek,kahvalti|ogle|aksam,SEKTOR
+YM-0211,Ispanaklı Börek,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0212,Patatesli Börek,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0213,Kıymalı Börek,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0214,Peynirli Börek,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0215,Tepsi Böreği,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0216,Pide,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0217,Lahmacun,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0218,Gözleme,pilav_makarna,borek,ogle|aksam,SEKTOR
+YM-0219,Mevsim Salata,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0220,Çoban Salata,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0221,Patates Salatası,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0222,Kısır,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0223,Yoğurtlu Kereviz Salatası,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0224,Havuç Salatası,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0225,Brokoli Salatası,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0226,Karnabahar Salatası,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0227,Rus Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0228,Makarna Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0229,Ton Balıklı Salata,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0230,Gavurdağı Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0231,Piyaz,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0232,Yeşil Mercimek Salatası,salata_meze,salata,ogle|aksam,SART-HALIC
+YM-0233,Nohut Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0234,Beyaz Lahana Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0235,Kırmızı Lahana Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0236,Pancar Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0237,Semizotu Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0238,Roka Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0239,Göbek Salata,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0240,Tavuklu Salata,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0241,Bulgur Salatası,salata_meze,salata,ogle|aksam,SEKTOR
+YM-0242,Cacık,salata_meze,meze,ogle|aksam,SART-HALIC
+YM-0243,Haydari,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0244,Humus,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0245,Acılı Ezme,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0246,Babagannuş,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0247,Patlıcan Salatası,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0248,Yoğurtlu Semizotu,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0249,Ispanak Tarator,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0250,Havuç Tarator,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0251,Atom,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0252,Turşu,salata_meze,meze,ogle|aksam,SEKTOR
+YM-0253,Yoğurt,salata_meze,yogurt,kahvalti|ogle|aksam,SART-HALIC
+YM-0254,Ayran,salata_meze,yogurt,kahvalti|ogle|aksam,SART-HALIC
+YM-0255,Sütlaç,tatli,sutlu,ogle|aksam,SART-HALIC
+YM-0256,Keşkül,tatli,sutlu,ogle|aksam,SART-HALIC
+YM-0257,Supangle,tatli,sutlu,ogle|aksam,SART-HALIC
+YM-0258,Muhallebi,tatli,sutlu,ogle|aksam,SEKTOR
+YM-0259,Kazandibi,tatli,sutlu,ogle|aksam,SEKTOR
+YM-0260,Tavuk Göğsü,tatli,sutlu,ogle|aksam,SEKTOR
+YM-0261,Puding,tatli,sutlu,ogle|aksam,SEKTOR
+YM-0262,Güllaç,tatli,sutlu,ogle|aksam,SEKTOR
+YM-0263,Revani,tatli,serbetli,ogle|aksam,SEKTOR
+YM-0264,Baklava,tatli,serbetli,ogle|aksam,SART-HALIC
+YM-0265,Kadayıf,tatli,serbetli,ogle|aksam,SART-HALIC
+YM-0266,Tulumba,tatli,serbetli,ogle|aksam,SART-HALIC
+YM-0267,Şekerpare,tatli,serbetli,ogle|aksam,SART-HALIC
+YM-0268,Şöbiyet,tatli,serbetli,ogle|aksam,SART-HALIC
+YM-0269,Un Helvası,tatli,helva,ogle|aksam,SART-HALIC
+YM-0270,İrmik Helvası,tatli,helva,ogle|aksam,SART-HALIC
+YM-0271,Yaz Helvası,tatli,helva,ogle|aksam,SART-HALIC
+YM-0272,Tahin Helva,tatli,helva,ogle|aksam,SART-HALIC
+YM-0273,Ekmek Kadayıfı,tatli,serbetli,ogle|aksam,SART-HALIC
+YM-0274,Kabak Tatlısı,tatli,meyveli,ogle|aksam,SEKTOR
+YM-0275,Ayva Tatlısı,tatli,meyveli,ogle|aksam,SEKTOR
+YM-0276,Aşure,tatli,diger,ogle|aksam,SEKTOR
+YM-0277,Kek,tatli,kek,ogle|aksam,SEKTOR
+YM-0278,Islak Kek,tatli,kek,ogle|aksam,SEKTOR
+YM-0279,Browni,tatli,kek,ogle|aksam,SEKTOR
+YM-0280,Kurabiye,tatli,kek,ogle|aksam,SEKTOR
+YM-0281,Dondurma,tatli,sutlu,ogle|aksam,SART-HALIC
+YM-0282,Jöle,tatli,diger,ogle|aksam,SEKTOR
+YM-0283,Meyve,tatli,meyve,ogle|aksam,SART-HALIC
+YM-0284,Vişne Kompostosu,tatli,komposto,ogle|aksam,SART-HALIC
+YM-0285,Ayva Kompostosu,tatli,komposto,ogle|aksam,SART-HALIC
+YM-0286,Erik Kompostosu,tatli,komposto,ogle|aksam,SART-HALIC
+YM-0287,Elma Kompostosu,tatli,komposto,ogle|aksam,SART-HALIC
+YM-0288,Hoşaf,tatli,komposto,ogle|aksam,SEKTOR
+YM-0289,Beyaz Peynir,kahvalti,peynir,kahvalti,SART-EOSB
+YM-0290,Kaşar Peyniri,kahvalti,peynir,kahvalti,SART-EOSB
+YM-0291,Üçgen Peynir,kahvalti,peynir,kahvalti,SEKTOR
+YM-0292,Siyah Zeytin,kahvalti,zeytin,kahvalti,SART-EOSB
+YM-0293,Yeşil Zeytin,kahvalti,zeytin,kahvalti,SART-EOSB
+YM-0294,Haşlanmış Yumurta,kahvalti,yumurta,kahvalti,SART-EOSB
+YM-0295,Menemen,kahvalti,yumurta,kahvalti,SEKTOR
+YM-0296,Omlet,kahvalti,yumurta,kahvalti,SART-EOSB
+YM-0297,Sucuklu Yumurta,kahvalti,yumurta,kahvalti,SEKTOR
+YM-0298,Peynirli Omlet,kahvalti,yumurta,kahvalti,SEKTOR
+YM-0299,Çılbır,kahvalti,yumurta,kahvalti,SEKTOR
+YM-0300,Bal,kahvalti,tatli,kahvalti,SART-EOSB
+YM-0301,Reçel,kahvalti,tatli,kahvalti,SART-EOSB
+YM-0302,Tahin Pekmez,kahvalti,tatli,kahvalti,SART-EOSB
+YM-0303,Pekmez,kahvalti,tatli,kahvalti,SART-EOSB
+YM-0304,Fındık Ezmesi,kahvalti,tatli,kahvalti,SART-EOSB
+YM-0305,Tereyağı,kahvalti,sut,kahvalti,SART-EOSB
+YM-0306,Kaymak,kahvalti,sut,kahvalti,SEKTOR
+YM-0307,Domates Salatalık,kahvalti,sebze,kahvalti,SART-EOSB
+YM-0308,Söğüş Domates,kahvalti,sebze,kahvalti,SEKTOR
+YM-0309,Poğaça,kahvalti,unlu,kahvalti,SART-EOSB
+YM-0310,Simit,kahvalti,unlu,kahvalti,SART-EOSB
+YM-0311,Açma,kahvalti,unlu,kahvalti,SEKTOR
+YM-0312,Kaşarlı Tost,kahvalti,unlu,kahvalti,SEKTOR
+YM-0313,Sosis Tava,kahvalti,sicak,kahvalti,SEKTOR
+YM-0314,Pişi,kahvalti,unlu,kahvalti,SEKTOR
+YM-0315,Yulaf Lapası,kahvalti,sicak,kahvalti,SEKTOR
+YM-0316,Sütlü Mısır Gevreği,kahvalti,sicak,kahvalti,SEKTOR
+YM-0317,Kahvaltı Tabağı,kahvalti,tabak,kahvalti,SEKTOR
+YM-0318,Kumanya,kahvalti,tabak,kahvalti,SART-EOSB
+YM-0319,Çay,icecek,sicak,kahvalti|ogle|aksam,SEKTOR
+YM-0320,Süt,icecek,sicak,kahvalti|ogle|aksam,SART-EOSB
+YM-0321,Ihlamur,icecek,sicak,kahvalti|ogle|aksam,SEKTOR
+YM-0322,Türk Kahvesi,icecek,sicak,kahvalti|ogle|aksam,SEKTOR
+YM-0323,Meyve Suyu,icecek,soguk,kahvalti|ogle|aksam,SART-EOSB
+YM-0324,Limonata,icecek,soguk,kahvalti|ogle|aksam,SEKTOR
+YM-0325,Şalgam,icecek,soguk,kahvalti|ogle|aksam,SEKTOR
+YM-0326,Su,icecek,soguk,kahvalti|ogle|aksam,SART-EOSB
+YM-0327,Ekmek,ekmek,ekmek,kahvalti|ogle|aksam,SART-EOSB
+YM-0328,Roll Ekmek,ekmek,ekmek,kahvalti|ogle|aksam,SART-EOSB
+YM-0329,Tam Buğday Ekmeği,ekmek,ekmek,kahvalti|ogle|aksam,SEKTOR
+YM-0330,Lavaş,ekmek,ekmek,kahvalti|ogle|aksam,SEKTOR
+YM-0331,Bazlama,ekmek,ekmek,kahvalti|ogle|aksam,SEKTOR
