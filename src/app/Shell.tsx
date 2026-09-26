@@ -7,7 +7,8 @@ import { DEMO } from '@/lib/supabase';
 import { Logo } from '@/ui/Logo';
 import { cx } from '@/ui/primitives';
 import { ROLE_LABELS } from '@/lib/domain';
-import { GROUP_LABELS, activeModule, visibleModules, type ModuleDef } from './modules';
+import { GROUP_LABELS, activeModule, type ModuleDef } from './modules';
+import { useVisibleModules } from './permissions';
 import { Link, useRouter } from './router';
 import { signOut, useMember } from './session';
 import { applyTheme, readTheme, type Theme } from './theme';
@@ -35,10 +36,9 @@ function NavItem({ m, active, onNavigate }: { m: ModuleDef; active: boolean; onN
 }
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const member = useMember();
   const { path } = useRouter();
   const current = activeModule(path);
-  const mods = visibleModules(member.role);
+  const mods = useVisibleModules();
   const groups = (Object.keys(GROUP_LABELS) as ModuleDef['group'][])
     .map((g) => ({ g, items: mods.filter((m) => m.group === g) }))
     .filter((x) => x.items.length > 0);

@@ -113,10 +113,12 @@ export function fillMissingDays(days: PayDay[], from: string, until: string, sun
 export interface Punch { deviceId: string; name: string; at: Date }
 export interface PunchDay { deviceId: string; name: string; date: string; firstIn: string; lastOut: string; minutes: number; punches: number }
 
-const norm = (s: string) => s.toLocaleLowerCase('tr-TR').replace(/[^a-z0-9ğüşöçı]/g, '');
-const ID_COLS = ['acno', 'no', 'userid', 'kullanıcıno', 'personelno', 'sicilno', 'enrollno', 'id', 'pin', 'kartno'];
-const NAME_COLS = ['name', 'ad', 'adsoyad', 'isim', 'personel', 'adısoyadı', 'adsoyadı'];
-const DT_COLS = ['time', 'datetime', 'tarihsaat', 'checktime', 'zaman', 'datetime', 'tarihvesaat'];
+// Sütun adı: küçük harf + Türkçe harfler ASCII'ye ("User ID" → "userid", "Adı Soyadı" → "adisoyadi")
+const TR: Record<string, string> = { ç: 'c', ğ: 'g', ı: 'i', i̇: 'i', ö: 'o', ş: 's', ü: 'u' };
+const norm = (s: string) => s.toLowerCase().replace(/[çğıöşü]|i̇/g, (c) => TR[c] ?? c).replace(/[^a-z0-9]/g, '');
+const ID_COLS = ['acno', 'no', 'userid', 'kullanicino', 'personelno', 'sicilno', 'enrollno', 'id', 'pin', 'kartno'];
+const NAME_COLS = ['name', 'ad', 'adsoyad', 'isim', 'personel', 'adisoyadi'];
+const DT_COLS = ['time', 'datetime', 'tarihsaat', 'checktime', 'zaman', 'tarihvesaat'];
 const DATE_COLS = ['date', 'tarih'];
 const TIME_COLS = ['saat', 'hour', 'timeonly'];
 

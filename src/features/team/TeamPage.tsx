@@ -10,7 +10,7 @@ import { useToast } from '@/ui/toast';
 import { CompanyPanel } from '../settings/CompanyPanel';
 
 // Müşteri portal rolü, cari (customers) modülü ile Faz 3'te atanabilir olacak.
-const ASSIGNABLE: AppRole[] = ['yonetici', 'asci_basi', 'diyetisyen', 'muhasebe', 'satinalma', 'pazarlamaci', 'depo', 'sofor'];
+const ASSIGNABLE: AppRole[] = ['kurucu', 'yonetici', 'asci_basi', 'diyetisyen', 'muhasebe', 'satinalma', 'pazarlamaci', 'depo', 'sofor'];
 
 export function TeamPage() {
   const me = useMember();
@@ -35,7 +35,7 @@ export function TeamPage() {
 
   return (
     <>
-      <ModuleHero kicker="Sistem" title="Ekip & Yetkiler"
+      <ModuleHero kicker="Sistem" title="Ekip & Firma"
         description="Kayıt olan kullanıcılar rol atanana kadar hiçbir veriye erişemez. Yetkiler veritabanında (RLS) uygulanır; arayüz yalnızca yansıtır."
         stats={[
           { label: 'Aktif üye', value: (team.data ?? []).filter((m) => m.active).length },

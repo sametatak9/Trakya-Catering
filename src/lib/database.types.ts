@@ -270,6 +270,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          order_token: string
           active: boolean
           address: string | null
           city: string | null
@@ -293,6 +294,7 @@ export type Database = {
           vat_rate: number
         }
         Insert: {
+          order_token?: string
           active?: boolean
           address?: string | null
           city?: string | null
@@ -316,6 +318,7 @@ export type Database = {
           vat_rate?: number
         }
         Update: {
+          order_token?: string
           active?: boolean
           address?: string | null
           city?: string | null
@@ -2631,6 +2634,8 @@ export type Database = {
       }
     }
     Functions: {
+      portal_info: { Args: { p_token: string }; Returns: Json }
+      portal_set_order: { Args: { p_token: string; p_date: string; p_meal: string; p_qty: number; p_note?: string | null }; Returns: Json }
       base_unit: { Args: { p_dimension: string }; Returns: string }
       current_app_role: { Args: never; Returns: string }
       current_customer_id: { Args: never; Returns: string }
