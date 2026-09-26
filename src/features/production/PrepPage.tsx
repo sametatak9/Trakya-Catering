@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BookmarkPlus, ChefHat, ChevronDown, ChevronRight, ListRestart, Plus, Trash2, Wand2, X } from 'lucide-react';
+import { BookmarkPlus, ChefHat, ChevronDown, ChevronRight, ListRestart, Plus, Trash2, Wand2, WandSparkles, X } from 'lucide-react';
 import { Link } from '@/app/router';
 import { useCan } from '@/app/session';
 import { addDays, dayLabel, shortDay, todayISO } from '@/lib/dates';
@@ -45,6 +45,7 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
 
   const plan = usePlanPrep();
   const saveBatch = useSaveBatch();
+  const fillAll = useFillFromRecipe();
 
   const all = batches.data ?? [];
   const dayBatches = all.filter((b) => b.prep_date === date && b.meal === meal);
@@ -150,6 +151,64 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
     ),
   });
 
+  // Günün malzeme çıkışı: tüm yemeklerdeki aynı malzeme toplanır (depodan çıkış listesi)
+  const usage = useMemo(() => {
+    const m = new Map<string, { name: string; base: string; qty: number; cost: number; dishes: Set<string>; side: boolean }>();
+    for (const b of dayBatches) for (const it of itemsBy.get(b.batch_id!) ?? []) {
+      const key = it.ingredient_id ?? `elle:${(it.item_name ?? '').toLowerCase()}|${it.base_unit}`;
+      const u = m.get(key) ?? { name: it.item_name ?? '', base: it.base_unit ?? 'g', qty: 0, cost: 0, dishes: new Set<string>(), side: !it.ingredient_id };
+      u.qty += Number(it.qty_base ?? 0); u.cost += Number(it.line_cost ?? 0); u.dishes.add(b.dish_name ?? '');
+      m.set(key, u);
+    }
+    return [...m.values()].sort((a, b) => b.cost - a.cost);
+  }, [dayBatches, itemsBy]);
+  const bigUnit = (qtyBase: number, base: string) => base === 'g' ? `${fmtNum(qtyBase / 1000, 2)} kg` : base === 'ml' ? `${fmtNum(qtyBase / 1000, 2)} lt` : `${fmtNum(qtyBase, 0)} adet`;
+
+  const usageReport = (): ReportSpec => ({
+    title: 'Malzeme Çıkış Raporu',
+    subtitle: `${dayLabel(date)} · ${MEALS[meal]} · ${fmtNum(people, 0)} kişi · ${dayBatches.length} yemek`,
+    summary: usage.slice(0, 25).map((u) => ({ label: u.name, value: bigUnit(u.qty, u.base) })),
+    table: {
+      filename: `malzeme-cikisi-${date}-${meal}`,
+      header: ['Malzeme', 'Miktar', 'Birim', 'Tutar ₺', 'Kullanıldığı yemekler'],
+      rows: usage.map((u) => [u.name, u.base === 'adet' ? u.qty : u.qty / 1000, u.base === 'g' ? 'kg' : u.base === 'ml' ? 'lt' : 'adet', Math.round(u.cost * 100) / 100, [...u.dishes].join(', ')]),
+    },
+    body: () => (
+      <>
+        <ReportStats items={[
+          { label: 'Malzeme çeşidi', value: usage.length },
+          { label: 'Toplam tutar', value: fmtMoney(dayCost) },
+          { label: 'Kişi', value: fmtNum(people, 0) },
+          { label: 'Kişi başı', value: perPerson === null ? '—' : fmtMoney(perPerson) },
+        ]} />
+        <ReportSection title="Depodan çıkacak malzemeler (tüm yemekler toplamı)">
+          <table>
+            <thead><tr><th>Malzeme</th><th className="num">Miktar</th><th className="num">Tutar</th><th>Yemekler</th><th>Teslim</th></tr></thead>
+            <tbody>
+              {usage.map((u) => (
+                <tr key={u.name + u.base}><td><b>{u.name}</b>{u.side ? ' (elle)' : ''}</td><td className="num">{bigUnit(u.qty, u.base)}</td>
+                  <td className="num">{fmtMoney(u.cost)}</td><td style={{ color: '#4A443C' }}>{[...u.dishes].join(', ')}</td><td>☐</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </ReportSection>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 28, fontSize: 11 }}>
+          <div style={{ borderTop: '1px solid #221F1B', paddingTop: 6 }}>Teslim eden (Depo)</div>
+          <div style={{ borderTop: '1px solid #221F1B', paddingTop: 6 }}>Teslim alan (Mutfak)</div>
+        </div>
+      </>
+    ),
+  });
+
+  const emptyWithRecipe = dayBatches.filter((b) => b.recipe_id && (b.item_count ?? 0) === 0 && b.portions);
+  const fillAllFromRecipes = async () => {
+    try {
+      let n = 0;
+      for (const b of emptyWithRecipe) n += await fillAll.mutateAsync(b.batch_id!);
+      toast.ok(`${emptyWithRecipe.length} yemeğe reçeteden ${n} malzeme eklendi — gerçek miktarları düzeltin`);
+    } catch (e) { toast.error(e); }
+  };
+
   const orderReport = (): ReportSpec => {
     const stations = (Object.keys(STATION_LABELS) as Station[]).map((st) => ({ st, list: dayBatches.filter((b) => stationOf(b.course!) === st) })).filter((x) => x.list.length);
     return {
@@ -200,6 +259,7 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
         description="Her yemeğe o gün hazırladığınız toplam miktarı girin; siparişlerdeki kişi sayısına bölünerek 1 porsiyonun gramajı ve maliyeti çıkar. Tartım gerekmez."
         actions={<>
           <ReportButton spec={orderReport} label="Üretim emri" disabled={dayBatches.length === 0} />
+          <ReportButton spec={usageReport} label="Malzeme çıkışı" disabled={usage.length === 0} />
           <ReportButton spec={costReport} label="Maliyet raporu" disabled={dayBatches.length === 0} />
         </>}
         stats={[
@@ -235,6 +295,12 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
             <div className="flex flex-wrap gap-2">
               <Button icon={<ListRestart className="w-4 h-4" />} onClick={planFromOrders} loading={plan.isPending}>Siparişlerden getir</Button>
               <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setAdding(true)}>Yemek ekle</Button>
+              {emptyWithRecipe.length > 0 && (
+                <Button variant="holo" icon={<WandSparkles className="w-4 h-4" />} onClick={fillAllFromRecipes} loading={fillAll.isPending}
+                  title="İçeriği boş ve reçetesi olan yemeklere reçete × porsiyon kadar malzeme önerisi ekler">
+                  Boşları reçeteden doldur ({emptyWithRecipe.length})
+                </Button>
+              )}
             </div>
           )}
           {adding && (

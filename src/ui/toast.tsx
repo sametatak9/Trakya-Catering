@@ -24,7 +24,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="fixed bottom-20 lg:bottom-6 right-4 left-4 sm:left-auto z-[60] flex flex-col gap-2 pointer-events-none">
         {items.map((t) => (
           <div key={t.id} role="status"
-            className="tc-toast-in pointer-events-auto flex items-start gap-2 rounded-xl px-4 py-3 text-sm font-medium shadow-xl bg-ink text-surface sm:max-w-sm">
+            className="tc-holo-in overflow-hidden pointer-events-auto flex items-start gap-2 rounded-xl px-4 py-3 text-sm font-medium shadow-xl bg-ink text-surface sm:max-w-sm">
             {t.kind === 'ok'
               ? <CheckCircle2 className="w-4 h-4 mt-0.5 text-accent shrink-0" />
               : <AlertTriangle className="w-4 h-4 mt-0.5 text-brand shrink-0" />}

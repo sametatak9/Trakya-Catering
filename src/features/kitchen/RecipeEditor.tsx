@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Calculator, Plus, Save, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Calculator, History, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import { Link, useRouter } from '@/app/router';
 import { useCan } from '@/app/session';
 import { ALLERGENS, unitInfo, ROLES } from '@/lib/domain';
 import { lineCost } from '@/lib/cost';
-import { fmtNum, fmtPct, fmtQty, parseNum } from '@/lib/format';
+import { fmtDate, fmtMoney, fmtNum, fmtPct, fmtQty, parseNum } from '@/lib/format';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { ReportSection, ReportStats } from '@/reports/ReportFrame';
+import { Delta } from '@/ui/bits';
 import { Button, ErrorNote, Field, Loading, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
 import {
-  useCategories, useDeleteRecipe, useIngredients, useRecipe, useRecipeLines, useSaveRecipe,
+  useCategories, useCostSnapshots, useDeleteRecipe, useIngredients, useRecipe, useRecipeLines, useRefreshRecipeCost, useSaveRecipe,
   type Ingredient, type RecipeHeaderDraft,
 } from './api';
 
@@ -55,6 +58,9 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
   const cats = useCategories();
   const save = useSaveRecipe();
   const del = useDeleteRecipe();
+  const refresh = useRefreshRecipeCost();
+  const snapshots = useCostSnapshots(id);
+  const canRefresh = useCan(['yonetici', 'asci_basi', 'diyetisyen', 'satinalma']);
 
   const [h, setH] = useState<RecipeHeaderDraft>(initialHeader);
   const [draft, setDraft] = useState<DraftLine[]>(initialLines);
@@ -112,6 +118,68 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
     } catch (e) { toast.error(e); }
   };
 
+  const refreshCost = async () => {
+    if (!id) return;
+    if (dirty) return toast.error('Önce değişiklikleri kaydedin');
+    try {
+      const { before, after } = await refresh.mutateAsync(id);
+      if (before == null || before === 0) toast.ok(`Maliyet güncellendi: ${fmtMoney(after, true)}`);
+      else {
+        const pct = ((after - before) / before) * 100;
+        toast.ok(`Maliyet ${fmtMoney(before, true)} → ${fmtMoney(after, true)} (${pct >= 0 ? '+' : '−'}%${fmtNum(Math.abs(pct), 1)})`);
+      }
+    } catch (e) { toast.error(e); }
+  };
+
+  const report = (): ReportSpec => ({
+    title: 'Reçete Kartı',
+    subtitle: `${h.name} · ${h.portion_label || '1 porsiyon'}`,
+    summary: [
+      { label: 'Porsiyon maliyeti', value: fmtMoney(total, true) },
+      ...computed.filter((c) => c.r).map((c) => ({ label: c.ing?.name ?? '', value: `${fmtQty(c.net, c.unit.base)} net` })),
+    ],
+    table: {
+      filename: `recete-${h.name}`,
+      header: ['Hammadde', 'Net', 'Fire %', 'Brüt', 'Maliyet'],
+      rows: computed.map((c) => [c.ing?.name ?? '', fmtQty(c.net, c.unit.base), fmtNum(c.waste, 1), c.r ? fmtQty(c.r.gross, c.unit.base) : '', c.r?.cost ?? '']),
+    },
+    body: () => (
+      <>
+        <ReportStats items={[
+          { label: 'Porsiyon maliyeti', value: fmtMoney(total, true) },
+          { label: 'Çiğ net (katı)', value: fmtQty(netGrams, 'g') },
+          { label: 'Kalem', value: String(draft.length) },
+          { label: `${fmtNum(portionsN, 0)} porsiyon`, value: fmtMoney(total * portionsN) },
+        ]} />
+        <ReportSection title="1 porsiyon gramaj">
+          <table>
+            <thead><tr><th>Hammadde</th><th className="num">Net</th><th className="num">Fire</th><th className="num">Brüt</th><th className="num">{fmtNum(portionsN, 0)} porsiyon</th><th className="num">Maliyet</th></tr></thead>
+            <tbody>
+              {computed.map((c) => (
+                <tr key={c.l.ingredientId}>
+                  <td>{c.ing?.name}{c.l.note ? <div style={{ color: '#857B6D' }}>{c.l.note}</div> : null}</td>
+                  <td className="num">{fmtQty(c.net, c.unit.base)}</td>
+                  <td className="num">%{fmtNum(c.waste, 0)}</td>
+                  <td className="num">{c.r ? fmtQty(c.r.gross, c.unit.base) : '—'}</td>
+                  <td className="num">{c.r ? fmtQty(c.r.gross * portionsN, c.unit.base) : '—'}</td>
+                  <td className="num">{fmtMoney(c.r?.cost ?? null, true)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ReportSection>
+        {h.instructions && (
+          <ReportSection title="Hazırlanış">
+            <ol style={{ paddingLeft: 18, fontSize: 11.5, lineHeight: 1.6 }}>{h.instructions.split(/\n+/).filter(Boolean).map((t, i) => <li key={i}>{t}</li>)}</ol>
+          </ReportSection>
+        )}
+        {allergens.length > 0 && <ReportSection title="Alerjenler"><div style={{ fontSize: 11.5 }}>{allergens.map((a) => ALLERGENS[a] ?? a).join(', ')}</div></ReportSection>}
+      </>
+    ),
+  });
+
+  const snaps = snapshots.data ?? [];
+
   const remove = async () => {
     if (!id || !window.confirm(`"${h.name}" reçetesi silinsin mi? Menülerde kullanılıyorsa silinemez; pasife alın.`)) return;
     try { await del.mutateAsync(id); toast.ok('Reçete silindi'); go('/receteler'); } catch (e) { toast.error(e); }
@@ -127,6 +195,12 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
           <h1 className="text-2xl sm:text-[28px] font-bold text-ink truncate">{h.name || (id ? 'Reçete' : 'Yeni reçete')}</h1>
           <div className="tc-harvest-rule w-16 mt-3" />
         </div>
+        {(canEdit || id) && (
+          <div className="flex flex-wrap gap-2">
+            {id && <ReportButton spec={report} label="Reçete kartı" />}
+            {id && canRefresh && <Button icon={<RefreshCw className="w-4 h-4" />} onClick={refreshCost} loading={refresh.isPending} title="Son alış fiyatlarını çekip maliyeti yeniden hesaplar ve geçmişe yazar">Güncelle</Button>}
+          </div>
+        )}
         {canEdit && (
           <div className="flex gap-2">
             {id && <Button variant="danger" icon={<Trash2 className="w-4 h-4" />} onClick={remove} loading={del.isPending}>Sil</Button>}
@@ -258,6 +332,28 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
               </div>
             )}
           </div>
+
+          {id && (
+            <Panel title={<span className="inline-flex items-center gap-2"><History className="w-4 h-4 text-brand" /> Maliyet geçmişi</span>}
+              subtitle="Her “Güncelle” o anki porsiyon maliyetini yazar">
+              {snaps.length === 0 ? <div className="text-sm text-ink-3">Henüz kayıt yok. “Güncelle” ile ilk kaydı oluşturun.</div> : (
+                <ul className="divide-y divide-line -my-1">
+                  {snaps.slice(0, 6).map((sn, i) => {
+                    const older = snaps[i + 1];
+                    return (
+                      <li key={sn.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+                        <span className="text-ink-3 text-xs">{fmtDate(sn.noted_at)}</span>
+                        <span className="flex items-center gap-2">
+                          {older && Number(older.cost) > 0 && <Delta delta={Number(sn.cost) - Number(older.cost)} pct={((Number(sn.cost) - Number(older.cost)) / Number(older.cost)) * 100} goodWhen="down" />}
+                          <Money value={sn.cost} precise className="font-semibold text-ink" />
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Panel>
+          )}
 
           <Panel title={<span className="inline-flex items-center gap-2"><Calculator className="w-4 h-4 text-brand" /> Üretim ön-hesabı</span>}
             subtitle="N porsiyon için depodan çıkacak brüt miktar">

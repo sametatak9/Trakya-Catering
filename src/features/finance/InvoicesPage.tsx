@@ -11,6 +11,7 @@ import { MonthNav } from '@/ui/bits';
 import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Money, Panel, Pill, Tabs, cx, type Tone } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
 import { useIngredients, type Ingredient } from '../kitchen/api';
+import { BulkBar, SelectBox, useSelection } from '@/ui/Selection';
 import { useDeleteInvoice, useFinanceCategories, useInvoices, useSaveInvoice, useSupplierMemory, type PurchaseInvoice } from './api';
 import { CategorySelect } from './EntryDrawer';
 import { useQueryClient } from '@tanstack/react-query';
@@ -53,6 +54,20 @@ export function InvoicesPage() {
   const [q, setQ] = useState('');
   const list = invoices.data ?? [];
   const shown = list.filter((i) => (status === 'all' || i.status === status) && matches(q, i.supplier_name, i.invoice_no, i.supplier_tax_no, catName(i.category_code)));
+  const sel = useSelection(canEdit ? shown.map((i) => i.id) : []);
+  const del = useDeleteInvoice();
+  const bulkStatus = async (st: 'onaylandi' | 'reddedildi') => {
+    const targets = shown.filter((i) => sel.has(i.id) && i.status !== st);
+    try {
+      for (const t of targets) await save.mutateAsync({ id: t.id, draft: { status: st } });
+      toast.ok(st === 'onaylandi' ? `${targets.length} fatura onaylandı; giderlere ve borçlara işlendi` : `${targets.length} fatura reddedildi`);
+      sel.clear();
+    } catch (e) { toast.error(e); }
+  };
+  const bulkDelete = async () => {
+    if (!window.confirm(`${sel.count} fatura silinsin mi? Onaylıysa bağlı ödenmemiş gider kaydı da kalkar.`)) return;
+    try { for (const id of sel.ids) await del.mutateAsync(id); toast.ok('Silindi'); sel.clear(); } catch (e) { toast.error(e); }
+  };
   const approved = list.filter((i) => i.status === 'onaylandi');
   const byCat = approved.reduce<Record<string, number>>((a, i) => { a[i.category_code] = (a[i.category_code] ?? 0) + Number(i.net_amount); return a; }, {});
   const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
@@ -214,6 +229,7 @@ export function InvoicesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
+                    {canEdit && <th className="pl-4 w-8"><SelectBox label="Tümünü seç" checked={sel.allChecked} indeterminate={sel.someChecked} onChange={sel.toggleAll} /></th>}
                     <th className="px-4 py-2.5 font-semibold">Tarih</th>
                     <th className="px-3 py-2.5 font-semibold">Tedarikçi</th>
                     <th className="px-3 py-2.5 font-semibold hidden md:table-cell">Kalem</th>
@@ -223,7 +239,8 @@ export function InvoicesPage() {
                 </thead>
                 <tbody>
                   {shown.map((i) => (
-                    <tr key={i.id} onClick={() => setDetail(i)} className="border-b border-line last:border-0 cursor-pointer hover:bg-surface-2">
+                    <tr key={i.id} onClick={() => setDetail(i)} className={cx('border-b border-line last:border-0 cursor-pointer hover:bg-surface-2', sel.has(i.id) && 'bg-brand-soft/40')}>
+                      {canEdit && <td className="pl-4" onClick={(e) => e.stopPropagation()}><SelectBox label={`${i.supplier_name} seç`} checked={sel.has(i.id)} onChange={() => sel.toggle(i.id)} /></td>}
                       <td className="px-4 py-2.5 tc-num text-ink-2 whitespace-nowrap">{shortDay(i.invoice_date)}</td>
                       <td className="px-3 py-2.5">
                         <div className="font-medium text-ink">{i.supplier_name}</div>
@@ -243,6 +260,11 @@ export function InvoicesPage() {
           )}
       </Panel>
 
+      <BulkBar count={sel.count} onClear={sel.clear} noun="fatura">
+        <Button size="sm" variant="holo" icon={<Check className="w-3.5 h-3.5" />} onClick={() => bulkStatus('onaylandi')} loading={save.isPending}>Onayla</Button>
+        <Button size="sm" onClick={() => bulkStatus('reddedildi')}>Reddet</Button>
+        <Button size="sm" variant="danger" onClick={bulkDelete} loading={del.isPending}>Sil</Button>
+      </BulkBar>
       {detail && <InvoiceDrawer invoice={detail} canEdit={canEdit} onClose={() => setDetail(null)} />}
       {manual && <ManualInvoiceDrawer onClose={() => setManual(false)} />}
     </>

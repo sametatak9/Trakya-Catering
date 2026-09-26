@@ -15,6 +15,7 @@ import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
 import { ReportStats } from '@/reports/ReportFrame';
 import { dayLabel } from '@/lib/dates';
 import { fmtMoney } from '@/lib/format';
+import { BulkBar, SelectBox, useSelection } from '@/ui/Selection';
 import { orderPeople, useBulkOrders, useCustomers, useDeleteOrder, useOrders, useSaveOrder, useUpdateOrders } from './api';
 
 export function OrdersPage() {
@@ -40,6 +41,18 @@ export function OrdersPage() {
   const amount = active.reduce((s, o) => s + orderPeople(o) * Number(o.unit_price), 0);
   const delivered = rows.filter((o) => o.status === 'teslim_edildi').length;
   const custById = useMemo(() => new Map((customers.data ?? []).map((c) => [c.id, c])), [customers.data]);
+  const sel = useSelection(canEdit ? rows.map((o) => o.id) : []);
+  const bulkStatus = async (status: string) => {
+    const items = rows.filter((o) => sel.has(o.id) && o.status !== status).map((o) => ({
+      id: o.id, patch: { status, ...(status === 'teslim_edildi' && o.delivered_qty === null ? { delivered_qty: o.ordered_qty } : {}) },
+    }));
+    if (items.length === 0) return sel.clear();
+    try { await updateMany.mutateAsync(items); toast.ok(`${items.length} sipariş güncellendi`); sel.clear(); } catch (e) { toast.error(e); }
+  };
+  const bulkDelete = async () => {
+    if (!window.confirm(`${sel.count} sipariş silinsin mi?`)) return;
+    try { for (const id of sel.ids) await del.mutateAsync(id); toast.ok(`${sel.count} sipariş silindi`); sel.clear(); } catch (e) { toast.error(e); }
+  };
 
   const isTomorrow = date === addDays(todayISO(), 1);
   const cutoff = minutesToCutoff();
@@ -175,6 +188,7 @@ export function OrdersPage() {
             <table className="w-full text-sm min-w-[860px]">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
+                  {canEdit && <th className="pl-4 w-8"><SelectBox label="Tümünü seç" checked={sel.allChecked} indeterminate={sel.someChecked} onChange={sel.toggleAll} /></th>}
                   <th className="px-4 py-2.5 font-semibold">Müşteri</th>
                   <th className="px-2 py-2.5 font-semibold">Menü</th>
                   <th className="px-2 py-2.5 font-semibold w-24 text-right">Sipariş</th>
@@ -190,7 +204,8 @@ export function OrdersPage() {
                   const c = custById.get(o.customer_id);
                   const locked = !canEdit;
                   return (
-                    <tr key={o.id} className={cx('border-b border-line', o.status === 'iptal' && 'opacity-50')}>
+                    <tr key={o.id} className={cx('border-b border-line', o.status === 'iptal' && 'opacity-50', sel.has(o.id) && 'bg-brand-soft/40')}>
+                      {canEdit && <td className="pl-4"><SelectBox label={`${c?.name ?? ''} seç`} checked={sel.has(o.id)} onChange={() => sel.toggle(o.id)} /></td>}
                       <td className="px-4 py-2">
                         <div className="font-semibold text-ink">{c?.name ?? '—'}</div>
                         <div className="text-[11px] text-ink-3">{ORDER_KINDS[o.kind]}{o.note ? ` · ${o.note}` : ''}</div>
@@ -227,7 +242,7 @@ export function OrdersPage() {
                   );
                 })}
                 {rows.length === 0 && (
-                  <tr><td colSpan={8}>
+                  <tr><td colSpan={9}>
                     <EmptyState icon={<ClipboardList className="w-5 h-5" />} title="Bu öğün için sipariş yok">
                       {prevRows.length > 0 ? 'Önceki günün siparişlerini tek tuşla kopyalayabilir ya da aşağıdan ekleyebilirsiniz.' : 'Aşağıdan müşteri seçip kişi sayısını girin.'}
                     </EmptyState>
@@ -256,6 +271,12 @@ export function OrdersPage() {
           </div>
         )}
       </Panel>
+      <BulkBar count={sel.count} onClear={sel.clear} noun="sipariş">
+        <Button size="sm" onClick={() => bulkStatus('onaylandi')} loading={updateMany.isPending}>Onayla</Button>
+        <Button size="sm" variant="holo" icon={<CheckCheck className="w-3.5 h-3.5" />} onClick={() => bulkStatus('teslim_edildi')} loading={updateMany.isPending}>Teslim edildi</Button>
+        <Button size="sm" onClick={() => bulkStatus('iptal')}>İptal et</Button>
+        <Button size="sm" variant="danger" icon={<Trash2 className="w-3.5 h-3.5" />} onClick={bulkDelete} loading={del.isPending}>Sil</Button>
+      </BulkBar>
     </>
   );
 }

@@ -162,8 +162,34 @@
   background: conic-gradient(from 0deg, #F2BC45, #E0694E, #6FD3C4, #B9A6F2, #F7DE9C, #E0694E, #F2BC45);
   box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 4px 14px -4px rgba(0,0,0,.25);
 }
+/* İnce hologram çerçeve (öne çıkan kartlar) */
+.tc-holo-border { position: relative; }
+.tc-holo-border::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: linear-gradient(110deg, #F2BC45, #E0694E, #6FD3C4, #B9A6F2, #F2BC45);
+  background-size: 250% 100%; animation: tc-holo-shift 7s linear infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+
+/* Hologram açılış geçişi: pop-up, panel, bildirim. Açılırken yüzeyden iridesan bir ışık geçer. */
+@keyframes tc-holo-pop { 0% { opacity: 0; transform: translateY(10px) scale(.97); filter: saturate(1.6) blur(2px); } 60% { opacity: 1; filter: saturate(1.2) blur(0); } 100% { opacity: 1; transform: none; filter: none; } }
+@keyframes tc-holo-slide { 0% { opacity: .2; transform: translateX(28px); } 100% { opacity: 1; transform: none; } }
+@keyframes tc-holo-sweep { 0% { transform: translateX(-110%) skewX(-18deg); opacity: 0; } 20% { opacity: .9; } 100% { transform: translateX(160%) skewX(-18deg); opacity: 0; } }
+@layer components {
+  .tc-holo-in, .tc-holo-slide { position: relative; }
+}
+.tc-holo-in { animation: tc-holo-pop .38s cubic-bezier(.2,.8,.2,1) both; }
+.tc-holo-slide { animation: tc-holo-slide .32s cubic-bezier(.2,.8,.2,1) both; }
+.tc-holo-in::after, .tc-holo-slide::after {
+  content: ""; position: absolute; inset: 0; width: 45%; pointer-events: none; border-radius: inherit; z-index: 60;
+  background: linear-gradient(90deg, transparent, rgba(242,188,69,.28), rgba(224,105,78,.22), rgba(111,211,196,.28), rgba(185,166,242,.24), transparent);
+  animation: tc-holo-sweep .9s ease-out .05s both;
+}
 @media (prefers-reduced-motion: reduce) {
-  .tc-holo, .tc-holo::after { animation: none; }
+  .tc-holo, .tc-holo::after, .tc-holo-border::before { animation: none; }
+  .tc-holo-in, .tc-holo-slide { animation: none; }
+  .tc-holo-in::after, .tc-holo-slide::after { display: none; }
 }
 
 /* =====================================================================

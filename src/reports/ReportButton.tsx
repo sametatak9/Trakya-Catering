@@ -65,7 +65,7 @@ function ReportPreview({ spec, onClose }: { spec: ReportSpec; onClose: () => voi
       </div>
       <div className="flex-1 overflow-auto p-4 sm:p-8">
         <div className="tc-print-root">
-          <ReportFrame title={spec.title} subtitle={spec.subtitle}>{spec.body()}</ReportFrame>
+          <div className="tc-holo-in overflow-hidden w-fit max-w-full mx-auto"><ReportFrame title={spec.title} subtitle={spec.subtitle}>{spec.body()}</ReportFrame></div>
         </div>
       </div>
       <p className="tc-no-print text-center text-[11px] text-white/80 pb-2">PDF için “Yazdır / PDF” → hedef olarak “PDF olarak kaydet”i seçin.</p>

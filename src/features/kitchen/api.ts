@@ -151,6 +151,34 @@ export function useDeleteRecipe() {
   });
 }
 
+// ------------------------------------------------------------------ Reçete maliyet geçmişi ("Güncelle")
+export function useCostSnapshots(recipeId: string | null) {
+  return useQuery({
+    queryKey: ['recipe_cost_snapshots', recipeId ?? ''],
+    enabled: Boolean(recipeId),
+    queryFn: async () => unwrap(await supabase.from('recipe_cost_snapshots').select('*').eq('recipe_id', recipeId!).order('noted_at', { ascending: false }).limit(12)),
+  });
+}
+
+/**
+ * "Güncelle": fiyat zincirini tazeler (son alış fiyatları), reçetenin güncel maliyetini okur ve
+ * geçmişe anlık görüntü yazar. Dönen değer: { before: önceki kayıt, after: güncel maliyet }.
+ */
+export function useRefreshRecipeCost() {
+  const qc = useQueryClient();
+  const invalidate = useInvalidateCosts();
+  return useMutation({
+    mutationFn: async (recipeId: string) => {
+      const prev = unwrap(await supabase.from('recipe_cost_snapshots').select('cost').eq('recipe_id', recipeId).order('noted_at', { ascending: false }).limit(1));
+      const cur = unwrap(await supabase.from('v_recipe_costs').select('cost_last').eq('recipe_id', recipeId).single());
+      const after = Number(cur.cost_last ?? 0);
+      unwrap(await supabase.from('recipe_cost_snapshots').insert({ recipe_id: recipeId, cost: Math.round(after * 10000) / 10000, note: 'Güncelle (son alış fiyatları)' }).select('id'));
+      return { before: prev[0] ? Number(prev[0].cost) : null, after };
+    },
+    onSuccess: async () => { await invalidate(); await qc.invalidateQueries({ queryKey: ['recipe_cost_snapshots'] }); },
+  });
+}
+
 // ------------------------------------------------------------------ Menüler
 export function useMenuCosts() {
   return useQuery({

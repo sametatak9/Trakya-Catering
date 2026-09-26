@@ -379,6 +379,18 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: { author_id: string; author_name: string; body: string; channel: string; created_at: string; id: string }
+        Insert: { author_id?: string; author_name?: string; body: string; channel?: string; created_at?: string; id?: string }
+        Update: { author_id?: string; author_name?: string; body?: string; channel?: string; created_at?: string; id?: string }
+        Relationships: []
+      }
+      recipe_cost_snapshots: {
+        Row: { cost: number; created_by: string | null; id: string; note: string | null; noted_at: string; recipe_id: string }
+        Insert: { cost: number; created_by?: string | null; id?: string; note?: string | null; noted_at?: string; recipe_id: string }
+        Update: { cost?: number; created_by?: string | null; id?: string; note?: string | null; noted_at?: string; recipe_id?: string }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           address: string | null

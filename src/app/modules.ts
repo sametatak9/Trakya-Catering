@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  BookOpenText, CalendarRange, ChefHat, ClipboardList, Building2, Coffee, FileInput, LayoutDashboard, LineChart, ShieldCheck,
+  BookOpenText, CalendarRange, ChefHat, CookingPot, ClipboardList, Building2, Coffee, FileInput, LayoutDashboard, LineChart, ShieldCheck,
   TrendingDown, UtensilsCrossed, Wallet, Wheat,
 } from 'lucide-react';
 import { ROLES, type AppRole } from '@/lib/domain';
@@ -28,6 +28,7 @@ export const MODULES: ModuleDef[] = [
   { path: '/', label: 'Bugün', hint: 'Günün özeti', icon: LayoutDashboard, group: 'genel' },
 
   { path: '/uretim', label: 'Günlük Hazırlık & Maliyet', hint: 'Ne hazırlandı, porsiyon kaça mal oldu', icon: ChefHat, group: 'mutfak' },
+  { path: '/mutfak-ekrani', label: 'Mutfak Ekranı', hint: 'Büyük yazı, adım adım (tablet)', icon: CookingPot, group: 'mutfak' },
   { path: '/kahvalti', label: 'Kahvaltı', hint: 'Kahvaltı hazırlığı ve maliyeti', icon: Coffee, group: 'mutfak' },
   { path: '/menu-plani', label: 'Menü Planı', hint: 'Haftalık, firmaya özel menüler', icon: CalendarRange, group: 'mutfak' },
   { path: '/receteler', label: 'Reçeteler & Gramaj', hint: '1 porsiyon ve maliyeti', icon: BookOpenText, group: 'mutfak' },

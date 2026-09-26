@@ -5,6 +5,7 @@ import { CashPage } from '@/features/finance/CashPage';
 import { ExpensesPage } from '@/features/finance/ExpensesPage';
 import { FinanceSummaryPage } from '@/features/finance/FinanceSummaryPage';
 import { InvoicesPage } from '@/features/finance/InvoicesPage';
+import { KitchenScreen } from '@/features/production/KitchenScreen';
 import { MenuPlanPage } from '@/features/production/MenuPlanPage';
 import { PrepPage } from '@/features/production/PrepPage';
 import { CustomersPage } from '@/features/sales/CustomersPage';
@@ -38,6 +39,7 @@ function Routes() {
     case '/receteler': return <RecipesPage />;
     case '/menuler': return <MenusPage />;
     case '/uretim': return <PrepPage />;
+    case '/mutfak-ekrani': return <KitchenScreen />;
     case '/kahvalti': return <PrepPage fixedMeal="kahvalti" title="Kahvaltı" kicker="Mutfak · Kahvaltı hazırlığı" />;
     case '/menu-plani': return <MenuPlanPage />;
     case '/siparisler': return <OrdersPage />;

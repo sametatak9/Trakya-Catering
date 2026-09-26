@@ -21,6 +21,7 @@ bun run dev            # http://localhost:3000
 | `bun run lint` | TypeScript kontrolü |
 | `bun run test` | Birim testleri (maliyet matematiği, biçimlendirme) |
 | `bun run build` | Üretim derlemesi |
+| `bun run build:demo` | Tanıtım (demo) derlemesi — Supabase gerekmez |
 
 SQL senaryo testleri: `supabase/tests/*.sql` (transaction içinde çalışır, `ROLLBACK` ile biter).
 
@@ -41,7 +42,7 @@ Doğruluk kaynağı veritabanıdır (`v_recipe_lines`, `v_recipe_costs`, `v_menu
 
 ## Ekranlar
 
-Bugün · Günlük Hazırlık & Maliyet · Kahvaltı · Menü Planı · Reçeteler & Gramaj · Menüler · Hammaddeler · Siparişler · Müşteriler · Finans Özeti · Giderler · Gelen Faturalar · Kasa & Gelirler · Ekip & Yetkiler
+Bugün · Günlük Hazırlık & Maliyet · Mutfak Ekranı · Kahvaltı · Menü Planı · Reçeteler & Gramaj · Menüler · Hammaddeler · Siparişler · Müşteriler · Finans Özeti · Giderler · Gelen Faturalar · Kasa & Gelirler · Ekip & Yetkiler
 
 Otomatik akışlar (veritabanı trigger'ları):
 - Sipariş **teslim edildi** → gelir (alacak) kaydı, vade müşteri kartından
@@ -50,6 +51,15 @@ Otomatik akışlar (veritabanı trigger'ları):
 - Siparişler + menü planı → günün yemek başlıkları ve kişi sayıları (`plan_prep_from_orders`)
 
 Her sekmede **Rapor**: logolu antet + holografik mühür, Yazdır/PDF, Excel (CSV), WhatsApp.
+
+Her ekranda: **Asistan & bildirim merkezi** (zam, vadesi geçen alacak, yaklaşan ödeme, eksik fiyat, gelmeyen sipariş, yüksek yemek maliyeti — `src/lib/alerts.ts`), **ekip sohbeti** (kanallar + hazır talep düğmeleri, Realtime), listelerde **çoklu seçim + toplu işlem**. Reçetede **Güncelle** son alış fiyatlarıyla maliyeti yeniler ve geçmişe yazar. **Mutfak Ekranı**: büyük yazı, simge, adım adım, sesli okuma.
+
+## Demo (tıklanabilir tanıtım)
+
+`VITE_DEMO=1` ile derlenen sürüm Supabase'e hiç bağlanmaz: `src/demo/` tarayıcı içinde PostgREST + Auth taklidi yapar
+(görünümler, tetikleyiciler ve RPC'ler SQL'in birebir JS karşılığı, `engine.test.ts` ile doğrulanır). Örnek veri her gün
+"bugün"e göre yeniden kurulur (bugün 850 kişilik karnıyarık senaryosu). Rol seçerek giriş yapılır; değişiklikler yalnız o
+tarayıcıda saklanır ve "Sıfırla" ile silinir. Gerçek kurulumda demo kodu ayrı parçada kalır, yüklenmez.
 
 ## Yol haritası
 

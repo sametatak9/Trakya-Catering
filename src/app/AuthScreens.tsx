@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Clock3, KeyRound, LogOut } from 'lucide-react';
-import { supabase, supabaseConfigured } from '@/lib/supabase';
+import { Calculator, ChefHat, Clock3, Crown, KeyRound, LogOut, Megaphone, Salad, ShoppingCart, Sparkles, Truck, Warehouse } from 'lucide-react';
+import { DEMO_USERS, demoEmail } from '@/demo/users';
+import { ROLE_LABELS, type AppRole } from '@/lib/domain';
+import { DEMO, supabase, supabaseConfigured } from '@/lib/supabase';
 import { Logo } from '@/ui/Logo';
 import { Button, ErrorNote, Field } from '@/ui/primitives';
 import { signOut } from './session';
@@ -51,7 +53,54 @@ export function SetupMissing() {
   );
 }
 
+const ROLE_ICON: Record<string, ReactNode> = {
+  yonetici: <Crown className="w-5 h-5" />, asci_basi: <ChefHat className="w-5 h-5" />, diyetisyen: <Salad className="w-5 h-5" />,
+  muhasebe: <Calculator className="w-5 h-5" />, satinalma: <ShoppingCart className="w-5 h-5" />, pazarlamaci: <Megaphone className="w-5 h-5" />,
+  sofor: <Truck className="w-5 h-5" />, depo: <Warehouse className="w-5 h-5" />,
+};
+
+/** Demo girişi: şifre yok; rol seçilerek o kişinin ekranı açılır. */
+function DemoLogin() {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const enter = async (role: string) => {
+    setBusy(role); setError(null);
+    const { error: err } = await supabase.auth.signInWithPassword({ email: demoEmail(role), password: 'demo-giris' });
+    if (err) { setError(err.message); setBusy(null); }
+  };
+  return (
+    <AuthFrame>
+      <div className="inline-flex items-center gap-1.5 rounded-full tc-holo px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ink">
+        <Sparkles className="w-3.5 h-3.5" /> Canlı demo
+      </div>
+      <h2 className="text-2xl font-bold text-ink mt-3">Kimin gözünden bakalım?</h2>
+      <p className="text-sm text-ink-3 mt-1.5">Bir rol seçin; o kişinin ekranı açılır. Şifre gerekmez, tüm veriler örnektir.</p>
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {DEMO_USERS.map((u) => (
+          <button key={u.role} type="button" onClick={() => enter(u.role)} disabled={busy !== null}
+            className={`group text-left rounded-2xl p-3 ring-1 ring-line bg-card hover:ring-brand/60 hover:-translate-y-0.5 transition-all disabled:opacity-60 ${u.role === 'yonetici' ? 'sm:col-span-2 tc-holo-border' : ''}`}>
+            <div className="flex items-center gap-2.5">
+              <span className={`w-9 h-9 shrink-0 rounded-xl grid place-items-center ${u.role === 'yonetici' ? 'bg-brand text-on-brand' : 'bg-brand-soft text-brand'}`}>{ROLE_ICON[u.role]}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-bold text-ink truncate">{ROLE_LABELS[u.role as AppRole]}</span>
+                <span className="block text-[11.5px] text-ink-3 truncate">{busy === u.role ? 'Açılıyor…' : u.full_name}</span>
+              </span>
+            </div>
+            <div className="mt-2 text-[11.5px] leading-snug text-ink-2">{u.blurb}</div>
+          </button>
+        ))}
+      </div>
+      {error && <div className="mt-3"><ErrorNote>{error}</ErrorNote></div>}
+    </AuthFrame>
+  );
+}
+
 export function LoginScreen() {
+  if (DEMO) return <DemoLogin />;
+  return <RealLogin />;
+}
+
+function RealLogin() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [bootstrap, setBootstrap] = useState(false);
   const [email, setEmail] = useState('');

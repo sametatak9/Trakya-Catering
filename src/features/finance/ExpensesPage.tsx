@@ -10,7 +10,9 @@ import { ReportSection, ReportStats } from '@/reports/ReportFrame';
 import { ListToolbar, matches } from '@/ui/ListToolbar';
 import { fmtMoney, fmtPct } from '@/lib/format';
 import { orderPeople, useOrders } from '../sales/api';
-import { useEntries, useFinanceCategories, type FinanceEntry } from './api';
+import { useToast } from '@/ui/toast';
+import { BulkBar, SelectBox, useSelection } from '@/ui/Selection';
+import { useAccounts, useDeleteEntry, useEntries, useFinanceCategories, useSaveEntry, type FinanceEntry } from './api';
 import { CategoryDrawer } from './CategoryDrawer';
 import { EntryDrawer } from './EntryDrawer';
 
@@ -52,6 +54,30 @@ export function ExpensesPage() {
   const unpaid = rows.filter((r) => r.kind === 'gider' && monthKey(r.entry_date) === month && r.status === 'bekliyor').reduce((s, r) => s + Number(r.net_amount), 0);
   const biggestRise = [...cards].filter((x) => x.t.delta > 0).sort((a, b) => b.t.delta - a.t.delta)[0];
   const groups = Array.from(new Set(cards.map((x) => x.c.group_name)));
+
+  // Çoklu seçim: toplu ödendi / sil
+  const toast = useToast();
+  const accounts = useAccounts();
+  const saveEntry = useSaveEntry();
+  const delEntry = useDeleteEntry();
+  const [payAccount, setPayAccount] = useState('');
+  const sel = useSelection(monthRows.map((r) => r.id));
+  const selectedRows = monthRows.filter((r) => sel.has(r.id));
+  const bulkPay = async () => {
+    const acc = payAccount || accounts.data?.find((a) => a.kind === 'banka')?.id || accounts.data?.[0]?.id;
+    const targets = selectedRows.filter((r) => r.status === 'bekliyor');
+    if (!acc || targets.length === 0) return toast.error('Seçilenlerde bekleyen ödeme yok');
+    try {
+      for (const r of targets) await saveEntry.mutateAsync({ id: r.id, draft: { status: 'odendi', account_id: acc, paid_at: todayISO() } });
+      toast.ok(`${targets.length} gider ödendi olarak işaretlendi`); sel.clear();
+    } catch (e) { toast.error(e); }
+  };
+  const bulkDelete = async () => {
+    const own = selectedRows.filter((r) => r.source === 'manuel');
+    if (own.length === 0) return toast.error('Yalnız elle girilen kayıtlar silinebilir; fatura kayıtları faturadan yönetilir');
+    if (!window.confirm(`${own.length} elle girilmiş gider silinsin mi?`)) return;
+    try { for (const r of own) await delEntry.mutateAsync(r.id); toast.ok(`${own.length} kayıt silindi`); sel.clear(); } catch (e) { toast.error(e); }
+  };
 
   const report = (): ReportSpec => ({
     title: 'Gider Analizi',
@@ -160,6 +186,7 @@ export function ExpensesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
+                  <th className="pl-4 w-8"><SelectBox label="Tümünü seç" checked={sel.allChecked} indeterminate={sel.someChecked} onChange={sel.toggleAll} /></th>
                   <th className="px-4 py-2.5 font-semibold">Tarih</th>
                   <th className="px-3 py-2.5 font-semibold">Kalem</th>
                   <th className="px-3 py-2.5 font-semibold hidden md:table-cell">Kime</th>
@@ -169,7 +196,8 @@ export function ExpensesPage() {
               </thead>
               <tbody>
                 {monthRows.map((r) => (
-                  <tr key={r.id} onClick={() => setEditing(r)} className="border-b border-line last:border-0 cursor-pointer hover:bg-surface-2">
+                  <tr key={r.id} onClick={() => setEditing(r)} className={cx('border-b border-line last:border-0 cursor-pointer hover:bg-surface-2', sel.has(r.id) && 'bg-brand-soft/40')}>
+                    <td className="pl-4" onClick={(e) => e.stopPropagation()}><SelectBox label="Seç" checked={sel.has(r.id)} onChange={() => sel.toggle(r.id)} /></td>
                     <td className="px-4 py-2.5 tc-num text-ink-2 whitespace-nowrap">{shortDay(r.entry_date)}</td>
                     <td className="px-3 py-2.5">
                       <div className="font-medium text-ink">{catName(r.category_code)}</div>
@@ -189,6 +217,15 @@ export function ExpensesPage() {
         )}
       </Panel>
 
+      <BulkBar count={sel.count} onClear={sel.clear} noun="gider">
+        <span className="text-xs text-ink-3 tc-num">Toplam <Money value={selectedRows.reduce((t, r) => t + Number(r.total_amount ?? 0), 0)} className="font-semibold text-ink" /></span>
+        <select className="tc-input !w-auto !py-1.5 text-xs" value={payAccount} onChange={(e) => setPayAccount(e.target.value)} aria-label="Ödeme hesabı">
+          <option value="">Banka</option>
+          {(accounts.data ?? []).map((a) => <option key={a.id!} value={a.id!}>{a.name}</option>)}
+        </select>
+        <Button size="sm" variant="holo" onClick={bulkPay} loading={saveEntry.isPending}>Ödendi yap</Button>
+        <Button size="sm" variant="danger" onClick={bulkDelete} loading={delEntry.isPending}>Sil</Button>
+      </BulkBar>
       {editing && <EntryDrawer entry={editing === 'new' ? null : editing} defaultKind="gider" defaultCategory={selected ?? undefined} onClose={() => setEditing(null)} />}
       {catOpen && <CategoryDrawer onClose={() => setCatOpen(false)} />}
     </>

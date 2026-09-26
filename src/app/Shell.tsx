@@ -1,5 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { LogOut, Menu, Moon, Sun, X } from 'lucide-react';
+import { LogOut, Menu, Moon, RotateCcw, Sparkles, Sun, UserRound, X } from 'lucide-react';
+import { NotificationBell } from '@/features/assistant/Notifications';
+import { ChatButton } from '@/features/chat/ChatPanel';
+import { DEMO } from '@/lib/supabase';
 import { Logo } from '@/ui/Logo';
 import { cx } from '@/ui/primitives';
 import { ROLE_LABELS } from '@/lib/domain';
@@ -87,6 +90,28 @@ function UserBox({ theme, onToggleTheme }: { theme: Theme; onToggleTheme: () => 
   );
 }
 
+/** Demo sürümünde her ekranda görünen küçük şerit: verilerin örnek olduğunu hatırlatır. */
+function DemoBadge() {
+  const reset = async () => {
+    if (!window.confirm('Demo verileri ilk hâline dönsün mü? Yaptığınız değişiklikler silinir.')) return;
+    (await import('@/demo/server')).resetDemo();
+    window.location.reload();
+  };
+  return (
+    <div className="tc-no-print fixed bottom-3 left-1/2 -translate-x-1/2 lg:left-[calc(50%+132px)] z-30 flex items-center gap-1 rounded-full bg-ink/90 text-surface backdrop-blur pl-3 pr-1 py-1 shadow-xl text-[11.5px]">
+      <Sparkles className="w-3.5 h-3.5 text-accent" />
+      <span className="font-semibold">DEMO</span>
+      <span className="hidden sm:inline opacity-75">· tüm veriler örnektir</span>
+      <button type="button" onClick={() => void signOut()} className="ml-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 hover:bg-white/10" title="Başka bir rolle bak">
+        <UserRound className="w-3.5 h-3.5" /> Rol değiştir
+      </button>
+      <button type="button" onClick={() => void reset()} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 hover:bg-white/10" title="Örnek verileri sıfırla">
+        <RotateCcw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Sıfırla</span>
+      </button>
+    </div>
+  );
+}
+
 export function Shell({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(readTheme);
   const [drawer, setDrawer] = useState(false);
@@ -109,9 +134,13 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* Mobil üst bar */}
       <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 bg-card/95 backdrop-blur border-b border-line">
         <Brand />
-        <button type="button" onClick={() => setDrawer(true)} className="p-2 rounded-xl ring-1 ring-line text-ink-2" aria-label="Menü">
-          <Menu className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <ChatButton />
+          <button type="button" onClick={() => setDrawer(true)} className="p-2 rounded-xl ring-1 ring-line text-ink-2" aria-label="Menü">
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       {drawer && (
@@ -129,10 +158,18 @@ export function Shell({ children }: { children: ReactNode }) {
       )}
 
       <main className="lg:pl-[264px]">
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8" key={current?.path}>
+        {/* Masaüstü üst şerit: bulunduğunuz ekran + bildirim + sohbet */}
+        <div className="hidden lg:block sticky top-0 z-30 bg-surface/85 backdrop-blur border-b border-line/70">
+          <div className="mx-auto max-w-[1400px] px-8 py-2.5 flex items-center justify-between gap-3">
+            <div className="text-xs font-semibold text-ink-3 truncate">{current ? `${current.label} · ${current.hint}` : ''}</div>
+            <div className="flex items-center gap-2"><NotificationBell /><ChatButton /></div>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 sm:py-7" key={current?.path}>
           {children}
         </div>
       </main>
+      {DEMO && <DemoBadge />}
     </div>
   );
 }

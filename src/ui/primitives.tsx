@@ -192,7 +192,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, wide 
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" aria-label="Kapat" className="absolute inset-0 bg-ink/30 backdrop-blur-[2px]" onClick={onClose} />
       <aside role="dialog" aria-modal="true"
-        className={cx('relative h-full w-full bg-surface shadow-2xl flex flex-col', wide ? 'sm:max-w-3xl' : 'sm:max-w-lg')}>
+        className={cx('tc-holo-slide overflow-hidden h-full w-full bg-surface shadow-2xl flex flex-col', wide ? 'sm:max-w-3xl' : 'sm:max-w-lg')}>
         <header className="flex items-start justify-between gap-3 px-5 py-4 border-b border-line bg-card">
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-ink truncate">{title}</h2>

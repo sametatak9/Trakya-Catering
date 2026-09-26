@@ -1,14 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+/**
+ * Demo modu (VITE_DEMO=1): müşteriye gösterilecek tıklanabilir tanıtım sürümü.
+ * Supabase'e hiç bağlanmaz; istekleri tarayıcı içindeki demo sunucusu yanıtlar (src/demo).
+ * Gerçek kurulumda bu kod ayrı parçada kalır ve hiç yüklenmez.
+ */
+export const DEMO = import.meta.env.VITE_DEMO === '1';
+
+const url = DEMO ? 'https://demo.trakyacatering.test' : (import.meta.env.VITE_SUPABASE_URL as string | undefined);
+const key = DEMO ? 'demo' : (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
 
 /** Ortam değişkenleri eksikse uygulama sahte veriye düşmez; kurulum ekranı gösterilir. */
 export const supabaseConfigured = Boolean(url && key);
 
+const demoFetch: typeof fetch = async (input, init) => (await import('@/demo/server')).demoFetch(input, init);
+
 export const supabase = createClient<Database>(url || 'https://invalid.local', key || 'missing', {
-  auth: { persistSession: true, autoRefreshToken: true },
+  auth: { persistSession: true, autoRefreshToken: !DEMO, ...(DEMO ? { storageKey: 'tc-demo-auth' } : {}) },
+  ...(DEMO ? { global: { fetch: demoFetch } } : {}),
 });
 
 /** Supabase hatasını kullanıcıya gösterilebilir Türkçe mesaja çevirir. */
