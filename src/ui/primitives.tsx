@@ -61,7 +61,7 @@ export function Panel({ title, subtitle, action, children, className = '', pad =
   title?: ReactNode; subtitle?: ReactNode; action?: ReactNode; children: ReactNode; className?: string; pad?: boolean;
 }) {
   return (
-    <section className={cx('tc-card', className)}>
+    <section className={cx('tc-card min-w-0', className)}>
       {(title || action) && (
         <header className="flex items-start justify-between gap-3 px-4 sm:px-5 pt-4 pb-3 border-b border-line">
           <div className="min-w-0">

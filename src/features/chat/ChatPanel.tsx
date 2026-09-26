@@ -37,7 +37,7 @@ function useMessages() {
   // Gerçek kurulumda anlık: yeni mesaj gelince listeyi tazele
   useEffect(() => {
     if (DEMO) return;
-    const ch = supabase.channel('chat_messages')
+    const ch = supabase.channel(`chat_messages:${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, () => void qc.invalidateQueries({ queryKey: ['chat'] }))
       .subscribe();
     return () => { void supabase.removeChannel(ch); };

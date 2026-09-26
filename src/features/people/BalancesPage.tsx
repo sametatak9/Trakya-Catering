@@ -32,7 +32,7 @@ export function BalancesPage() {
   // Canlı: başka biri avans/ödeme girince ekran kendiliğinden tazelenir
   useEffect(() => {
     if (DEMO) return;
-    const ch = supabase.channel('employee_ledger')
+    const ch = supabase.channel(`employee_ledger:${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'employee_ledger' }, () => void qc.invalidateQueries({ queryKey: ['t', 'employee_ledger'] }))
       .subscribe();
     return () => { void supabase.removeChannel(ch); };

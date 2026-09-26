@@ -75,7 +75,7 @@ export function FinanceSummaryPage() {
         <div className="mb-4"><Hint>Henüz finans kaydı yok. Siparişleri “teslim edildi” yaptığınızda gelir, gelen faturaları onayladığınızda gider oluşur; faturasız kalemleri Giderler ve Kasa ekranlarından ekleyebilirsiniz.</Hint></div>
       )}
 
-      <div className="grid xl:grid-cols-[1.25fr_1fr] gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_1fr] gap-4">
         <Panel title="1 kişilik öğün neye mal oluyor?" subtitle={`${monthLabel(month)} · ${fmtNum(people, 0)} kişi`}>
           {people === 0 ? <p className="text-sm text-ink-3">Bu ay sipariş (kişi sayısı) yok; kişi başı hesap için siparişler gerekli.</p> : (
             <>

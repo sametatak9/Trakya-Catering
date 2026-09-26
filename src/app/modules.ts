@@ -79,14 +79,18 @@ export interface PermissionMaps {
   member: Map<string, string>;   // path → level (giriş yapan kişi için)
 }
 
+/** Ekranı yazılmakta olan sekmeler (menüde gösterilmez; bitince listeden çıkar) */
+export const IN_PROGRESS = new Set<string>(['/stok', '/sevk', '/satinalma', '/tedarikciler', '/irsaliye', '/teklifler', '/pazarlama', '/sosyal-medya', '/rota', '/sofor', '/filo', '/cek-senet']);
+
 export function defaultVisible(m: ModuleDef, role: AppRole): boolean {
   return !m.roles || m.roles.includes(role);
 }
 
 export function visibleModules(role: AppRole, perms?: PermissionMaps): ModuleDef[] {
   if (role === 'musteri') return [];
-  if (role === 'kurucu') return MODULES;
-  return MODULES.filter((m) => {
+  const ready = MODULES.filter((m) => !IN_PROGRESS.has(m.path));
+  if (role === 'kurucu') return ready;
+  return ready.filter((m) => {
     if (m.path === '/kurucu') return false;
     const personal = perms?.member.get(m.path);
     if (personal) return personal !== 'yok';

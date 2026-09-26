@@ -72,7 +72,8 @@ export function OrderPortalPage({ token }: { token: string }) {
 
   useEffect(() => {
     supabase.rpc('portal_info', { p_token: token }).then(({ data, error: err }) => {
-      if (err) setError(describeError(err)); else setInfo(data as unknown as PortalInfo);
+      const d = data as unknown as PortalInfo | null;
+      if (err || !d?.customer || !d.today) setError(err ? describeError(err) : 'Link geçersiz'); else setInfo(d);
     });
   }, [token]);
 

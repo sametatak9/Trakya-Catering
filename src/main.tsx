@@ -6,6 +6,7 @@ import { RouterProvider } from './app/router';
 import { SessionProvider } from './app/session';
 import { ToastProvider } from './ui/toast';
 import { ConfirmHost } from './ui/confirm';
+import { ErrorBoundary } from './ui/ErrorBoundary';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -16,6 +17,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <RouterProvider>
@@ -26,5 +28,6 @@ createRoot(document.getElementById('root')!).render(
         </RouterProvider>
       </SessionProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

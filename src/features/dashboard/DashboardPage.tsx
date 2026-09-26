@@ -37,6 +37,7 @@ export function DashboardPage() {
   const open = useOpenItems(isFinance);
   const accounts = useAccounts();
   const [showRoadmap, setShowRoadmap] = useState(false);
+  const [panelReport, setPanelReport] = useState<ReportSpec | null>(null);
 
   if (orders.isLoading || prod.isLoading || ing.isLoading || rec.isLoading) return <Loading />;
 
@@ -133,8 +134,6 @@ export function DashboardPage() {
       ),
     };
   };
-  const [panelReport, setPanelReport] = useState<ReportSpec | null>(null);
-
   const steps = [
     { done: ingredients.length > 0, label: 'Hammaddeleri ekle', hint: 'birim, fire, alış fiyatı', to: '/hammaddeler' },
     { done: (rec.data ?? []).some((r) => (r.line_count ?? 0) > 0), label: 'Reçete gramajlarını gir', hint: '1 porsiyonun net gramajı', to: '/receteler' },

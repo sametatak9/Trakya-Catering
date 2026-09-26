@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { askConfirm } from '@/ui/confirm';
 import { Check, FileInput, FilePlus2, Sparkles, Trash2, Upload, X } from 'lucide-react';
 import { useCan } from '@/app/session';
+import { unitInfo } from '@/lib/domain';
 import { suggestCategory, type Suggestion } from '@/lib/categorize';
 import { monthKey, monthLabel, monthRange, shortDay, todayISO } from '@/lib/dates';
 import { ROLES } from '@/lib/domain';
@@ -309,11 +310,24 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
       return ing && price !== null ? { ingredient_id: ing.id, price: Math.round(price * 10000) / 10000, source: 'alis_faturasi', supplier_name: invoice.supplier_name, noted_at: `${invoice.invoice_date}T12:00:00+03:00` } : null;
     }).filter(Boolean) as Array<{ ingredient_id: string; price: number; source: string; supplier_name: string; noted_at: string }>;
     if (rows.length === 0) return toast.error('Eşleşen ve birimi uyumlu kalem yok');
+    // Stok girişi: faturadaki miktar hammaddenin stok birimine çevrilir (aynı fatura ikinci kez stoğa girmez)
+    const stock = lines.map((l, i) => {
+      const ing = ings.find((x) => x.id === chosen(i));
+      const lu = UNIT_CODES[l.unitCode];
+      if (!ing || !lu || !(l.quantity > 0)) return null;
+      const a = unitInfo(lu), b = unitInfo(ing.stock_unit);
+      if (a.base !== b.base) return null;
+      const price = pricePerStockUnit(l, ing.stock_unit);
+      return { ingredient_id: ing.id, move_date: invoice.invoice_date, kind: 'giris', qty: Math.round(l.quantity * a.toBase / b.toBase * 1000) / 1000,
+        unit_cost: price === null ? null : Math.round(price * 10000) / 10000, source: 'fatura', source_id: invoice.id, note: `${invoice.supplier_name} · ${invoice.invoice_no}` };
+    }).filter(Boolean);
     setBusy(true);
     try {
       unwrap(await supabase.from('ingredient_prices').insert(rows).select('id'));
-      await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['recipe_costs'] }), qc.invalidateQueries({ queryKey: ['menu_costs'] })]);
-      toast.ok(`${rows.length} hammaddenin fiyatı güncellendi; reçete maliyetleri yenilendi`);
+      const already = unwrap(await supabase.from('stock_movements').select('id').eq('source_id', invoice.id).limit(1));
+      if (already.length === 0 && stock.length) unwrap(await supabase.from('stock_movements').insert(stock as never).select('id'));
+      await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['recipe_costs'] }), qc.invalidateQueries({ queryKey: ['menu_costs'] }), qc.invalidateQueries({ queryKey: ['t', 'stock_movements'] })]);
+      toast.ok(`${rows.length} hammaddenin fiyatı güncellendi${already.length === 0 && stock.length ? `, ${stock.length} kalem stoğa girdi` : ''}; reçete maliyetleri yenilendi`);
     } catch (e) { toast.error(e); } finally { setBusy(false); }
   };
 
@@ -345,7 +359,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
 
       {lines.length > 0 && (
         <Panel pad={false} title="Kalemler" subtitle={category === 'gida_hammadde' ? 'Kalemleri hammaddelerle eşleştirip alış fiyatlarını tek tuşla güncelleyin' : undefined}
-          action={canEdit && category === 'gida_hammadde' && <Button size="sm" variant="primary" onClick={pushPrices} loading={busy}>Fiyatları hammaddelere işle</Button>}>
+          action={canEdit && category === 'gida_hammadde' && <Button size="sm" variant="primary" onClick={pushPrices} loading={busy}>Fiyat ve stoğa işle</Button>}>
           <div className="overflow-x-auto tc-scroll">
             <table className="w-full text-sm min-w-[620px]">
               <thead>

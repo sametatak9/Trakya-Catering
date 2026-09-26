@@ -4,6 +4,7 @@ import { LogOut, Menu, Moon, RotateCcw, Sparkles, Sun, UserRound, X } from 'luci
 import { NotificationBell } from '@/features/assistant/Notifications';
 import { ChatButton } from '@/features/chat/ChatPanel';
 import { DEMO } from '@/lib/supabase';
+import { ErrorBoundary } from '@/ui/ErrorBoundary';
 import { Logo } from '@/ui/Logo';
 import { cx } from '@/ui/primitives';
 import { ROLE_LABELS } from '@/lib/domain';
@@ -168,7 +169,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 sm:py-7" key={current?.path}>
-          {children}
+          <ErrorBoundary compact>{children}</ErrorBoundary>
         </div>
       </main>
       {DEMO && <DemoBadge />}
