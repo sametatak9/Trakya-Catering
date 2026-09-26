@@ -12,6 +12,7 @@
 > 5. **Her fazdan sonra** `docs/PLAN.md`'yi güncelle (tamamlananlar, varsayımlar, sıradaki faz) ve §8.E şablonuna göre **kısa bir faz raporu** yaz (`docs/raporlar/faz-XX.md` + commit mesajı özeti). Kullanıcı bu raporları telefondan okuyacak.
 > 6. Canlı veritabanı migration'ları: yalnız eklemeli olur ve önce dev/branch/yerelde test edilir. Testler geçince canlıya uygulanır; ne uygulandığı faz raporunda yazılır. Kullanıcı panelinden yapılması gereken ayarlar (sızdırılmış parola koruması, Auth Site URL) için adım adım talimatı raporun başına koy; bunlar yapılmadı diye bekleme.
 > 7. **Öncelik:** Bu belgede alıntılanan kaynak bölümlerde (§5, §6, §8) "kullanıcı onayı", "onay bekle", "yalnız dalda çalış" ya da "taslak PR" gibi ifadeler bu talimata göre okunur: iş durmaz, varsayılanla devam edilir, test geçince main'e ve canlı dala push edilir. (Uygulama içi **Onaylar** iş akışı, yani yöneticinin satınalma planı ve gider onayı, bir ürün özelliğidir; bu kuraldan etkilenmez.)
+> 8. **Elindeki mevcut işle entegre yürüt:** Devam eden işin bu planla örtüşen kısımlarını plana bağla ve birlikte ilerlet. Elindeki iş bu plandan farklıysa onu sıraya koy: yarım kalanı kırık bırakmadan güvenli bir noktada durdur ve `docs/PLAN.md`'ye yaz. **Bu büyük planı bitirmek her şeyden önceliklidir.**
 
 *Hazırlanma: 27 Eylül 2026, TSİ. Sahibi: Hüseyin Samet Atak (Trakya Catering, toplu yemek fabrikası, Çorlu). Bu belge Claude Code'a doğrudan verilir. Bu belgeden başka yalnız **veri paketi** (`claude-veri-paketi.zip`) vardır.*
 
@@ -2331,6 +2332,12 @@ $$;
    - Playwright: yazdırma sayfası A4'te taşmadan render oluyor (ekran görüntüsü karşılaştırması).
 **Kabul:** Menüler 1 kişilik. Sipariş sayıları kg'lık iş emrine dönüşüyor. İş emri öğün bazında basılı A4 rapor olarak alınabiliyor.
 
+
+**Rakip analizinden (§11) ekler:**
+- [SHOULD] Geriye planlama: sevk saatinden başlama saati; kahvaltı hazırlığı önceki akşama; ortak alt reçeteyi (pilav, sos) tek partide birleştir, sonra firma/kap bazında böl (Galley).
+- [SHOULD] HACCP: iş emrindeki KKN'lere sıcaklık ölçümü (çekirdek, soğutma, sevk), sınır dışı değerde düzeltici faaliyet kaydı, şahit numune kaydı. Sınırlar ayarlanabilir varsayılan (FoodDocs/Jolt).
+- [SHOULD] A4 raporun yanında küvet/kap etiketi basılır: yemek, firma, öğün, üretim/son tüketim saati, alerjen (Jolt/Nutritics).
+
 ##### Faz 3D — Menü tipi, sunum şekli (tabla/küvet), müşteri menü tanımı, aylık sipariş, portal (istek 3, 12) · 2 oturum
 1. Migration `…_menu_types_service_styles.sql`:
    - `menu_types` (code pk, name, course_count, sort, active) — seed: `3_cesit`, `4_cesit`, `5_cesit`, `kahvalti`, `diyet`.
@@ -2348,6 +2355,12 @@ $$;
 3. **Müşteri hassasiyet & şikâyet (istek #18.2):** `customer_notes` (alerji/hassasiyet/dikkat/tercih; alerjen kodu 14'lü listeden), `customer_complaints` (kategori, önem, durum, çözüm, fotoğraf), `v_menu_allergen_conflicts`; `po_check` alerji çakışmasını anomali yapar; portal için `portal_report_complaint(token, …)` RPC. UI: Cari > müşteri detay > `Hassasiyetler & şikâyetler`; Siparişler, Üretim emri ve Şoför Ekranı'nda ⚠ rozeti + son şikâyet satırı.
 4. Testler: `supabase/tests/customer_menus.sql` — tabla vs küvet maliyet farkı; aylık üretim 30 satır; portal v2 ile kesim sonrası değişiklik reddi; müşteri fiyat değiştiremez. Vitest: ay ızgarası yardımcıları.
 **Kabul:** Üretim ekranında "hangi menü, hangi firma, kaç kişi, hangi sunum" görünür; aylık sipariş üret/düzelt çalışır.
+
+
+**Rakip analizinden (§11) ekler:**
+- [SHOULD] Menü alerjen matrisi reçetelerden otomatik türer ve stok değişince yenilenir. Müşteri hassasiyetiyle çakışırsa üretim emrinde kırmızı uyarı çıkar (Nutritics).
+- [MUST] Müşteri × öğün (kahvaltı/öğle/akşam/ekstra) adet raporu, tarih aralıklı, Excel'e aktarılabilir (YemekPRO).
+- [COULD] Portalda "geçen haftayı kopyala" ve değişiklik talebi logu (CaterTrax).
 
 ##### Faz 3E — Kanonik stok adları, tedarikçi etiketli stok partileri, fatura eşleştirme (istek 2, 11, muhasebe kuralı) · 2 oturum
 0. Migration `…_stock_lots.sql` (§0.1): `stock_lots` (ingredient_id, supplier_id, purchase_invoice_id, purchase_order_id, received_on, qty_in, unit_cost, lot_no, expiry_date, qty_remaining, status, source `pok|fatura|acilis|sayim`; partial unique (purchase_invoice_id, ingredient_id) ve (purchase_order_id, ingredient_id)); `stock_movements.lot_id`, `purchase_invoice_id`, `purchase_order_id`; RPC `receive_stock(...)` (tek giriş kapısı: PO teslimi veya fatura; diğeri varsa eşleştirir, yeni parti açmaz; fatura sonradan gelirse parti `unit_cost` düzeltmesi + `avg_cost` yeniden hesap), `consume_stock(ingredient, qty, source, source_id)` (FIFO, parti yetmezse negatif stok uyarısı ve "partisiz çıkış" kaydı). Mevcut hareketler için "açılış partisi" dönüşümü (idempotent). İstemci: PurchasingPage, InvoicesPage, StockPage, SuppliesPage, PrepPage girişleri bu RPC'leri kullanır. Görünüm `v_stock_by_supplier` (kalem × tedarikçi × kalan). **Gider yazımı yalnız `sync_invoice_entry`'de kalır.**
@@ -2368,6 +2381,13 @@ $$;
 4. Testler: `supabase/tests/ingredient_aliases.sql` — "DANA KUŞBAŞI 1.SINIF KG" → "Dana kuşbaşı" eşleşir; aynı tedarikçide ikinci faturada otomatik; merge sonrası reçete maliyeti değişmez; fatura+PO çift stok girişi engellenir. Vitest: `norm_tr` istemci eşleniği.
 **Kabul:** Aynı ürün ikinci faturada elle eşleştirme istemiyor; kopya hammadde açılamıyor (onaysız).
 
+
+**Rakip analizinden (§11) ekler:**
+- [MUST] Önce e-Fatura UBL-TR XML içe aktarma; satır başına eşleşme güven skoru, düşük skor inceleme kuyruğuna. Kâğıt/PDF için OCR/LLM 🔌 COULD (MarketMan/R365 Capture AI).
+- [MUST] "Düzensiz fiyat" listesi: PO, teklif ya da son alıştan eşik üstü sapma (varsayılan %3) → kabul/red (onay + audit), red durumunda iade/fark talebi. PO ↔ mal kabul ↔ fatura 3 yönlü eşleştirme; aylık "fiyat değişiminin SMM etkisi" raporu (MarketMan/R365/Procurement Partners).
+- [MUST] Tedarikçiye göre ayıklama verimi (brüt → net testi). Teklif karşılaştırmasında gerçek birim maliyet = fiyat ÷ verim (StarChef).
+- [SHOULD] Lot geri izleme raporu: tedarikçi partisi → üretim → firma/öğün (Apicbase traceability).
+
 ##### Faz 3F — Maliyet sekmesi (gün/ay/yıl) ve menüden otomatik, sürümlü satınalma planı + teklif analizi (istek 20, 18.4) · 2 oturum
 1. Migration `…_cost_purchase_plans.sql`:
    - Görünümler `v_cost_daily` (gün × öğün: kişi, tüketim maliyeti (üretimden), ambalaj, gelir), `v_cost_monthly` (+ personel, işletme, araç, genel gider payı, kişi başı tam maliyet, marj; fatura gideri ile tüketim farkı = stok değişimi), `v_cost_yearly`.
@@ -2377,6 +2397,12 @@ $$;
 2. UI: **Finans > Maliyet** (Gün/Ay/Yıl anahtarı, grafik + tablo, "Düzenle → Yeni sürüm kaydet", "Onaya gönder", Sürüm geçmişi, iki sürüm farkı, "bu sürümden yeni sürüm"). **Satınalma > Satınalma planı** (Menüden oluştur, satır düzenle, Yeni sürüm kaydet, Onaya gönder, Sürüm geçmişi/fark, Siparişe dönüştür), `Teklifler & analiz`, `Tasarruf`. Satınalma çalışma alanı kartları: plan durumu, süresi dolan teklifler, bu ay tasarruf.
 3. Testler: `supabase/tests/cost_purchase_plans.sql` — plan oluştur → düzenle → 3 sürüm; eski sürüm satırını UPDATE → exception; fark sorgusu doğru; yalnız onaylı sürümden PO; `audit_log`'da her sürüm için actor + diff; maliyet sürümü muhasebe kayıtlarını değiştirmez; tasarruf hesabı bilinen örnekle. Vitest: sürüm fark fonksiyonu, birim normalizasyonu.
 **Kabul:** Yönetici maliyet ve satınalma planını düzenleyip kaydedebiliyor; her kayıt yeni sürüm; eski sürümler okunabilir ve karşılaştırılabilir; tüm değişiklikler kim/ne zaman/önce-sonra ile loglu.
+
+
+**Rakip analizinden (§11) ekler:**
+- [SHOULD] Menü dışı kalemler (ambalaj, 3 bölmeli kap, temizlik, yan malzemeler, LPG) için min/par seviyesi; satınalma planında "par'a tamamla" sütunu (MarketMan).
+- [SHOULD] Kişi tahmini: müşteri × öğün × hafta günü için son 8 haftanın ağırlıklı ortalaması + tatil bayrağı; tahmin/fiili hata oranı raporu (Crunchtime/Galley).
+- [SHOULD] Tedarikçiye tokenlı teklif formu linki; gelen teklifler marka × fiyat × verim karşılaştırmasına ve tasarruf raporuna düşer (Çözbim E-Talep).
 
 ##### Faz 3G — Kurucu paneli: hesap, kullanıcılar, modüller (istek 17 — Hata Merkezi botu Faz 8B'de) · 1 oturum
 1. Migration `…_founder_admin.sql`: `team_members` ek (`phone`, `restricted_until`, `read_only`, `is_lead`), `current_app_role()` kısıtlı kullanıcıda null; yazma yardımcıları `can_write(roles)` (read_only ise false) — yeni politikalar bunu kullanır, eski politikalar kademeli geçirilir (davranış testleriyle); `app_modules` + `module_enabled(code)`; modül tablolarının yazma politikalarına modül kontrolü (kapalı modül okunur, yazılmaz; veri silinmez).
@@ -2423,6 +2449,12 @@ $$;
 5. **3C ek ile bağ:** Reçete ve menü 1 kişiliktir. Planlanan maliyet = Σ(qty_per_person × güncel maliyet). Gerçekleşen maliyet iş emrine bağlı üretim kaydından (X kişi / Y kullanım) gelir. İlk üretim reçeteyi kurar, sonrakiler yalnız kalibrasyon önerisi üretir.
 **Kabul:** Her gün × öğün × müşteri için kişi başı malzeme, genel gider ve nihai maliyet; kahvaltı, öğle ve akşam ayrı raporlanıyor.
 
+
+**Rakip analizinden (§11) ekler:**
+- [MUST] AvT (teorik ↔ fiili) kartı, Finans › Maliyet içinde. Teorik = teslim kişi × onaylı 1 kişilik reçete × güncel maliyet; Fiili = FIFO tüketim + fire/artan + sayım farkı. Fark fiyat, verim ve kontrolsüz stok olarak ayrıştırılır; en çok sapan 10 malzeme listelenir (Apicbase/Crunchtime).
+- [MUST] Mutfak modunda "Fire / Artan" düğmesi (tür, kg, neden kodu, fotoğraf). Bugün ekranında dünkü fire kg/₺, en çok fire veren 5 yemek, eşik alarmı. Dönen yemek kalibrasyon önerisine girdi olur (Winnow/Leanpath). 🔌 Tartı/kamera entegrasyonu COULD.
+- [SHOULD] Sipariş ↔ fiili teslim farkından öğün bazlı üretim tamponu önerisi.
+
 ##### Faz 4 — Cari & Kasa: tahsilat/ödeme, çek-senet, kredi, hatırlatma (istek 12, 13) · 2–3 oturum
 1. Migration `…_payments_cheques_loans.sql`: `payments`, `payment_allocations` (+ tetikleyici: tam karşılanan `finance_entries` → `status='odendi'`, `paid_at`, `account_id`), `v_open_items`, `account_transfers` (+ `v_account_balances` yeni sürümü: virman ve ödemeler dahil; **eski görünüm adı korunur**), `cheques.issuer` (`biz|musteri|diger`), `cheque_events` (+ tetikleyici: `tahsil/odendi` → `payments`), `loans`, `loan_installments`, `finance_categories` seed `finansman_gideri`, `v_customer_ledger`, `v_supplier_ledger`, `reminders`, `message_templates` (seed: tahsilat hatırlatma, çek vadesi, ödeme günü), `message_log`. `finance_entries.source` check'e `tahsilat`, `cek`, `kredi`, `sofor` ekle.
 2. Edge Function `send-reminders` (🔌 e-posta/WhatsApp anahtarı), `pg_cron` günlük 09:00 TSİ (anahtar yoksa yalnız uygulama içi bildirim + "WhatsApp'ta aç" wa.me linki).
@@ -2430,11 +2462,21 @@ $$;
 3. UI: **Kasa & Banka** sekmeleri: `Hesaplar & hareketler` (mevcut), `Tahsilat / ödeme` (açık kalemler, kısmi tahsis, virman), `Çek & senet` (portföy, olay zaman çizelgesi, ciro, vade takvimi), `Krediler` (taksit planı, öde), `Hatırlatmalar` (şablonlar, gönderim logu). **Cari Hesaplar** müşteri/tedarikçi `Ekstre` sekmesi (yazdır/WhatsApp).
 4. Testler: kısmi tahsilat 3 parçada kapanır; çek tahsili bankaya yansır; ciro edilen çek tedarikçi borcunu kapatır; karşılıksız çek alacağı geri açar; kredi taksiti faiz giderini yazar; RLS: pazarlamacı ödemeleri göremez.
 
+
+**Rakip analizinden (§11) ekler:**
+- [MUST] Paraşüt eşdeğeri: çek portföyü, bankaya tahsil, tedarikçiye ciro, vadesi gelen alacağa otomatik e-posta/WhatsApp hatırlatması.
+- [COULD] Muhasebeci için maliyet merkezi (hizmet maliyet yeri) dışa aktarımı (Logo/Netsis uyumu).
+
 ##### Faz 5 — Lojistik (istek 7) · 2 oturum
 1. Migration `…_logistics.sql`: `route_stops` (+ `routes.stops` jsonb'den tek seferlik kopya, jsonb kalır), `routes` ek (`polyline`, `distance_km`, `duration_min`, `nav_url`, `fuel_price`, `est_fuel_l`, `est_fuel_cost`), `vehicles` ek (`avg_l_per_100km`, `fuel_type`, `capacity_trays`, `kasko_due`, `k_belgesi_due`), `employees` ek (`license_class`, `license_due`, `src_due`, `psycho_due`), `driver_expenses` (+ onay tetikleyicisi → `finance_entries` source `sofor`; `kind='yakit'` → `vehicle_logs`), storage bucket `receipts` (private; şoför kendi klasörüne yazar), `stock_movements.purchase_invoice_id`, `v_customer_side_costs` (müşteri × ay: sevk malzemesi + taşıma payı).
 2. UI: **Lojistik** sekmeleri `Rotalar & harita` (Leaflet + OSM; durak sırala; Google Maps / Yandex navigasyon linki üret; anahtar yoksa haversine×1,3 mesafe), `Araçlar` (kart, muayene/sigorta/bakım uyarıları → `reminders`), `Şoförler & masraflar` (şoför kartı, masraf onay kuyruğu). **Şoför Ekranı** (mobil): bugünkü duraklar, "Navigasyonu aç", teslim miktarı + imza, masraf fişi fotoğrafı. Stok > `Firmalara giden`: fatura satırından seçme.
 2b. **Canlı takip (#18.3):** `route_stops.status/departed_at/arrived_at/issue`, `production_events`, `vehicle_checks` (sabah kontrol listesi, soğutucu sıcaklığı), `vehicle_positions` (isteğe bağlı), `v_live_ops`; realtime. UI: Lojistik > `Canlı takip` (mutfak + sevkiyat panosu, TV modu); yönetici/diyetisyen/baş şoför çalışma alanında özet kartı; Şoför Ekranı'na araç kontrol listesi ve müşteri ⚠ rozetleri. Şoför masrafı onayı `approval_policies` üzerinden.
 3. Testler: masraf onayı → gider; şoför başkasının rotasını/masrafını göremez; rota yakıt tahmini formülü (vitest).
+
+
+**Rakip analizinden (§11) ekler:**
+- [MUST] Dijital teslim kanıtı: durak başına fotoğraf, imza/ad, saat, sıcaklık, dönen küvet sayısı, dönen yemek kg. Kanıt müşteriye gönderilir (🔌, yedek wa.me) (Cybake Outbound).
+- [MUST] Küvet/termobox zimmeti ve kayıp takibi (Çözbim demirbaş). [COULD] Rota optimizasyonu 🔌.
 
 ##### Faz 6 — Personel: XLSX, bordro dönemi, izin (istek 8) · 1 oturum
 1. Bağımlılık: `read-excel-file` (veya SheetJS resmi CDN tarball; npm `xlsx` eski sürümünü **kullanma**), dinamik import. `parseAttendanceFile` satır dizisi kabul edecek şekilde genelleştirilir (CSV yolu korunur, mevcut testler geçer).
@@ -2444,17 +2486,29 @@ $$;
 4. PLAN.md'deki "7,5 saatlik gün" ifadesini "10 saat (kartta değiştirilebilir)" olarak düzelt.
 5. Testler: örnek ZKTeco XLSX fixture (`src/lib/__fixtures__`), aynı dosya ikinci kez yüklenemez, kapalı dönem değiştirilemez.
 
+
+**Rakip analizinden (§11) ekler:**
+- [SHOULD] Puantajda istasyon/öğün etiketi; "kişi başı işçilik ₺" ve "personel-saat başına porsiyon" hesaplanır. Bu veri §3.6 personel dağıtım anahtarını besler (Crunchtime/R365).
+
 ##### Faz 7 — Kârlılık, teklif & sunum, marka şablonu (istek 9, 10, 15) · 2 oturum
 1. Migration: `company_settings` ek (logo_path, logo_dark_path, instagram, facebook, linkedin, youtube, tiktok, x, whatsapp, iban, bank_name, mersis_no, food_reg_no, certificates text[], brand_color); storage `brand-public` (public read, yonetici yazar) ve `brand-media` (private); `brand_assets`; `customers.show_as_reference`, `suppliers.show_as_reference`; `quotes` ek (sections jsonb, menu_ids uuid[], service_style, sent_at, sent_via); `quote_templates`; görünümler `v_overhead_per_meal`, `v_menu_profitability` (menü × sunum: gıda + ambalaj + genel gider payı; min/ort/max müşteri fiyatı; marj), `v_customer_profitability`.
 2. UI: **Ayarlar > Firma & antet** (logo yükle, sosyal medya, IBAN); `ReportFrame` bu alanları kullanır (logo, iletişim, sosyal simgeler, QR); pencere başlıklarında logo (BACKLOG ⏳). **Menüler > Kârlılık** sekmesi (fiyat serbest; "önerilen = maliyet ÷ (1 − hedef marj)" yalnız öneri). **Teklifler & Sunum**: `Teklifler` (hesaplayıcı + bölüm seçimi + çok sayfalı kurumsal PDF), `Menü sunumu` (haftalık/aylık menü kurumsal şablonda), `Galeri & referanslar`.
 2b. **Pazarlama belgeleri (#18.1):** `document_templates` (menü/teklif/proforma/fatura/ekstre; hazır şablonlar seed), `proformas`, teklif → proforma → (kabulde) müşteri + `customer_menus` oluşturma sihirbazı.
 3. Testler: genel gider payı hesabı (bilinen gider ve kişi sayısıyla), menü × sunum maliyet farkı, teklif fiyat formülü (vitest).
 
+
+**Rakip analizinden (§11) ekler:**
+- [SHOULD] Menü mühendisliği matrisi (Yıldız / Sabanı çeken at / Bilmece / Köpek), Kârlılık sekmesi içinde. Popülerlik = seçilme oranı + düşük dönen yemek + düşük şikâyet; kârlılık = kişi başı katkı payı (Apicbase/Craftable/Kitchen CUT).
+
 ##### Faz 8 — Ana sayfa ve sosyal medya merkezi (istek 5, 6) · 1–2 oturum
 1. Migration: `dashboard_notes`, `social_accounts`, `social_account_snapshots`, `social_posts` ek (`account_ids uuid[]`, `media_paths text[]`, `approved_by`, `approved_at`, `menu_plan_date`); realtime'a `production_orders`, `dashboard_notes`.
 2. **Embay yöntemi:** Kullanıcının Embay deposu bu hesapta bulunamadı — kullanıcıdan depo adını/erişimini iste; bulunursa içerik havuzu/takvim/onay akışını oradan uyarlayarak al; bulunamazsa PLAN.md faz 9 tanımıyla (havuz → taslak → onay → planlandı → yayınlandı) ilerle.
 3. UI: **Bugün**: kartlar (Yarın: kişi, firma × menü × sunum, kesim sayacı, sipariş girmeyenler · Üretim emri durumu · Stok uyarısı · Notlar (sabitlenmiş/önemli) · Kasa & vadeler (FIN) · Sosyal medya önizleme (avatar, takipçi, son gönderi küçük resmi, bu hafta planlanan)). **Sosyal Medya** sekmeleri: `Hesaplar` (bizim + sektör), `Takvim`, `İçerik & onay`. Meta/TikTok API 🔌; o zamana kadar elle güncelleme + link.
 4. Testler: not görünürlüğü role göre; sosyal hesap RLS (şoför göremez).
+
+
+**Rakip analizinden (§11) ekler:**
+- [SHOULD] Bugün'de patron günlük prime cost kartı: dün teslim, gelir, FIFO SMM, işçilik, prime cost %, kişi başı marj, haftalık kıyas (R365).
 
 ##### Faz 8A — Pazarlama çalışma alanı: CRM, hedef kitle botu, etkileşim verisi (istek 18.1) · 2 oturum
 1. Migration: `crm_contacts` (KVKK izin alanları zorunlu), `crm_interactions`, `lead_requests`, `audience_targets`, `social_post_metrics`.
@@ -2467,6 +2521,10 @@ $$;
 2. Edge Functions: `collect-logs` (pg_cron 10 dk; Supabase Management API logları + advisor; 🔌 kişisel erişim anahtarı Vault'ta), `bug-doctor` (🔌 LLM + GitHub salt-okur/PR token): hata kümesi → ilgili kaynak ve migration okunur → teşhis + yama (diff) + SQL + test planı + risk → `bug_fix_proposals`. **Canlıya hiçbir şey uygulamaz.** Kurucu onayı (`approval_policies: bug_fix`) sonrası yalnız ayrı dal + **taslak PR** açar; SQL önerisi bir Supabase branch'inde test edilip sonucu PR'a eklenir. Birleştirme/yayın insan (veya Claude Code) tarafından.
 3. UI: Ayarlar > `Hata Merkezi` (hata listesi: kaynak, sayı, ilk/son görülme, etkilenen kullanıcı/rota; öneri detayı: teşhis, diff görünümü, risk; Onayla → PR aç / Reddet; durum takibi). Güvenli hızlı eylemler (oturum kapat, modül kapat) onaylı ve loglu.
 4. Testler: `log_client_error` hız sınırı; PII maskeleme; bot fonksiyonu service role ile DB'ye DDL yazamaz (yalnız `bug_fix_proposals` insert yetkili ayrı rol/anahtar).
+
+
+**Rakip analizinden (§11) ekler:**
+- [COULD] Salt okur AI rapor asistanı: RLS'e uyar, yalnız SELECT; "dün hangi yemekte fire arttı?" gibi sorulara cevap verir (Apicbase MCP).
 
 ##### Faz 9 — Rehber ve ilk kullanım (istek 14) · 1 oturum
 1. Migration: `user_onboarding` (RLS: yalnız kendi).
@@ -2781,3 +2839,172 @@ rollback;   -- HİÇBİR ŞEY KALICI OLMAZ
    - banka ekstre formatı.
 9. **Genel gider dağıtım varsayılanları:** Öğün ağırlıkları (kahvaltı 0,6 · öğle 1,0 · akşam 1,0), payda (teslim edilen kişi) ve onay eşiği (20.000 ₺) uygun mu?
 10. **Kurumsal kimlik:** Logo dosyası, adres, e-posta, telefon, web ve sosyal hesaplar rapor/teklif şablonu için gerekiyor.
+
+
+---
+
+## 11) Yurt içi ve yurt dışı rakip analizi: katabileceklerimiz (güncel)
+*Araştırma: 27 Eylül 2026, TSİ. Yöntem: üretici sitelerinin ve yardım merkezlerinin güncel web taraması. Kaynaklar bölüm sonunda. Ayrıntılı pazar belgesi: `pazar-arastirmasi.md` §6.*
+
+**Bizi rakiplerden ayıran nokta:** Rakiplerin çoğu restoran/POS mantığıyla çalışır (satış adedi × reçete). Bizim işimiz **sözleşmeli toplu yemek fabrikası**: kişi sayısı önceden bilinir, 3 öğün ayrı yürür, reçete gerçek üretimden öğrenilir, tabla ile küvet ayrı maliyetlenir.
+- Yurt dışı ürünler (Apicbase, Galley, MarketMan, R365, Crunchtime) analitikte güçlüdür ama Türk cari, çek, e-Fatura ve hakediş ihtiyacını karşılamaz.
+- Yurt içi ürünler (Çözbim, YemekPRO, CateringSis, Logo/Netsis/Mikro) muhasebe ve üretimde yeterlidir ama analitik (AvT, fire, fiyat uyarısı, tahmin) ve UX'te zayıftır.
+- **Hedef:** İkisinin iyi yanlarını, mevcut 14 modül içinde **yeni sekme açmadan** birleştirmek.
+
+**Öncelik kodları:** **MUST** = ilgili fazda zorunlu · **SHOULD** = aynı fazda, zaman kalırsa bir sonraki fazın başında · **COULD** = plan bitince.
+
+### 11.1 Özet tablo
+| # | Yetenek | En iyi yapan (nasıl) | Bizde nerede (modül · faz) | Öncelik |
+|---|---|---|---|---|
+| 1 | Teorik ↔ fiili gıda maliyeti farkı (AvT) | Apicbase: Fiili = Teorik + Fire − Net sayım farkı; malzeme, reçete ve dönem bazında detaya iner. Crunchtime AvT. | Finans › Maliyet "Fark" kartı; Üretim · **3H** | MUST |
+| 2 | Tedarikçi fiyat değişimi uyarısı + sözleşme fiyat doğrulama | MarketMan "Irregular Prices" (kabul/red). R365 fiyat değişim analizi + sözleşme ihlali raporu. Procurement Partners PO↔fatura eşleştirme. | Satınalma › Faturalar (eşleştirme ekranı içinde) · **3E** | MUST |
+| 3 | Verim / ayıklama testi (brüt → net) | StarChef Yield sekmesi (brüt/pişmiş ağırlık, fire maliyeti); kasap testi (net kg ÷ brüt kg). | Stok kartı + reçete brüt katsayısı; teklif karşılaştırması · **3E/3H** | MUST |
+| 4 | e-Fatura XML + fatura OCR | MarketMan ve R365 Capture AI: fotoğraftan satır çıkarır, güven skoru, inceleme kuyruğu. | Satınalma › Faturalar: önce UBL-TR XML, OCR ikincil · **3E** | MUST (XML) / COULD (OCR) |
+| 5 | Dijital teslim kanıtı + şoför uygulaması | Cybake Outbound: rota, imza/fotoğraf teslim kanıtı, iade, standing order değişikliği. | Lojistik › Şoför ekranı · **5** | MUST |
+| 6 | Fire / artan / dönen yemek takibi (tartı, AI) | Winnow Vision (kamera + tartı; ISS'te −%57, ESS'te −%70 fire). Leanpath (tartı, kök neden, hedef ve alarm). | Mutfak modu "Fire/Artan" düğmesi; Üretim · **3H** (elle), 🔌 tartı/kamera COULD | MUST (elle) |
+| 7 | Menüden talep bazlı satınalma + par seviyesi | Galley: menü × kişi sayısı → üretim ve satınalma. MarketMan: par seviyesi ve tek tıkla "par'a tamamla". | Satınalma planı (3F); par yalnız menü dışı kalemler için · **3F** | SHOULD |
+| 8 | Geçmişten üretim/talep tahmini | Crunchtime AI Forecasting (geçmiş, tatil, etkinlik → hazırlık ve sipariş önerisi). Galley (artan ve fire verisiyle düzeltme). | Satınalma planı + üretim tamponu önerisi · **3F/3H** | SHOULD |
+| 9 | Merkezi üretimde geriye planlama | Galley Production Planner: teslim saatinden geriye plan, ortak alt reçeteleri birleştirir, raf ömrünü dikkate alır. | İş emri · **3C ek** | SHOULD |
+| 10 | HACCP / sıcaklık / izlenebilirlik | FoodDocs (AI HACCP planı, sensör API, düzeltici faaliyet). Jolt (Bluetooth prob, kontrol listesi, etiket). Apicbase (tedarikçi lotu → parti → müşteri geri çağırma). | İş emri KKN kayıtları, Mutfak modu, teslimde sıcaklık, lot geri izleme · **3C ek/3E/5** | SHOULD |
+| 11 | Alerjen / besin matrisi ve etiket | Nutritics (canlı alerjen matrisi, etiket; tedarikçi değişikliği reçeteye yansır). Galley (besin paneli). Jolt (etiket basımı). | Menü › alerjen matrisi otomatik; küvet etiketi; müşteri hassasiyet uyarısı · **3D/3C ek** | SHOULD |
+| 12 | Günlük kâr-zarar / prime cost | R365 Daily Operations ve Sales & Prime Cost (SMM + işçilik; günlük, haftalık, dönemsel). | Bugün › patron günlük özeti kartı · **8** | SHOULD |
+| 13 | Öğün başı işçilik maliyeti | Crunchtime (fiili/ideal saat, verimlilik). R365 (işçilik %, fazla mesai). | Personel puantajı → genel gider anahtarı · **6/3H** | SHOULD |
+| 14 | Menü mühendisliği (Yıldız / Sabanı çeken at / Bilmece / Köpek) | Apicbase, Craftable, Kitchen CUT: popülerlik × katkı payı matrisi. | Finans › Kârlılık içinde matris görünümü · **7** | SHOULD |
+| 15 | Tedarikçiden teklif toplama (link) | Çözbim E-Talep (tedarikçiden fiyat toplama, otomatik satınalma önerisi). | Satınalma › teklif analizi · **3F** | SHOULD |
+| 16 | Çek portföyü, ciro, otomatik ödeme hatırlatma | Paraşüt: çek portföyü, bankaya tahsil, tedarikçiye ciro; vadesi gelen faturaya otomatik e-posta. | Cari & Kasa · **4** | MUST (eşdeğer) |
+| 17 | Müşteri sipariş portalı genişletmesi | CaterTrax: tekrar sipariş, değişiklik talebi, onay, denetim izi. | Portal · **3D** | COULD |
+| 18 | Taşımalı yemek sayıları ve demirbaş (küvet) kaybı | YemekPRO: müşteri × sabah/öğle/akşam/ekstra adet raporu. Çözbim: taşıma yemekte demirbaş takibi. | Siparişler raporu; küvet zimmeti · **3D/5** | MUST |
+| 19 | Maliyet merkezi dağıtımı (muhasebe uyumu) | Logo Tiger / Netsis: hizmet maliyet yerleri, genel giderin mamule dağıtılması. | §3.6 anahtarları + muhasebeci dışa aktarımı · **3H/4** | COULD |
+| 20 | Veriye doğal dille soru sorma (AI/MCP) | Apicbase MCP sunucusu: canlı veri ChatGPT, Claude veya Copilot'a bağlanır. | Salt okur, RLS'e uyan rapor asistanı · plan sonu | COULD |
+
+### 11.2 Yetenek yetenek öneriler (yalnız işe yarayan özler)
+
+1. **AvT farkı (MUST, 3H).**
+   - Bizde POS yok, satış yerine teslim edilen kişi sayısı kullanılır.
+   - **Teorik** = Σ(teslim kişi × onaylı reçete sürümündeki 1 kişilik miktar × güncel maliyet).
+   - **Fiili** = FIFO üretim tüketimi + kayıtlı fire/artan + sayım farkı (Apicbase formülünün uyarlaması).
+   - Fark 3 bileşene ayrılır: (a) fiyat farkı, (b) verim/porsiyon farkı, (c) kontrolsüz stok (sayım farkı).
+   - Kırılımlar: gün × öğün × müşteri × malzeme. En çok sapan 10 malzeme listelenir.
+   - Yeni sekme açılmaz: Finans › Maliyet'te bir kart ve detay çekmecesi.
+2. **Fiyat uyarısı ve 3 yönlü eşleştirme (MUST, 3E).**
+   - Fatura satırı, PO fiyatından, geçerli tekliften veya son alıştan eşik (varsayılan %3) üzerinde saparsa **"Düzensiz fiyat"** listesine düşer.
+   - Kabul edilirse fiyat güncellenir; reddedilirse tedarikçiden iade/fark faturası talebi açılır. Kabul/red, onay akışına ve `audit_log`'a yazılır.
+   - PO ↔ irsaliye (mal kabul) ↔ fatura miktar ve fiyat eşleştirmesi yapılır.
+   - Aylık "fiyat değişiminin SMM etkisi" raporu çıkar: malzeme, tedarikçi, ₺ etki.
+3. **Verim testi (MUST, 3E/3H).**
+   - Stok kartında tedarikçiye göre **ayıklama verimi** tutulur (ör. X tedarikçisinin kuru soğanı %88, Y'ninki %80). Ölçüm: tartılan brüt kg → ayıklanmış net kg.
+   - Teklif karşılaştırmasında **gerçek birim maliyet = fiyat ÷ verim** gösterilir; ucuz ama firesi yüksek mal böylece görünür.
+   - Reçetenin brüt katsayısı bu verimden beslenir (§3.3).
+4. **e-Fatura XML önce (MUST, 3E).**
+   - Türkiye'de tedarikçi faturaları çoğunlukla UBL-TR XML olarak gelir. OCR'den daha doğrudur, önce bu içe aktarılır.
+   - Satır → `match_ingredient` → güven skoru. Düşük skor inceleme kuyruğuna düşer (MarketMan'deki güven yüzdesi mantığı).
+   - Kâğıt fatura ve PDF için OCR/LLM (🔌) COULD. Yedek yol: elle satır girişi.
+5. **Dijital teslim (MUST, 5).**
+   - Şoför ekranında her durak için: teslim fotoğrafı, müşteri imzası/adı, teslim saati ve sıcaklığı, **dönen küvet** ve **dönen/artan yemek (kg)**.
+   - Teslim kanıtı müşteriye e-posta/WhatsApp ile gider (🔌; yedek wa.me linki).
+   - Dönen yemek fire/artan kaydına ve kalibrasyona girer.
+   - Rota optimizasyonu 🔌 (Google Maps); yedek yol: baş şoförün elle sıralaması.
+6. **Fire/artan (elle kayıt MUST, 3H; tartı/kamera COULD).**
+   - Mutfak modunda tek büyük düğme **"Fire / Artan"**: tür (hazırlık firesi, üretim fazlası, dönen yemek, tabak artığı), kg, neden kodu, isteğe bağlı fotoğraf.
+   - Winnow ve Leanpath vakalarında görülen asıl kazanç, günlük görünürlük ve hedef/alarm mekanizmasından gelir. Bu yüzden: Bugün ekranında "dünkü fire kg ve ₺", haftalık en çok fire veren 5 yemek, eşik aşılınca bildirim.
+   - Bluetooth/USB tartı ve kamera entegrasyonu plan sonuna kalır.
+7. **Menüden talep + par (SHOULD, 3F).**
+   - Menü kalemlerinde ana yöntem §3.7 MRP'dir; par kullanılmaz.
+   - **Menü dışı kalemler** (ambalaj, 3 bölmeli kap, peçete, temizlik, tuzluk/ketçap gibi yan malzemeler, LPG) için min/par seviyesi tutulur. Satınalma planında "par'a tamamla" önerisi ayrı sütun olarak görünür, yeni ekran açılmaz.
+8. **Tahmin (SHOULD, 3F/3H).**
+   - İlk sürümde ML yok. Müşteri × öğün × hafta günü için son 8 haftanın ağırlıklı hareketli ortalaması hesaplanır; resmî tatil ve bayram bayrağı eklenir.
+   - Çıktılar: (a) aylık satınalma planında kişi tahmini, (b) **sipariş ↔ fiili teslim farkına** göre öğün bazında üretim tamponu önerisi (ör. +%2).
+   - Tahmin/fiili hata oranı raporlanır.
+9. **Geriye planlama (SHOULD, 3C ek).**
+   - İş emri, sevk saatinden geriye başlama saati hesaplar (hazırlık ve pişirme süresi).
+   - Kahvaltı hazırlığı önceki akşama düşer.
+   - Aynı alt reçete (pilav, sos) tüm firmalar için tek partide birleştirilir, sonra firma/kap bazında bölünür.
+10. **HACCP ve izlenebilirlik (SHOULD, 3C ek / 3E / 5).**
+    - İş emrindeki kritik kontrol noktalarına (KKN) ölçüm girişi yapılır: pişirme çekirdek sıcaklığı, soğutma, sevk sıcaklığı. Sınır dışı değer düzeltici faaliyet kaydı ister.
+    - Sınır değerleri ayarlanabilir varsayılanlardır; mevzuatı kullanıcı teyit eder.
+    - Şahit numune kaydı tutulur (saklama süresi ayarlanabilir; mevzuata göre teyit edilir).
+    - **Geri izleme raporu:** tedarikçi partisi → hangi üretim → hangi firma/öğün. `stock_lots` zaten var (Apicbase traceability eşdeğeri).
+    - Kablosuz sıcaklık sensörü 🔌 COULD.
+11. **Alerjen matrisi ve etiket (SHOULD, 3D / 3C ek).**
+    - Menünün alerjen matrisi reçetelerden otomatik türer. Tedarikçi veya stok değişince yeniden hesaplanır (Nutritics).
+    - Müşteri hassasiyeti (§5, 18.2) ile çakışırsa üretim emrinde kırmızı uyarı çıkar.
+    - A4 raporun yanında küvet/kap etiketi basılır: yemek, firma, öğün, üretim ve son tüketim saati, alerjen.
+12. **Günlük prime cost (SHOULD, 8).**
+    - Bugün ekranında patron kartı, dün için: teslim edilen kişi, gelir (sözleşme fiyatı × teslim), FIFO SMM, işçilik (puantaj saat × saat maliyeti).
+    - Hesaplananlar: prime cost %, kişi başı marj, önceki hafta ile kıyas.
+    - Veri 3H ve 6'dan gelir, yeni sekme açılmaz.
+13. **Öğün başı işçilik (SHOULD, 6/3H).**
+    - Puantaj satırları istasyon/öğün etiketi alabilir (varsayılan vardiya → öğün eşlemesi).
+    - Çıktılar: "kişi başı işçilik ₺" ve "personel-saat başına porsiyon".
+    - Bu veri §3.6 personel havuzunun dağıtım anahtarı olur.
+14. **Menü mühendisliği (SHOULD, 7).**
+    - Toplu yemekte popülerlik satış adedi değildir. Popülerlik = (a) seçmeli menülerde seçilme oranı, (b) **düşük dönen yemek oranı**, (c) düşük şikâyet; bunlardan bileşik skor hesaplanır.
+    - Kârlılık = kişi başı katkı payı.
+    - Kârlılık sekmesinde 4 çeyrekli matris gösterilir; menü planlamada Köpek yemekleri için değiştirme önerisi çıkar.
+15. **Teklif toplama linki (SHOULD, 3F).**
+    - Satınalma planından tedarikçiye tokenlı teklif formu gönderilir (portal benzeri, e-posta/WhatsApp 🔌, yedek: link kopyala).
+    - Gelen teklifler otomatik olarak marka × fiyat × verim karşılaştırmasına düşer; tasarruf raporu buradan çıkar.
+16. **Diğerleri:**
+    - Çek/ciro/hatırlatma, Paraşüt ile eşdeğer olmalıdır (MUST, 4).
+    - YemekPRO'daki müşteri × öğün adet raporu, Siparişler raporunda bulunur (MUST, 3D).
+    - Küvet zimmeti ve kayıp takibi (MUST, 5).
+    - Muhasebeci için maliyet merkezi dışa aktarımı (COULD).
+    - CaterTrax'teki "geçen haftayı kopyala" ve değişiklik talebi (COULD).
+    - Salt okur AI rapor asistanı: RLS'e uyar, yalnız SELECT (COULD).
+
+### 11.3 Bilinçli olarak almadıklarımız
+- POS/masa/adisyon, kadeh (pour-cost) maliyeti: Craftable'da güçlü ama bizim işe uymuyor.
+- Etkinlik/davet catering takvimi: CaterTrax, Caterease.
+- Restoran vardiya planlamasının 15 dakikalık talep eğrileri: Crunchtime. Bizde vardiya sabit.
+- Bu alanlar için sekme **açılmaz**.
+
+### 11.4 Kaynaklar (27.09.2026'da erişildi)
+- Apicbase:
+  - https://support.apicbase.com/help/the-management-figures-dashboard-guide
+  - https://support.apicbase.com/help/cogs-dashboard
+  - https://get.apicbase.com/food-cost-variance/
+  - https://get.apicbase.com/food-cost-control/
+  - https://get.apicbase.com/menu-engineering/
+  - https://get.apicbase.com/production-planning/
+  - https://get.apicbase.com/food-traceability-software/
+- Winnow:
+  - https://www.winnowsolutions.com/resources/news/global-catering-company-iss-is-pioneering-ai-in-the-fight-against-food-waste
+  - https://cdn2.hubspot.net/hubfs/650776/Downloads/ESS-Case-study.pdf
+- Leanpath:
+  - https://www.leanpath.com/products/food-waste-tracking/
+  - https://blog.leanpath.com/leanpath-makes-it-faster-and-easier-to-cut-food-waste-and-costs-with-new-suite-of-tools
+- MarketMan:
+  - https://www.marketman.com/platform/restaurant-purchasing-software-and-order-management
+  - https://www.marketman.com/platform/marketman-accounts-payable-automation
+  - https://mealticket.my.site.com/helpcenter/s/article/IrregularPricesReport65d62ff1a57eb
+- Galley:
+  - https://support.galleysolutions.com/how-the-production-planner-works
+  - https://support.galleysolutions.com/menus-building-managing-costing-and-completing
+  - https://www.galleysolutions.com/recipe-food-costing-software-for-foodservice
+- Restaurant365:
+  - https://docs.restaurant365.com/docs/sales-and-prime-cost
+  - https://docs.restaurant365.com/docs/vendor-contract-price-verification
+  - https://docs.restaurant365.com/docs/ap-capture-ai-1
+- Crunchtime:
+  - https://www.crunchtime.com/inventory-management/food-cost-management
+  - https://www.crunchtime.com/restaurant-forecasting
+- Fourth/StarChef: https://www.starchef.net/help/dishes/specifying_recipe_yield.htm
+- Nutritics: https://www.nutritics.com/en/allergen-labelling-natashas-law-compliance/
+- FoodDocs: https://www.fooddocs.com/haccp-plan · https://www.fooddocs.com/knowledge/how-to-integrate-sensors
+- Jolt: https://www.jolt.com/solutions/digital-food-safety/
+- Kitchen CUT: https://kitchencut.com/menu-engineering/
+- Craftable: https://help.craftable.com/learning/menu-engineering-report
+- Procurement Partners: https://procurementpartners.com/features/
+- CaterTrax: https://www.catertrax.com/enterprise
+- Cybake: https://cybake.com/bakery-software/wholesale/driver-delivery-app/
+- meez: https://intercom.help/getmeez/en/articles/13402676-importing-your-recipes
+- Petpooja: https://blog.petpooja.com/procurement-cost-control/central-kitchen-management-multi-outlet-stock-guide/
+- Çözbim: https://cozbim.com.tr/urun/yemekci-mrp-erp-sistemi/ · https://cozbim.com.tr/satin-alma-sureclerinin-kontrolu/
+- YemekPRO: https://yemekpro.com/musteri-sayilari/
+- CateringSis: https://yemekuretimprogrami.com/
+- YamanSoft: https://www.yamansoftsystem.com/en/urunlerimiz/catering-erp
+- Logo: https://www.logo.com.tr/blog/blog-detay/gida-sektorune-logo-yazilim-destegi · https://www.logouzakdestek.com/single-post/logo-destek-tiger-uretim-hizmet-maliyet-yerleri
+- Mikro: https://buluo.mikro.com.tr/s/article/Re%C3%A7ete-Kullanarak-%C3%9Cretim-Evra%C4%9F%C4%B1-Olu%C5%9Fturma
+- Paraşüt: https://www.parasut.com/blog/parasutte-cek-yonetimi · https://www.parasut.com/kullanim-kilavuzu/musterinize-odeme-hatirlatma
+
+*Not: Nebim (perakende/giyim odaklı), "Foodsoft", Weezy ve Optimum Control için catering senaryomuza özgü, doğrulanabilir bir özellik kaynağı bulunamadı; uydurmamak için tabloya alınmadı. Optimum Control yalnızca ayrı bir otel/restoran envanter ve reçete sistemi olarak görüldü (https://www.jcrsystems.com/optimum-control/).*
