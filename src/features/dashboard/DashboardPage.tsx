@@ -1,11 +1,17 @@
-import { ArrowRight, CheckCircle2, Circle, Clock3 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChefHat, Circle, ClipboardList, Map as MapIcon, Wallet } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from '@/app/router';
-import { MODULES } from '@/app/modules';
-import { useMember } from '@/app/session';
-import { PRICE_STALE_DAYS } from '@/lib/domain';
-import { daysSince, fmtDate } from '@/lib/format';
+import { ROADMAP } from '@/app/modules';
+import { useCan, useMember } from '@/app/session';
+import { addDays, minutesToCutoff, monthKey, monthRange, shortDay, todayISO } from '@/lib/dates';
+import { MEALS, PRICE_STALE_DAYS, ROLES } from '@/lib/domain';
+import { amountOf } from '@/lib/finance';
+import { daysSince, fmtNum } from '@/lib/format';
 import { Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
+import { useAccounts, useEntries, useOpenItems } from '../finance/api';
 import { useIngredients, useMenuCosts, useRecipeCosts } from '../kitchen/api';
+import { useProduction } from '../production/api';
+import { orderPeople, useCustomers, useOrders } from '../sales/api';
 
 function greeting() {
   const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Istanbul', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
@@ -14,77 +20,78 @@ function greeting() {
 
 export function DashboardPage() {
   const member = useMember();
+  const isFinance = useCan(ROLES.finance);
+  const today = todayISO();
+  const tomorrow = addDays(today, 1);
+  const orders = useOrders(today, tomorrow);
+  const prod = useProduction(today);
+  const customers = useCustomers();
   const ing = useIngredients();
   const rec = useRecipeCosts();
   const menus = useMenuCosts();
+  const { from, to } = monthRange(monthKey(today));
+  const entries = useEntries(from, to, isFinance);
+  const open = useOpenItems(isFinance);
+  const accounts = useAccounts();
+  const [showRoadmap, setShowRoadmap] = useState(false);
 
-  if (ing.isLoading || rec.isLoading || menus.isLoading) return <Loading />;
+  if (orders.isLoading || prod.isLoading || ing.isLoading || rec.isLoading) return <Loading />;
+
+  const ords = (orders.data ?? []).filter((o) => o.status !== 'iptal');
+  const todayOrders = ords.filter((o) => o.service_date === today);
+  const tomorrowOrders = ords.filter((o) => o.service_date === tomorrow);
+  const peopleToday = todayOrders.reduce((s, o) => s + orderPeople(o), 0);
+  const peopleTomorrow = tomorrowOrders.reduce((s, o) => s + orderPeople(o), 0);
+  const costToday = (prod.data ?? []).reduce((s, l) => s + Number(l.portions) * Number(l.unit_cost), 0);
+  const custName = (id: string) => (customers.data ?? []).find((c) => c.id === id)?.name ?? '—';
+  const cutoff = minutesToCutoff();
+
   const ingredients = ing.data ?? [];
-  const recipes = rec.data ?? [];
-  const menuList = menus.data ?? [];
-
-  const activeRecipes = recipes.filter((r) => r.active && (r.line_count ?? 0) > 0);
-  const avgCost = activeRecipes.length ? activeRecipes.reduce((s, r) => s + Number(r.cost_last), 0) / activeRecipes.length : null;
-  const priceIssues = ingredients
-    .filter((i) => i.active && (i.last_price === null || (daysSince(i.price_updated_at) ?? 0) > PRICE_STALE_DAYS))
-    .sort((a, b) => (a.price_updated_at ?? '').localeCompare(b.price_updated_at ?? ''));
-  const expensive = [...activeRecipes].sort((a, b) => Number(b.cost_last) - Number(a.cost_last)).slice(0, 6);
+  const priceIssues = ingredients.filter((i) => i.active && (i.last_price === null || (daysSince(i.price_updated_at) ?? 0) > PRICE_STALE_DAYS));
+  const monthRows = entries.data ?? [];
+  const inc = monthRows.filter((e) => e.kind === 'gelir').reduce((s, e) => s + amountOf(e), 0);
+  const exp = monthRows.filter((e) => e.kind === 'gider').reduce((s, e) => s + amountOf(e), 0);
+  const dueSoon = (open.data ?? []).filter((e) => (e.due_date ?? e.entry_date) <= addDays(today, 7));
+  const balance = (accounts.data ?? []).reduce((s, a) => s + Number(a.balance ?? 0), 0);
 
   const steps = [
-    { done: ingredients.length > 0, label: 'Hammadde kartlarını ekle', hint: 'birim + fire oranı', to: '/hammaddeler' },
-    { done: ingredients.length > 0 && ingredients.every((i) => i.last_price !== null), label: 'Alış fiyatlarını gir', hint: 'maliyetin temeli', to: '/hammaddeler' },
-    { done: activeRecipes.length > 0, label: 'Reçete gramajlarını gir', hint: '1 porsiyon net gramaj', to: '/receteler' },
-    { done: menuList.length > 0, label: 'Menü kombinasyonlarını kur', hint: '3 kap / 4 kap', to: '/menuler' },
+    { done: ingredients.length > 0, label: 'Hammaddeleri ekle', hint: 'birim, fire, alış fiyatı', to: '/hammaddeler' },
+    { done: (rec.data ?? []).some((r) => (r.line_count ?? 0) > 0), label: 'Reçete gramajlarını gir', hint: '1 porsiyonun net gramajı', to: '/receteler' },
+    { done: (menus.data ?? []).length > 0, label: 'Menüleri kur', hint: '3-4 kap kombinasyonu', to: '/menuler' },
+    { done: (customers.data ?? []).length > 0, label: 'Müşterileri ekle', hint: 'kişi başı fiyat ve vade', to: '/musteriler' },
+    { done: ords.length > 0, label: 'Sipariş gir', hint: 'yarının yemek sayıları', to: '/siparisler' },
   ];
-  const upcoming = MODULES.filter((m) => m.status === 'soon').sort((a, b) => (a.phase ?? 0) - (b.phase ?? 0));
+  const setupDone = steps.every((s) => s.done);
+
+  const byMeal = Object.keys(MEALS).map((m) => ({
+    m, people: todayOrders.filter((o) => o.meal === m).reduce((s, o) => s + orderPeople(o), 0),
+    cost: (prod.data ?? []).filter((l) => l.meal === m).reduce((s, l) => s + Number(l.portions) * Number(l.unit_cost), 0),
+  })).filter((x) => x.people > 0 || x.cost > 0);
 
   return (
     <>
       <ModuleHero
         kicker={new Date().toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul', weekday: 'long', day: 'numeric', month: 'long' })}
         title={`${greeting()}, ${member.fullName.split(' ')[0]}`}
-        description="Mutfak çekirdeğinin durumu. Sipariş, üretim ve sevkiyat modülleri açıldıkça yarının yemek sayıları ve eksik hammaddeler burada görünecek."
         stats={[
-          { label: 'Aktif reçete', value: activeRecipes.length, hint: `${recipes.length} reçete kartı` },
-          { label: 'Ort. porsiyon maliyeti', value: avgCost === null ? '—' : <Money value={avgCost} />, hint: 'son alış fiyatlarıyla' },
-          { label: 'Hammadde', value: ingredients.length },
-          { label: 'Fiyat bekleyen', value: priceIssues.length, tone: priceIssues.length ? 'warn' : 'good', hint: `yok veya ${PRICE_STALE_DAYS} günden eski` },
+          { label: 'Bugün kişi', value: fmtNum(peopleToday, 0), hint: `${todayOrders.length} sipariş` },
+          { label: 'Bugünkü hammadde', value: <Money value={costToday} />, hint: peopleToday ? <>kişi başı <Money value={costToday / peopleToday} /></> : 'üretim girilmedi' },
+          { label: 'Yarın kişi', value: fmtNum(peopleTomorrow, 0), hint: cutoff > 0 ? `kesime ${Math.floor(cutoff / 60)} sa ${cutoff % 60} dk` : 'kesim saati geçti' },
+          isFinance
+            ? { label: 'Kasa + banka', value: <Money value={balance} />, tone: balance < 0 ? 'warn' : 'default', hint: `${dueSoon.length} ödeme/tahsilat 7 gün içinde` }
+            : { label: 'Fiyat bekleyen', value: priceIssues.length, tone: priceIssues.length ? 'warn' : 'good' },
         ]}
       />
 
-      <div className="grid lg:grid-cols-3 gap-4">
-        <Panel title="En yüksek porsiyon maliyetleri" subtitle="Menü fiyatlamasında ilk bakılacaklar" className="lg:col-span-2"
-          action={<Link to="/receteler" className="text-xs font-semibold text-brand hover:underline">Tümü</Link>}>
-          {expensive.length === 0 ? <p className="text-sm text-ink-3">Gramajı girilmiş reçete yok.</p> : (
-            <ul className="space-y-2.5">
-              {expensive.map((r) => {
-                const max = Number(expensive[0].cost_last) || 1;
-                return (
-                  <li key={r.recipe_id}>
-                    <Link to={`/receteler/${r.recipe_id}`} className="block group">
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="font-medium text-ink group-hover:text-brand truncate">{r.name}</span>
-                        <Money value={r.cost_last} className="font-semibold text-ink" />
-                      </div>
-                      <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
-                        <div className="h-full rounded-full bg-brand" style={{ width: `${(Number(r.cost_last) / max) * 100}%` }} />
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Panel>
-
-        <Panel title="Kurulum" subtitle="Maliyet motorunun doğru çalışması için">
-          <ol className="space-y-1">
-            {steps.map((s) => (
+      {!setupDone && (
+        <Panel className="mb-4" title="Başlangıç adımları" subtitle="Maliyet hesabının doğru çalışması için sırayla tamamlayın">
+          <ol className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {steps.map((s, i) => (
               <li key={s.label}>
-                <Link to={s.to} className="flex items-start gap-2.5 rounded-xl px-2 py-2 hover:bg-surface-2">
-                  {s.done ? <CheckCircle2 className="w-5 h-5 text-ok shrink-0" /> : <Circle className="w-5 h-5 text-line-strong shrink-0" />}
+                <Link to={s.to} className={cx('flex items-start gap-2.5 rounded-xl p-3 ring-1 h-full', s.done ? 'ring-line bg-surface-2/50' : 'ring-brand/30 bg-brand-soft/40 hover:bg-brand-soft')}>
+                  {s.done ? <CheckCircle2 className="w-5 h-5 text-ok shrink-0" /> : <Circle className="w-5 h-5 text-brand shrink-0" />}
                   <div>
-                    <div className={cx('text-sm font-medium', s.done ? 'text-ink-3 line-through' : 'text-ink')}>{s.label}</div>
+                    <div className={cx('text-sm font-semibold', s.done ? 'text-ink-3' : 'text-ink')}>{i + 1}. {s.label}</div>
                     <div className="text-[11px] text-ink-3">{s.hint}</div>
                   </div>
                 </Link>
@@ -92,48 +99,109 @@ export function DashboardPage() {
             ))}
           </ol>
         </Panel>
+      )}
 
-        <Panel title="Fiyat bekleyenler" subtitle="Eski fiyat = yanlış porsiyon maliyeti"
-          action={<Link to="/hammaddeler" className="text-xs font-semibold text-brand hover:underline">Tümü</Link>}>
-          {priceIssues.length === 0 ? <p className="text-sm text-ink-3">Tüm fiyatlar güncel.</p> : (
-            <ul className="divide-y divide-line">
-              {priceIssues.slice(0, 8).map((i) => (
-                <li key={i.id} className="flex items-center justify-between py-2 text-sm">
-                  <span className="text-ink truncate">{i.name}</span>
-                  {i.last_price === null ? <Pill tone="wait">Fiyat yok</Pill> : <span className="text-xs text-wait">{fmtDate(i.price_updated_at)}</span>}
+      <div className="grid lg:grid-cols-3 gap-4">
+        <Panel title={<span className="inline-flex items-center gap-2"><ChefHat className="w-4 h-4 text-brand" />Bugün mutfakta</span>}
+          action={<Link to="/uretim" className="text-xs font-semibold text-brand">Üretim →</Link>}>
+          {byMeal.length === 0 ? <p className="text-sm text-ink-3">Bugün için sipariş ya da üretim kaydı yok.</p> : (
+            <ul className="space-y-3">
+              {byMeal.map((x) => (
+                <li key={x.m} className="flex items-center justify-between gap-3">
+                  <div><div className="text-sm font-semibold text-ink">{MEALS[x.m]}</div><div className="text-[11px] text-ink-3">{fmtNum(x.people, 0)} kişi</div></div>
+                  <div className="text-right">
+                    <Money value={x.cost} className="text-sm font-semibold" />
+                    <div className="text-[11px] text-ink-3">{x.people ? <>kişi başı <Money value={x.cost / x.people} /></> : '—'}</div>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
         </Panel>
 
-        <Panel title="Sıradaki modüller" subtitle="Yol haritası" className="lg:col-span-2">
-          <div className="grid sm:grid-cols-2 gap-2">
-            {upcoming.map((m) => {
-              const Icon = m.icon;
-              return (
-                <div key={m.path} className="flex items-center gap-3 rounded-xl ring-1 ring-line px-3 py-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-accent-soft text-accent-strong grid place-items-center"><Icon className="w-4 h-4" /></div>
-                  <div className="flex-1 min-w-0 text-sm font-medium text-ink truncate">{m.label}</div>
-                  <span className="inline-flex items-center gap-1 text-[11px] text-ink-3"><Clock3 className="w-3 h-3" />Faz {m.phase}</span>
-                </div>
-              );
-            })}
-          </div>
+        <Panel title={<span className="inline-flex items-center gap-2"><ClipboardList className="w-4 h-4 text-brand" />Yarın · {shortDay(tomorrow)}</span>}
+          subtitle={cutoff > 0 ? `Siparişler 16:00’da kesinleşir` : 'Kesim saati geçti — değişiklikler operatörden'}
+          action={<Link to="/siparisler" className="text-xs font-semibold text-brand">Siparişler →</Link>}>
+          {tomorrowOrders.length === 0 ? <p className="text-sm text-ink-3">Yarın için sipariş girilmedi.</p> : (
+            <ul className="divide-y divide-line -my-1.5">
+              {tomorrowOrders.slice(0, 7).map((o) => (
+                <li key={o.id} className="flex justify-between py-1.5 text-sm">
+                  <span className="text-ink-2 truncate">{custName(o.customer_id)} <span className="text-ink-3 text-xs">· {MEALS[o.meal]}</span></span>
+                  <span className="tc-num font-semibold text-ink">{fmtNum(orderPeople(o), 0)}</span>
+                </li>
+              ))}
+              {tomorrowOrders.length > 7 && <li className="py-1.5 text-xs text-ink-3">+{tomorrowOrders.length - 7} sipariş</li>}
+            </ul>
+          )}
         </Panel>
+
+        {isFinance ? (
+          <Panel title={<span className="inline-flex items-center gap-2"><Wallet className="w-4 h-4 text-brand" />Bu ay</span>}
+            action={<Link to="/finans" className="text-xs font-semibold text-brand">Finans →</Link>}>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-ink-3">Gelir</span><Money value={inc} className="font-semibold text-ok" /></div>
+              <div className="flex justify-between"><span className="text-ink-3">Gider</span><Money value={exp} className="font-semibold" /></div>
+              <div className="flex justify-between pt-2 border-t border-line"><span className="font-semibold text-ink">Net</span><Money value={inc - exp} className={cx('font-bold', inc - exp < 0 ? 'text-stop' : 'text-ink')} /></div>
+            </div>
+            {dueSoon.length > 0 && (
+              <div className="mt-4">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-3 mb-1.5">7 gün içinde vadesi gelen</div>
+                <ul className="space-y-1">
+                  {dueSoon.slice(0, 4).map((e) => (
+                    <li key={e.id} className="flex justify-between text-xs">
+                      <span className="truncate text-ink-2"><Pill tone={e.kind === 'gelir' ? 'ok' : 'wait'} className="mr-1">{e.kind === 'gelir' ? 'alacak' : 'borç'}</Pill>{e.counterparty ?? e.description}</span>
+                      <Money value={Number(e.net_amount) + Number(e.vat_amount)} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Panel>
+        ) : (
+          <Panel title="Fiyat bekleyen hammaddeler" action={<Link to="/hammaddeler" className="text-xs font-semibold text-brand">Tümü →</Link>}>
+            {priceIssues.length === 0 ? <p className="text-sm text-ink-3">Tüm fiyatlar güncel.</p> : (
+              <ul className="divide-y divide-line -my-1.5">
+                {priceIssues.slice(0, 7).map((i) => (
+                  <li key={i.id} className="flex justify-between py-1.5 text-sm"><span className="truncate">{i.name}</span>{i.last_price === null ? <Pill tone="wait">yok</Pill> : <span className="text-xs text-wait">eski</span>}</li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        )}
       </div>
+
+      {isFinance && priceIssues.length > 0 && (
+        <p className="text-xs text-ink-3 mt-4">
+          {priceIssues.length} hammaddenin fiyatı yok veya {PRICE_STALE_DAYS} günden eski — maliyetler yanıltıcı olabilir. <Link to="/hammaddeler" className="text-brand font-semibold">Güncelle →</Link>
+        </p>
+      )}
+
+      {member.role === 'yonetici' && (
+        <div className="mt-6">
+          <button type="button" onClick={() => setShowRoadmap(!showRoadmap)} className="inline-flex items-center gap-2 text-xs font-semibold text-ink-3 hover:text-ink">
+            <MapIcon className="w-4 h-4" /> Yol haritası {showRoadmap ? '▴' : '▾'}
+          </button>
+          {showRoadmap && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
+              {ROADMAP.map((r) => (
+                <div key={r.label} className="rounded-xl ring-1 ring-line bg-card px-3 py-2.5">
+                  <div className="text-sm font-semibold text-ink">{r.label}</div>
+                  <div className="text-[11px] text-ink-3">{r.detail}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
 
-export function ComingSoon({ label, phase }: { label: string; phase?: number }) {
+export function NotFound() {
   return (
     <>
-      <ModuleHero kicker={phase ? `Faz ${phase}` : 'Yakında'} title={label}
-        description="Bu modül geliştirme planında. Sahte veri göstermiyoruz; modül açıldığında canlı veriyle çalışacak." />
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
-        Komuta Merkezi’ne dön <ArrowRight className="w-4 h-4" />
-      </Link>
+      <ModuleHero kicker="404" title="Sayfa bulunamadı" description="Aradığınız ekran yok ya da görme yetkiniz yok." />
+      <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">Bugün ekranına dön <ArrowRight className="w-4 h-4" /></Link>
     </>
   );
 }

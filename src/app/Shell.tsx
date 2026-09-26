@@ -13,14 +13,15 @@ function NavItem({ m, active, onNavigate }: { m: ModuleDef; active: boolean; onN
   const body = (
     <>
       <Icon className={cx('w-[18px] h-[18px] shrink-0', active ? 'text-brand' : 'text-ink-3 group-hover:text-ink-2')} />
-      <span className="flex-1 truncate">{m.label}</span>
-      {m.status === 'soon' && <span className="text-[10px] font-semibold text-ink-3 bg-surface-2 rounded-md px-1.5 py-0.5">Faz {m.phase}</span>}
+      <span className="flex-1 min-w-0">
+        <span className="block truncate">{m.label}</span>
+        <span className={cx('block truncate text-[11px] font-normal', active ? 'text-ink-2' : 'text-ink-3')}>{m.hint}</span>
+      </span>
     </>
   );
   const cls = cx(
-    'group flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition',
+    'group flex items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition',
     active ? 'bg-brand-soft text-ink font-semibold' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
-    m.status === 'soon' && 'opacity-75',
   );
   return (
     <div onClick={onNavigate}>

@@ -66,7 +66,7 @@ export function Panel({ title, subtitle, action, children, className = '', pad =
             {title && <h3 className="text-base font-semibold text-ink truncate">{title}</h3>}
             {subtitle && <p className="text-xs text-ink-3 mt-0.5">{subtitle}</p>}
           </div>
-          {action}
+          {action && <div className="shrink-0 whitespace-nowrap">{action}</div>}
         </header>
       )}
       <div className={cx(pad && 'p-4 sm:p-5')}>{children}</div>

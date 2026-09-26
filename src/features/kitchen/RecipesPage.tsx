@@ -2,14 +2,14 @@ import { useMemo, useState } from 'react';
 import { BookOpenText, Plus, Search } from 'lucide-react';
 import { Link, useRouter } from '@/app/router';
 import { useCan } from '@/app/session';
-import { ALLERGENS } from '@/lib/domain';
+import { ALLERGENS, ROLES } from '@/lib/domain';
 import { fmtNum } from '@/lib/format';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Pill, Tabs, cx } from '@/ui/primitives';
 import { useCategories, useRecipeCosts } from './api';
 
 export function RecipesPage() {
   const { go } = useRouter();
-  const canEdit = useCan(['yonetici', 'asci_basi']);
+  const canEdit = useCan(ROLES.kitchenWrite);
   const costs = useRecipeCosts();
   const cats = useCategories();
   const [cat, setCat] = useState<string>('all');

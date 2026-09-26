@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Plus, Trash2, UtensilsCrossed, X } from 'lucide-react';
 import { useCan } from '@/app/session';
-import { MEALS, MENU_KINDS } from '@/lib/domain';
+import { MEALS, MENU_KINDS, ROLES } from '@/lib/domain';
 import { foodCostPct } from '@/lib/cost';
 import { fmtPct, parseNum } from '@/lib/format';
 import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Money, Pill, cx, type Tone } from '@/ui/primitives';
@@ -18,7 +18,7 @@ function foodCostTone(pct: number | null): Tone {
 
 export function MenusPage() {
   const menus = useMenuCosts();
-  const canEdit = useCan(['yonetici', 'asci_basi']);
+  const canEdit = useCan(ROLES.kitchenWrite);
   const [editing, setEditing] = useState<string | 'new' | null>(null);
   const list = menus.data ?? [];
 

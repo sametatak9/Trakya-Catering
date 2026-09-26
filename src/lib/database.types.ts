@@ -49,6 +49,381 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          active: boolean
+          address: string | null
+          city: string | null
+          contact_name: string | null
+          created_at: string
+          default_meal_price: number | null
+          district: string | null
+          e_invoice: boolean
+          email: string | null
+          id: string
+          kind: string
+          name: string
+          notes: string | null
+          payment_term_days: number
+          phone: string | null
+          tax_no: string | null
+          tax_office: string | null
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          default_meal_price?: number | null
+          district?: string | null
+          e_invoice?: boolean
+          email?: string | null
+          id?: string
+          kind?: string
+          name: string
+          notes?: string | null
+          payment_term_days?: number
+          phone?: string | null
+          tax_no?: string | null
+          tax_office?: string | null
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          default_meal_price?: number | null
+          district?: string | null
+          e_invoice?: boolean
+          email?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          notes?: string | null
+          payment_term_days?: number
+          phone?: string | null
+          tax_no?: string | null
+          tax_office?: string | null
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: []
+      }
+      finance_accounts: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          opening_balance: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind: string
+          name: string
+          opening_balance?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          opening_balance?: number
+        }
+        Relationships: []
+      }
+      finance_categories: {
+        Row: {
+          active: boolean
+          code: string
+          group_name: string
+          keywords: string[]
+          kind: string
+          name: string
+          sort: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          group_name: string
+          keywords?: string[]
+          kind: string
+          name: string
+          sort?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          group_name?: string
+          keywords?: string[]
+          kind?: string
+          name?: string
+          sort?: number
+        }
+        Relationships: []
+      }
+      finance_entries: {
+        Row: {
+          account_id: string | null
+          category_code: string
+          counterparty: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          description: string
+          due_date: string | null
+          entry_date: string
+          id: string
+          kind: string
+          net_amount: number
+          paid_at: string | null
+          source: string
+          source_id: string | null
+          status: string
+          total_amount: number | null
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          account_id?: string | null
+          category_code: string
+          counterparty?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description: string
+          due_date?: string | null
+          entry_date: string
+          id?: string
+          kind: string
+          net_amount: number
+          paid_at?: string | null
+          source?: string
+          source_id?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          account_id?: string | null
+          category_code?: string
+          counterparty?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string
+          due_date?: string | null
+          entry_date?: string
+          id?: string
+          kind?: string
+          net_amount?: number
+          paid_at?: string | null
+          source?: string
+          source_id?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: []
+      }
+      meal_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          delivered_qty: number | null
+          id: string
+          kind: string
+          meal: string
+          menu_id: string | null
+          note: string | null
+          ordered_qty: number
+          service_date: string
+          status: string
+          unit_price: number
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          delivered_qty?: number | null
+          id?: string
+          kind?: string
+          meal?: string
+          menu_id?: string | null
+          note?: string | null
+          ordered_qty: number
+          service_date: string
+          status?: string
+          unit_price?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          delivered_qty?: number | null
+          id?: string
+          kind?: string
+          meal?: string
+          menu_id?: string | null
+          note?: string | null
+          ordered_qty?: number
+          service_date?: string
+          status?: string
+          unit_price?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: []
+      }
+      production_logs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          meal: string
+          menu_id: string | null
+          note: string | null
+          portions: number
+          prod_date: string
+          recipe_id: string
+          source: string
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meal?: string
+          menu_id?: string | null
+          note?: string | null
+          portions: number
+          prod_date: string
+          recipe_id: string
+          source?: string
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meal?: string
+          menu_id?: string | null
+          note?: string | null
+          portions?: number
+          prod_date?: string
+          recipe_id?: string
+          source?: string
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      purchase_invoices: {
+        Row: {
+          category_code: string
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          ettn: string | null
+          id: string
+          invoice_date: string
+          invoice_no: string
+          kind: string
+          lines: Json
+          net_amount: number
+          note: string | null
+          source: string
+          status: string
+          supplier_name: string
+          supplier_tax_no: string | null
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          category_code: string
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          ettn?: string | null
+          id?: string
+          invoice_date: string
+          invoice_no: string
+          kind?: string
+          lines?: Json
+          net_amount: number
+          note?: string | null
+          source?: string
+          status?: string
+          supplier_name: string
+          supplier_tax_no?: string | null
+          total_amount: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          category_code?: string
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          ettn?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_no?: string
+          kind?: string
+          lines?: Json
+          net_amount?: number
+          note?: string | null
+          source?: string
+          status?: string
+          supplier_name?: string
+          supplier_tax_no?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: []
+      }
+      supplier_categories: {
+        Row: {
+          category_code: string
+          supplier_key: string
+          supplier_name: string
+          updated_at: string
+        }
+        Insert: {
+          category_code: string
+          supplier_key: string
+          supplier_name: string
+          updated_at?: string
+        }
+        Update: {
+          category_code?: string
+          supplier_key?: string
+          supplier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ingredient_prices: {
         Row: {
           created_at: string
@@ -426,6 +801,16 @@ export type Database = {
       }
     }
     Views: {
+      v_account_balances: {
+        Row: {
+          balance: number | null
+          id: string | null
+          kind: string | null
+          name: string | null
+          opening_balance: number | null
+        }
+        Relationships: []
+      }
       v_menu_costs: {
         Row: {
           active: boolean | null
@@ -552,6 +937,12 @@ export type Database = {
         }[]
       }
       needs_bootstrap: { Args: never; Returns: boolean }
+      order_is_open: { Args: { p_service_date: string }; Returns: boolean }
+      plan_production_from_orders: {
+        Args: { p_date: string; p_meal: string }
+        Returns: number
+      }
+      refresh_production_costs: { Args: { p_date: string }; Returns: number }
       save_menu: {
         Args: { p_header: Json; p_id: string | null; p_items: Json }
         Returns: string

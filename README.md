@@ -39,6 +39,15 @@ Doğruluk kaynağı veritabanıdır (`v_recipe_lines`, `v_recipe_costs`, `v_menu
 
 `yonetici`, `asci_basi`, `depo`, `satinalma`, `muhasebe`, `sofor`, `musteri` (portal). Yetkiler **RLS** ile veritabanında uygulanır; hiçbir tabloda `using (true)` yoktur. Tüm değişiklikler `audit_log`'a yazılır.
 
+## Ekranlar
+
+Bugün · Günlük Üretim & Maliyet · Reçeteler & Gramaj · Menüler · Hammaddeler · Siparişler · Müşteriler · Finans Özeti · Giderler · Gelen Faturalar · Kasa & Gelirler · Ekip & Yetkiler
+
+Otomatik akışlar (veritabanı trigger'ları):
+- Sipariş **teslim edildi** → gelir (alacak) kaydı, vade müşteri kartından
+- Gelen fatura **onaylandı** → gider (borç) kaydı, tedarikçinin kategorisi hatırlanır
+- Üretim kaydı → o günkü porsiyon maliyeti sabitlenir (sonraki zamlar geçmişi bozmaz)
+
 ## Yol haritası
 
-Bkz. [`docs/PLAN.md`](docs/PLAN.md). Bu sürüm: Faz 1 (temel, güvenlik, tasarım) + Faz 2 (hammadde, reçete, menü, maliyet).
+Bkz. [`docs/PLAN.md`](docs/PLAN.md).

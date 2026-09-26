@@ -9,7 +9,7 @@ import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Panel, Pill } from 
 import { useToast } from '@/ui/toast';
 
 // Müşteri portal rolü, cari (customers) modülü ile Faz 3'te atanabilir olacak.
-const ASSIGNABLE: AppRole[] = ['yonetici', 'asci_basi', 'depo', 'satinalma', 'muhasebe', 'sofor'];
+const ASSIGNABLE: AppRole[] = ['yonetici', 'asci_basi', 'diyetisyen', 'muhasebe', 'satinalma', 'pazarlamaci', 'depo', 'sofor'];
 
 export function TeamPage() {
   const me = useMember();

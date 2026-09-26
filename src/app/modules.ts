@@ -1,53 +1,61 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  BookOpenText, CalendarRange, ChefHat, ClipboardList, Factory, LayoutDashboard, MonitorPlay, Package, PiggyBank,
-  ReceiptText, ShieldCheck, ShoppingBasket, Truck, UsersRound, UtensilsCrossed, Wheat,
+  BookOpenText, ChefHat, ClipboardList, Building2, FileInput, LayoutDashboard, LineChart, ShieldCheck,
+  TrendingDown, UtensilsCrossed, Wallet, Wheat,
 } from 'lucide-react';
-import type { AppRole } from '@/lib/domain';
+import { ROLES, type AppRole } from '@/lib/domain';
 
 export interface ModuleDef {
   path: string;
   label: string;
+  /** Menüde adın altında kısa açıklama (ne işe yarar) */
+  hint: string;
   icon: LucideIcon;
-  group: 'genel' | 'mutfak' | 'operasyon' | 'finans' | 'sistem';
+  group: 'genel' | 'mutfak' | 'satis' | 'finans' | 'sistem';
   /** Boşsa tüm personel görür */
   roles?: AppRole[];
-  /** 'soon' modüller menüde görünür ama henüz açılmaz (sahte ekran yok) */
-  status: 'ready' | 'soon';
-  phase?: number;
 }
 
 export const GROUP_LABELS: Record<ModuleDef['group'], string> = {
   genel: 'Genel',
   mutfak: 'Mutfak',
-  operasyon: 'Operasyon',
-  finans: 'Finans & İK',
+  satis: 'Satış',
+  finans: 'Finans',
   sistem: 'Sistem',
 };
 
 export const MODULES: ModuleDef[] = [
-  { path: '/', label: 'Komuta Merkezi', icon: LayoutDashboard, group: 'genel', status: 'ready' },
+  { path: '/', label: 'Bugün', hint: 'Günün özeti', icon: LayoutDashboard, group: 'genel' },
 
-  { path: '/receteler', label: 'Reçeteler & Gramaj', icon: BookOpenText, group: 'mutfak', status: 'ready' },
-  { path: '/hammaddeler', label: 'Hammaddeler', icon: Wheat, group: 'mutfak', status: 'ready' },
-  { path: '/menuler', label: 'Menüler', icon: UtensilsCrossed, group: 'mutfak', status: 'ready' },
-  { path: '/menu-plani', label: 'Menü Planı', icon: CalendarRange, group: 'mutfak', status: 'soon', phase: 3 },
-  { path: '/uretim', label: 'Üretim & MRP', icon: Factory, group: 'mutfak', status: 'soon', phase: 3 },
-  { path: '/mutfak-ekrani', label: 'Mutfak Ekranı', icon: MonitorPlay, group: 'mutfak', status: 'soon', phase: 6 },
+  { path: '/uretim', label: 'Günlük Üretim & Maliyet', hint: 'Bugün ne pişti, kaça mal oldu', icon: ChefHat, group: 'mutfak' },
+  { path: '/receteler', label: 'Reçeteler & Gramaj', hint: '1 porsiyon ve maliyeti', icon: BookOpenText, group: 'mutfak' },
+  { path: '/menuler', label: 'Menüler', hint: '3-4 kap, kişi başı maliyet', icon: UtensilsCrossed, group: 'mutfak' },
+  { path: '/hammaddeler', label: 'Hammaddeler', hint: 'Fiyat, fire, alerjen', icon: Wheat, group: 'mutfak' },
 
-  { path: '/siparisler', label: 'Siparişler (D-1)', icon: ClipboardList, group: 'operasyon', status: 'soon', phase: 3 },
-  { path: '/depo', label: 'Depo & Stok', icon: Package, group: 'operasyon', status: 'soon', phase: 3 },
-  { path: '/satinalma', label: 'Satınalma', icon: ShoppingBasket, group: 'operasyon', status: 'soon', phase: 3 },
-  { path: '/sevkiyat', label: 'Sevkiyat & Araçlar', icon: Truck, group: 'operasyon', status: 'soon', phase: 4 },
+  { path: '/siparisler', label: 'Siparişler', hint: 'Günlük yemek sayıları', icon: ClipboardList, group: 'satis' },
+  { path: '/musteriler', label: 'Müşteriler', hint: 'Firmalar, fiyat, vade', icon: Building2, group: 'satis' },
 
-  { path: '/cari', label: 'Cari & E-Fatura', icon: ReceiptText, group: 'finans', status: 'soon', phase: 4 },
-  { path: '/maliyet', label: 'Maliyet & Net Kâr', icon: PiggyBank, group: 'finans', status: 'soon', phase: 5 },
-  { path: '/personel', label: 'Personel & Puantaj', icon: ChefHat, group: 'finans', status: 'soon', phase: 5 },
+  { path: '/finans', label: 'Finans Özeti', hint: 'Gelir-gider, net kâr', icon: LineChart, group: 'finans', roles: ROLES.finance },
+  { path: '/giderler', label: 'Giderler', hint: 'Elektrik, su, kira, mazot…', icon: TrendingDown, group: 'finans', roles: ROLES.finance },
+  { path: '/gelen-faturalar', label: 'Gelen Faturalar', hint: 'e-Fatura yükle, gider tespit', icon: FileInput, group: 'finans', roles: ROLES.invoices },
+  { path: '/kasa', label: 'Kasa & Gelirler', hint: 'Bakiye, tahsilat, ödeme', icon: Wallet, group: 'finans', roles: ROLES.finance },
 
-  { path: '/ekip', label: 'Ekip & Yetkiler', icon: ShieldCheck, group: 'sistem', roles: ['yonetici'], status: 'ready' },
+  { path: '/ekip', label: 'Ekip & Yetkiler', hint: 'Kullanıcılar ve roller', icon: ShieldCheck, group: 'sistem', roles: ['yonetici'] },
 ];
 
-export const PORTAL_ICON = UsersRound;
+/** Planlanan modüller (yalnızca yol haritasında gösterilir; menüyü kalabalıklaştırmaz) */
+export const ROADMAP: Array<{ label: string; detail: string }> = [
+  { label: 'Menü planı & diyetisyen', detail: 'Firma bazlı haftalık menü, üretim emirleri, tatlı üretimi' },
+  { label: 'Depo & stok', detail: 'Üretime çıkış, sayım, SKT, eksik hammadde listesi' },
+  { label: 'Satınalma & tedarikçi ağı', detail: 'Fiyat geçmişi karşılaştırma, en uygun tedarikçi önerisi' },
+  { label: 'Sevkiyat & araçlar', detail: 'Rota, şoför irsaliyesi, imza, sıcaklık kaydı' },
+  { label: 'Personel, puantaj & maaş', detail: 'Günlük yoklama, mesai, avans, maaş ödeme (Kibritçi deneyimiyle)' },
+  { label: 'Satış e-faturası', detail: 'Ay sonu irsaliyelerden toplu fatura, entegratör ile gönderim' },
+  { label: 'Teklifler', detail: 'Kurumsal teklif şablonu, kişi başı fiyat hesaplayıcı' },
+  { label: 'Müşteri bulma & saha', detail: 'Bölgesel firma botu, pazarlamacı günlük rota, ziyaret fotoğrafı' },
+  { label: 'Sosyal medya', detail: 'Günün menüsü paylaşımı, içerik takvimi, onay kuyruğu' },
+  { label: 'Müşteri portalı', detail: 'Firmalar ertesi günün sayısını 16:00’ya kadar kendisi girer' },
+];
 
 export function visibleModules(role: AppRole): ModuleDef[] {
   if (role === 'musteri') return [];

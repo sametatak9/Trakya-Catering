@@ -1,6 +1,13 @@
 import { useEffect } from 'react';
 import { supabaseConfigured } from '@/lib/supabase';
-import { ComingSoon, DashboardPage } from '@/features/dashboard/DashboardPage';
+import { DashboardPage, NotFound } from '@/features/dashboard/DashboardPage';
+import { CashPage } from '@/features/finance/CashPage';
+import { ExpensesPage } from '@/features/finance/ExpensesPage';
+import { FinanceSummaryPage } from '@/features/finance/FinanceSummaryPage';
+import { InvoicesPage } from '@/features/finance/InvoicesPage';
+import { ProductionPage } from '@/features/production/ProductionPage';
+import { CustomersPage } from '@/features/sales/CustomersPage';
+import { OrdersPage } from '@/features/sales/OrdersPage';
 import { IngredientsPage } from '@/features/kitchen/IngredientsPage';
 import { MenusPage } from '@/features/kitchen/MenusPage';
 import { RecipeEditor } from '@/features/kitchen/RecipeEditor';
@@ -19,10 +26,7 @@ function Routes() {
   const member = useMember();
   const mod = activeModule(path);
 
-  if (!mod || !visibleModules(member.role).includes(mod)) {
-    return <ComingSoon label="Sayfa bulunamadı" />;
-  }
-  if (mod.status === 'soon') return <ComingSoon label={mod.label} phase={mod.phase} />;
+  if (!mod || !visibleModules(member.role).includes(mod)) return <NotFound />;
 
   const recipe = matchPath('/receteler/:id', path);
   if (recipe) return <RecipeEditor id={recipe.id === 'yeni' ? null : recipe.id} />;
@@ -32,8 +36,15 @@ function Routes() {
     case '/hammaddeler': return <IngredientsPage />;
     case '/receteler': return <RecipesPage />;
     case '/menuler': return <MenusPage />;
+    case '/uretim': return <ProductionPage />;
+    case '/siparisler': return <OrdersPage />;
+    case '/musteriler': return <CustomersPage />;
+    case '/finans': return <FinanceSummaryPage />;
+    case '/giderler': return <ExpensesPage />;
+    case '/gelen-faturalar': return <InvoicesPage />;
+    case '/kasa': return <CashPage />;
     case '/ekip': return <TeamPage />;
-    default: return <ComingSoon label={mod.label} />;
+    default: return <NotFound />;
   }
 }
 

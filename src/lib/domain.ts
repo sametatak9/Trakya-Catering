@@ -1,13 +1,15 @@
 // Alan sözlükleri — veritabanındaki CHECK kısıtlarıyla aynı kodlar.
 
-export type AppRole = 'yonetici' | 'asci_basi' | 'depo' | 'satinalma' | 'muhasebe' | 'sofor' | 'musteri';
+export type AppRole = 'yonetici' | 'asci_basi' | 'diyetisyen' | 'depo' | 'satinalma' | 'muhasebe' | 'pazarlamaci' | 'sofor' | 'musteri';
 
 export const ROLE_LABELS: Record<AppRole, string> = {
   yonetici: 'Yönetici',
   asci_basi: 'Aşçıbaşı',
+  diyetisyen: 'Diyetisyen',
   depo: 'Depo',
   satinalma: 'Satınalma',
   muhasebe: 'Muhasebe',
+  pazarlamaci: 'Pazarlama',
   sofor: 'Şoför',
   musteri: 'Müşteri (portal)',
 };
@@ -75,3 +77,22 @@ export function unitInfo(code: string) {
 
 /** Fiyatı bu kadar günden eski hammaddeler "güncel değil" sayılır */
 export const PRICE_STALE_DAYS = 14;
+
+export const ORDER_STATUS: Record<string, { label: string; tone: 'idle' | 'info' | 'ok' | 'stop' }> = {
+  bekliyor: { label: 'Bekliyor', tone: 'idle' },
+  onaylandi: { label: 'Onaylandı', tone: 'info' },
+  teslim_edildi: { label: 'Teslim edildi', tone: 'ok' },
+  iptal: { label: 'İptal', tone: 'stop' },
+};
+
+export const ORDER_KINDS: Record<string, string> = { sozlesmeli: 'Sözleşmeli', organizasyon: 'Organizasyon' };
+
+/** Rol grupları — arayüz görünürlüğü (asıl yetki veritabanında RLS ile) */
+export const ROLES = {
+  kitchenWrite: ['yonetici', 'asci_basi', 'diyetisyen'] as AppRole[],
+  finance: ['yonetici', 'muhasebe'] as AppRole[],
+  invoices: ['yonetici', 'muhasebe', 'satinalma'] as AppRole[],
+  orders: ['yonetici', 'muhasebe', 'asci_basi', 'pazarlamaci'] as AppRole[],
+  customersWrite: ['yonetici', 'muhasebe', 'pazarlamaci'] as AppRole[],
+  production: ['yonetici', 'asci_basi', 'diyetisyen'] as AppRole[],
+};

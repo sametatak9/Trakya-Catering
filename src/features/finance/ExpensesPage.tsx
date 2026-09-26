@@ -1,0 +1,147 @@
+import { useMemo, useState } from 'react';
+import { FolderPlus, Plus, TrendingDown } from 'lucide-react';
+import { addMonths, lastMonths, monthLabel, monthRange, todayISO, monthKey, shortDay } from '@/lib/dates';
+import { monthlyByCategory, trend } from '@/lib/finance';
+import { fmtNum } from '@/lib/format';
+import { Delta, Meter, MonthNav, SparkBars } from '@/ui/bits';
+import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
+import { orderPeople, useOrders } from '../sales/api';
+import { useEntries, useFinanceCategories, type FinanceEntry } from './api';
+import { CategoryDrawer } from './CategoryDrawer';
+import { EntryDrawer } from './EntryDrawer';
+
+/** Veri olmasa da her zaman görünen ana kalemler */
+const PINNED = ['gida_hammadde', 'elektrik', 'su', 'dogalgaz', 'kira', 'akaryakit', 'arac_bakim', 'personel_maas'];
+
+export const SOURCE_LABEL: Record<string, string> = { manuel: 'Elle', gelen_fatura: 'Fatura', siparis: 'Sipariş', maas: 'Maaş' };
+
+export function ExpensesPage() {
+  const [month, setMonth] = useState(() => monthKey(todayISO()));
+  const [selected, setSelected] = useState<string | null>(null);
+  const [editing, setEditing] = useState<FinanceEntry | 'new' | null>(null);
+  const [catOpen, setCatOpen] = useState(false);
+  const months = lastMonths(month, 6);
+  const range = { from: monthRange(months[0]).from, to: monthRange(month).to };
+  const entries = useEntries(range.from, range.to);
+  const cats = useFinanceCategories();
+  const { from, to } = monthRange(month);
+  const orders = useOrders(from, to);
+
+  const rows = entries.data ?? [];
+  const byCat = useMemo(() => monthlyByCategory(rows, 'gider'), [rows]);
+  const catList = (cats.data ?? []).filter((c) => c.kind === 'gider');
+  const catName = (code: string) => catList.find((c) => c.code === code)?.name ?? code;
+
+  const cards = catList
+    .filter((c) => PINNED.includes(c.code) || months.some((m) => (byCat[m]?.[c.code] ?? 0) > 0))
+    .map((c) => {
+      const perMonth = Object.fromEntries(months.map((m) => [m, byCat[m]?.[c.code] ?? 0]));
+      return { c, t: trend(perMonth, month, 6) };
+    });
+  const monthTotal = Object.values(byCat[month] ?? {}).reduce((a, b) => a + b, 0);
+  const prevTotal = Object.values(byCat[addMonths(month, -1)] ?? {}).reduce((a, b) => a + b, 0);
+  const people = (orders.data ?? []).filter((o) => o.status !== 'iptal').reduce((s, o) => s + orderPeople(o), 0);
+  const monthRows = rows.filter((r) => r.kind === 'gider' && monthKey(r.entry_date) === month && (!selected || r.category_code === selected));
+  const unpaid = rows.filter((r) => r.kind === 'gider' && monthKey(r.entry_date) === month && r.status === 'bekliyor').reduce((s, r) => s + Number(r.net_amount), 0);
+  const biggestRise = [...cards].filter((x) => x.t.delta > 0).sort((a, b) => b.t.delta - a.t.delta)[0];
+  const groups = Array.from(new Set(cards.map((x) => x.c.group_name)));
+
+  return (
+    <>
+      <ModuleHero
+        kicker="Finans · Gider analizi"
+        title="Giderler"
+        description="Her kalem bu ayı geçen ayla karşılaştırır: kırmızı ok artış, yeşil ok azalış. Onaylanan faturalar buraya kendiliğinden düşer; faturası olmayan giderleri elle ekleyin."
+        actions={<>
+          <Button icon={<FolderPlus className="w-4 h-4" />} onClick={() => setCatOpen(true)}>Kategori ekle</Button>
+          <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Gider ekle</Button>
+        </>}
+        stats={[
+          { label: `${monthLabel(month)} toplam`, value: <Money value={monthTotal} />, hint: <Delta pct={prevTotal ? ((monthTotal - prevTotal) / prevTotal) * 100 : null} delta={monthTotal - prevTotal} goodWhen="down" /> },
+          { label: 'Kişi başı gider', value: people ? <Money value={monthTotal / people} /> : '—', hint: people ? `${fmtNum(people, 0)} kişiye göre` : 'bu ay sipariş yok' },
+          { label: 'Ödenmemiş', value: <Money value={unpaid} />, tone: unpaid > 0 ? 'warn' : 'default' },
+          { label: 'En çok artan', value: biggestRise ? biggestRise.c.name : '—', hint: biggestRise ? <Delta pct={biggestRise.t.pct} delta={biggestRise.t.delta} goodWhen="down" /> : 'artış yok' },
+        ]}
+      />
+
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <MonthNav value={month} onChange={(m) => { setMonth(m); setSelected(null); }} />
+        {selected && <button type="button" onClick={() => setSelected(null)} className="text-xs font-semibold text-brand">Filtreyi kaldır ✕</button>}
+      </div>
+
+      {entries.isLoading ? <Loading /> : entries.error ? <ErrorNote>Giderler yüklenemedi.</ErrorNote> : (
+        <div className="space-y-5 mb-6">
+          {groups.map((g) => (
+            <section key={g}>
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-3 mb-2">{g}</h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+                {cards.filter((x) => x.c.group_name === g).map(({ c, t }) => (
+                  <button key={c.code} type="button" onClick={() => setSelected(selected === c.code ? null : c.code)}
+                    className={cx('tc-card p-4 text-left transition hover:ring-2 hover:ring-brand-soft', selected === c.code && 'ring-2 ring-brand')}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-sm font-semibold text-ink truncate">{c.name}</div>
+                      <Delta pct={t.pct} delta={t.delta} goodWhen="down" />
+                    </div>
+                    <div className="flex items-end justify-between gap-3 mt-2">
+                      <div>
+                        <Money value={t.current} className="text-xl font-bold text-ink" />
+                        <div className="text-[11px] text-ink-3 mt-0.5">geçen ay <Money value={t.previous} /></div>
+                      </div>
+                      <SparkBars series={t.series} labels={months.map((m) => monthLabel(m, true))} className="w-28 h-10" />
+                    </div>
+                    <div className="mt-3"><Meter value={t.current} max={monthTotal} tone="brand" /></div>
+                    <div className="text-[10px] text-ink-3 mt-1">{monthTotal > 0 ? `Ay giderinin %${fmtNum((t.current / monthTotal) * 100, 0)}'i` : 'Bu ay kayıt yok'}</div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
+      <Panel pad={false} title={selected ? `${catName(selected)} · ${monthLabel(month)}` : `${monthLabel(month)} gider kayıtları`}
+        subtitle="Satıra tıklayarak ödeme durumunu güncelleyin">
+        {monthRows.length === 0 ? (
+          <EmptyState icon={<TrendingDown className="w-5 h-5" />} title="Kayıt yok"
+            action={<Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Gider ekle</Button>}>
+            Gelen e-faturaları yükleyin ya da faturasız giderleri (mazot fişi, tamir, bahşiş…) elle girin.
+          </EmptyState>
+        ) : (
+          <div className="overflow-x-auto tc-scroll">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
+                  <th className="px-4 py-2.5 font-semibold">Tarih</th>
+                  <th className="px-3 py-2.5 font-semibold">Kalem</th>
+                  <th className="px-3 py-2.5 font-semibold hidden md:table-cell">Kime</th>
+                  <th className="px-3 py-2.5 font-semibold">Durum</th>
+                  <th className="px-4 py-2.5 font-semibold text-right">Tutar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthRows.map((r) => (
+                  <tr key={r.id} onClick={() => setEditing(r)} className="border-b border-line last:border-0 cursor-pointer hover:bg-surface-2">
+                    <td className="px-4 py-2.5 tc-num text-ink-2 whitespace-nowrap">{shortDay(r.entry_date)}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="font-medium text-ink">{catName(r.category_code)}</div>
+                      <div className="text-[11px] text-ink-3">{r.description} · {SOURCE_LABEL[r.source]}</div>
+                    </td>
+                    <td className="px-3 py-2.5 hidden md:table-cell text-ink-2">{r.counterparty ?? '—'}</td>
+                    <td className="px-3 py-2.5">{r.status === 'odendi' ? <Pill tone="ok">Ödendi</Pill> : <Pill tone="wait">Bekliyor</Pill>}</td>
+                    <td className="px-4 py-2.5 text-right">
+                      <Money value={r.net_amount} className="font-semibold text-ink" />
+                      {Number(r.vat_amount) > 0 && <div className="text-[10px] text-ink-3">+KDV <Money value={r.vat_amount} /></div>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+
+      {editing && <EntryDrawer entry={editing === 'new' ? null : editing} defaultKind="gider" defaultCategory={selected ?? undefined} onClose={() => setEditing(null)} />}
+      {catOpen && <CategoryDrawer onClose={() => setCatOpen(false)} />}
+    </>
+  );
+}

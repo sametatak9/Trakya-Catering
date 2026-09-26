@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Calculator, Plus, Save, Trash2, X } from 'lucide-react';
 import { Link, useRouter } from '@/app/router';
 import { useCan } from '@/app/session';
-import { ALLERGENS, unitInfo } from '@/lib/domain';
+import { ALLERGENS, unitInfo, ROLES } from '@/lib/domain';
 import { lineCost } from '@/lib/cost';
 import { fmtNum, fmtPct, fmtQty, parseNum } from '@/lib/format';
 import { Button, ErrorNote, Field, Loading, Money, Panel, Pill, cx } from '@/ui/primitives';
@@ -51,7 +51,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
 }) {
   const { go } = useRouter();
   const toast = useToast();
-  const canEdit = useCan(['yonetici', 'asci_basi']);
+  const canEdit = useCan(ROLES.kitchenWrite);
   const cats = useCategories();
   const save = useSaveRecipe();
   const del = useDeleteRecipe();
