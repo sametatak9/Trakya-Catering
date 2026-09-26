@@ -1,5 +1,6 @@
-import { useEffect, type ButtonHTMLAttributes, type ReactNode } from 'react';
-import { AlertTriangle, Inbox, Loader2, X } from 'lucide-react';
+import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { ReportPreview, type ReportSpec } from '@/reports/ReportButton';
+import { AlertTriangle, FileSearch, Inbox, Loader2, X } from 'lucide-react';
 import { fmtMoney, fmtQty } from '@/lib/format';
 
 export function cx(...c: Array<string | false | null | undefined>) {
@@ -76,7 +77,37 @@ export function Panel({ title, subtitle, action, children, className = '', pad =
 }
 
 // ---------------------------------------------------------------- ModuleHero
-export interface HeroStat { label: string; value: ReactNode; hint?: ReactNode; tone?: 'default' | 'warn' | 'good' }
+export interface HeroStat {
+  label: string; value: ReactNode; hint?: ReactNode; tone?: 'default' | 'warn' | 'good';
+  /** Verilirse kart tıklanabilir olur ve rakamın kaynağını rapor penceresinde gösterir */
+  source?: () => ReportSpec;
+}
+
+/** Sayı kartı: tıklanınca rakamın hangi kayıtlardan geldiğini logolu rapor penceresinde açar */
+export function StatCard({ s }: { s: HeroStat }) {
+  const [open, setOpen] = useState(false);
+  const body = (
+    <>
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-[11px] font-semibold text-ink-3">{s.label}</div>
+        {s.source && <FileSearch className="w-3.5 h-3.5 text-ink-3 group-hover:text-brand shrink-0" aria-hidden />}
+      </div>
+      <div className={cx('tc-num text-xl sm:text-2xl font-bold mt-1 break-words',
+        s.tone === 'warn' ? 'text-wait' : s.tone === 'good' ? 'text-ok' : 'text-ink')}>{s.value}</div>
+      {s.hint && <div className="text-[11px] text-ink-3 mt-0.5 leading-snug">{s.hint}</div>}
+    </>
+  );
+  if (!s.source) return <div className="tc-card px-4 py-3 min-w-0">{body}</div>;
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} title="Kaynağını göster"
+        className="group tc-card px-4 py-3 min-w-0 text-left transition hover:-translate-y-0.5 hover:ring-2 hover:ring-brand/30 focus-visible:ring-2">
+        {body}
+      </button>
+      {open && <ReportPreview spec={s.source()} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
 export function ModuleHero({ kicker, title, description, actions, stats }: {
   kicker?: string; title: string; description?: ReactNode; actions?: ReactNode; stats?: HeroStat[];
 }) {
@@ -93,14 +124,7 @@ export function ModuleHero({ kicker, title, description, actions, stats }: {
       <div className="tc-harvest-rule w-16 mt-4" />
       {stats && stats.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mt-5">
-          {stats.map((s) => (
-            <div key={s.label} className="tc-card px-4 py-3">
-              <div className="text-[11px] font-semibold text-ink-3">{s.label}</div>
-              <div className={cx('tc-num text-xl sm:text-2xl font-bold mt-1',
-                s.tone === 'warn' ? 'text-wait' : s.tone === 'good' ? 'text-ok' : 'text-ink')}>{s.value}</div>
-              {s.hint && <div className="text-[11px] text-ink-3 mt-0.5 truncate">{s.hint}</div>}
-            </div>
-          ))}
+          {stats.map((s) => <StatCard key={s.label} s={s} />)}
         </div>
       )}
     </div>

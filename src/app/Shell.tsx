@@ -3,7 +3,7 @@ import { askConfirm } from '@/ui/confirm';
 import { LogOut, Menu, Moon, RotateCcw, Sparkles, Sun, UserRound, X } from 'lucide-react';
 import { NotificationBell } from '@/features/assistant/Notifications';
 import { ChatButton } from '@/features/chat/ChatPanel';
-import { DEMO, REAL_AVAILABLE, switchMode } from '@/lib/supabase';
+import { DEMO } from '@/lib/supabase';
 import { Logo } from '@/ui/Logo';
 import { cx } from '@/ui/primitives';
 import { ROLE_LABELS } from '@/lib/domain';
@@ -109,11 +109,7 @@ function DemoBadge() {
       <button type="button" onClick={() => void reset()} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 hover:bg-white/10" title="Örnek verileri sıfırla">
         <RotateCcw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Sıfırla</span>
       </button>
-      {REAL_AVAILABLE && (
-        <button type="button" onClick={() => switchMode('canli')} className="hidden sm:inline-flex items-center gap-1 rounded-full px-2.5 py-1 hover:bg-white/10" title="Gerçek sisteme geç">
-          <LogOut className="w-3.5 h-3.5" /> Demodan çık
-        </button>
-      )}
+
     </div>
   );
 }

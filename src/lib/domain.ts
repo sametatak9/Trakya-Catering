@@ -1,8 +1,9 @@
 // Alan sözlükleri — veritabanındaki CHECK kısıtlarıyla aynı kodlar.
 
-export type AppRole = 'yonetici' | 'asci_basi' | 'diyetisyen' | 'depo' | 'satinalma' | 'muhasebe' | 'pazarlamaci' | 'sofor' | 'musteri';
+export type AppRole = 'kurucu' | 'yonetici' | 'asci_basi' | 'diyetisyen' | 'depo' | 'satinalma' | 'muhasebe' | 'pazarlamaci' | 'sofor' | 'musteri';
 
 export const ROLE_LABELS: Record<AppRole, string> = {
+  kurucu: 'Kurucu',
   yonetici: 'Yönetici',
   asci_basi: 'Aşçıbaşı',
   diyetisyen: 'Diyetisyen',

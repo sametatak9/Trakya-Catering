@@ -31,7 +31,7 @@ export function ReportButton({ spec, label = 'Rapor', size = 'md', disabled }: {
   );
 }
 
-function ReportPreview({ spec, onClose }: { spec: ReportSpec; onClose: () => void }) {
+export function ReportPreview({ spec, onClose }: { spec: ReportSpec; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);

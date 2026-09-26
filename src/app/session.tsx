@@ -63,7 +63,8 @@ export function useMember(): Member {
 
 export function useCan(roles: AppRole[]): boolean {
   const s = useContext(Ctx);
-  return s.status === 'ready' && roles.includes(s.member.role);
+  // Kurucu her yetkiye sahiptir (veritabanında has_role ile aynı kural)
+  return s.status === 'ready' && (s.member.role === 'kurucu' || roles.includes(s.member.role));
 }
 
 export async function signOut() {

@@ -63,6 +63,7 @@ export const ROADMAP: Array<{ label: string; detail: string }> = [
 
 export function visibleModules(role: AppRole): ModuleDef[] {
   if (role === 'musteri') return [];
+  if (role === 'kurucu') return MODULES;
   return MODULES.filter((m) => !m.roles || m.roles.includes(role));
 }
 

@@ -6,7 +6,10 @@ import { useCan, useMember } from '@/app/session';
 import { addDays, minutesToCutoff, monthKey, monthRange, shortDay, todayISO } from '@/lib/dates';
 import { MEALS, PRICE_STALE_DAYS, ROLES } from '@/lib/domain';
 import { amountOf } from '@/lib/finance';
-import { daysSince, fmtNum } from '@/lib/format';
+import { daysSince, fmtDate, fmtMoney, fmtNum } from '@/lib/format';
+import { ReportPreview, type ReportSpec } from '@/reports/ReportButton';
+import { ReportSection, ReportStats } from '@/reports/ReportFrame';
+import type { MealOrder } from '../sales/api';
 import { Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useAccounts, useEntries, useOpenItems } from '../finance/api';
 import { useIngredients, useMenuCosts, useRecipeCosts } from '../kitchen/api';
@@ -54,6 +57,84 @@ export function DashboardPage() {
   const dueSoon = (open.data ?? []).filter((e) => (e.due_date ?? e.entry_date) <= addDays(today, 7));
   const balance = (accounts.data ?? []).reduce((s, a) => s + Number(a.balance ?? 0), 0);
 
+  // ---- Kartların kaynak raporları (rakam hangi kayıtlardan geliyor)
+  const ordersSpec = (title: string, day: string, list: MealOrder[]): ReportSpec => ({
+    title, subtitle: `${shortDay(day)} · ${list.length} sipariş · kaynak: Siparişler`,
+    summary: list.map((o) => ({ label: `${custName(o.customer_id)} · ${MEALS[o.meal]}`, value: `${fmtNum(orderPeople(o), 0)} kişi` })),
+    table: { filename: `siparisler-${day}`, header: ['Firma', 'Öğün', 'Kişi', 'Kişi başı ₺', 'Tutar ₺', 'Durum'],
+      rows: list.map((o) => [custName(o.customer_id), MEALS[o.meal], orderPeople(o), o.unit_price, orderPeople(o) * Number(o.unit_price), o.status]) },
+    body: () => (
+      <>
+        <ReportStats items={[{ label: 'Toplam kişi', value: fmtNum(list.reduce((t, o) => t + orderPeople(o), 0), 0) }, { label: 'Sipariş', value: list.length },
+          { label: 'Tutar (KDV hariç)', value: fmtMoney(list.reduce((t, o) => t + orderPeople(o) * Number(o.unit_price), 0)) }]} />
+        <ReportSection title="Firma bazında">
+          <table><thead><tr><th>Firma</th><th>Öğün</th><th className="num">Kişi</th><th className="num">Kişi başı</th><th className="num">Tutar</th></tr></thead>
+            <tbody>{list.map((o) => <tr key={o.id}><td>{custName(o.customer_id)}</td><td>{MEALS[o.meal]}</td><td className="num">{fmtNum(orderPeople(o), 0)}</td>
+              <td className="num">{fmtMoney(o.unit_price)}</td><td className="num">{fmtMoney(orderPeople(o) * Number(o.unit_price))}</td></tr>)}</tbody></table>
+        </ReportSection>
+      </>
+    ),
+  });
+  const costSpec = (): ReportSpec => {
+    const list = prod.data ?? [];
+    return {
+      title: 'Bugünkü Hammadde Maliyeti', subtitle: `${shortDay(today)} · kaynak: Günlük Hazırlık kayıtları`,
+      summary: list.map((b) => ({ label: b.dish_name ?? '', value: `${fmtMoney(b.total_cost)} (${fmtMoney(b.cost_per_portion)}/porsiyon)` })),
+      table: { filename: `hammadde-${today}`, header: ['Öğün', 'Yemek', 'Porsiyon', 'Toplam ₺', 'Porsiyon ₺'],
+        rows: list.map((b) => [MEALS[b.meal ?? 'ogle'], b.dish_name, b.portions, b.total_cost, b.cost_per_portion]) },
+      body: () => (
+        <>
+          <ReportStats items={[{ label: 'Toplam', value: fmtMoney(costToday) }, { label: 'Kişi', value: fmtNum(peopleToday, 0) },
+            { label: 'Kişi başı', value: peopleToday ? fmtMoney(costToday / peopleToday) : '—' }, { label: 'Yemek', value: list.length }]} />
+          <ReportSection title="Yemek bazında (hazırlanan malzeme × birim fiyat)">
+            <table><thead><tr><th>Öğün</th><th>Yemek</th><th className="num">Porsiyon</th><th className="num">Toplam</th><th className="num">1 porsiyon</th></tr></thead>
+              <tbody>{list.map((b) => <tr key={b.batch_id}><td>{MEALS[b.meal ?? 'ogle']}</td><td>{b.dish_name}</td><td className="num">{fmtNum(b.portions, 0)}</td>
+                <td className="num">{fmtMoney(b.total_cost)}</td><td className="num"><b>{fmtMoney(b.cost_per_portion)}</b></td></tr>)}</tbody></table>
+          </ReportSection>
+        </>
+      ),
+    };
+  };
+  const cashSpec = (): ReportSpec => ({
+    title: 'Kasa ve Banka Durumu', subtitle: `${shortDay(today)} · kaynak: Kasa hareketleri ve açık kalemler`,
+    summary: [...(accounts.data ?? []).map((a) => ({ label: a.name ?? '', value: fmtMoney(a.balance) })), { label: '7 gün içinde vadeli', value: `${dueSoon.length} kalem` }],
+    table: { filename: `kasa-${today}`, header: ['Tür', 'Kime / kimden', 'Vade', 'Tutar ₺'],
+      rows: dueSoon.map((e) => [e.kind === 'gelir' ? 'Alacak' : 'Borç', e.counterparty ?? e.description, e.due_date ?? e.entry_date, Number(e.net_amount) + Number(e.vat_amount)]) },
+    body: () => (
+      <>
+        <ReportSection title="Hesap bakiyeleri">
+          <table><thead><tr><th>Hesap</th><th className="num">Açılış</th><th className="num">Bakiye</th></tr></thead>
+            <tbody>{(accounts.data ?? []).map((a) => <tr key={a.id}><td>{a.name}</td><td className="num">{fmtMoney(a.opening_balance)}</td><td className="num"><b>{fmtMoney(a.balance)}</b></td></tr>)}
+              <tr><td><b>Toplam</b></td><td /><td className="num"><b>{fmtMoney(balance)}</b></td></tr></tbody></table>
+        </ReportSection>
+        <ReportSection title="7 gün içinde vadesi gelen alacak ve borçlar">
+          {dueSoon.length === 0 ? <div style={{ fontSize: 11 }}>Yok.</div> : (
+            <table><thead><tr><th>Tür</th><th>Kime / kimden</th><th>Vade</th><th className="num">Tutar</th></tr></thead>
+              <tbody>{dueSoon.map((e) => <tr key={e.id}><td>{e.kind === 'gelir' ? 'Alacak' : 'Borç'}</td><td>{e.counterparty ?? e.description}</td>
+                <td>{fmtDate(e.due_date ?? e.entry_date)}</td><td className="num">{fmtMoney(Number(e.net_amount) + Number(e.vat_amount))}</td></tr>)}</tbody></table>
+          )}
+        </ReportSection>
+      </>
+    ),
+  });
+  const entriesSpec = (kind: 'gelir' | 'gider'): ReportSpec => {
+    const list = monthRows.filter((e) => e.kind === kind).sort((a, b) => a.entry_date.localeCompare(b.entry_date));
+    return {
+      title: kind === 'gelir' ? 'Bu Ayın Gelirleri' : 'Bu Ayın Giderleri', subtitle: `${from} – ${to} · kaynak: Finans defteri (KDV hariç)`,
+      summary: [{ label: 'Toplam', value: fmtMoney(kind === 'gelir' ? inc : exp) }, { label: 'Kayıt', value: String(list.length) }],
+      table: { filename: `${kind}-${from}`, header: ['Tarih', 'Kalem', 'Açıklama', 'Kime / kimden', 'Tutar ₺', 'Durum'],
+        rows: list.map((e) => [e.entry_date, e.category_code, e.description, e.counterparty, amountOf(e), e.status]) },
+      body: () => (
+        <ReportSection title={`${list.length} kayıt · toplam ${fmtMoney(kind === 'gelir' ? inc : exp)}`}>
+          <table><thead><tr><th>Tarih</th><th>Açıklama</th><th>Kime / kimden</th><th className="num">Tutar</th><th>Durum</th></tr></thead>
+            <tbody>{list.map((e) => <tr key={e.id}><td>{shortDay(e.entry_date)}</td><td>{e.description}</td><td>{e.counterparty ?? '—'}</td>
+              <td className="num">{fmtMoney(amountOf(e))}</td><td>{e.status === 'odendi' ? (kind === 'gelir' ? 'Tahsil' : 'Ödendi') : 'Bekliyor'}</td></tr>)}</tbody></table>
+        </ReportSection>
+      ),
+    };
+  };
+  const [panelReport, setPanelReport] = useState<ReportSpec | null>(null);
+
   const steps = [
     { done: ingredients.length > 0, label: 'Hammaddeleri ekle', hint: 'birim, fire, alış fiyatı', to: '/hammaddeler' },
     { done: (rec.data ?? []).some((r) => (r.line_count ?? 0) > 0), label: 'Reçete gramajlarını gir', hint: '1 porsiyonun net gramajı', to: '/receteler' },
@@ -74,11 +155,11 @@ export function DashboardPage() {
         kicker={new Date().toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul', weekday: 'long', day: 'numeric', month: 'long' })}
         title={`${greeting()}, ${member.fullName.split(' ')[0]}`}
         stats={[
-          { label: 'Bugün kişi', value: fmtNum(peopleToday, 0), hint: `${todayOrders.length} sipariş` },
-          { label: 'Bugünkü hammadde', value: <Money value={costToday} />, hint: peopleToday ? <>kişi başı <Money value={costToday / peopleToday} /></> : 'hazırlık girilmedi' },
-          { label: 'Yarın kişi', value: fmtNum(peopleTomorrow, 0), hint: cutoff > 0 ? `kesime ${Math.floor(cutoff / 60)} sa ${cutoff % 60} dk` : 'kesim saati geçti' },
+          { label: 'Bugün kişi', value: fmtNum(peopleToday, 0), hint: `${todayOrders.length} sipariş`, source: () => ordersSpec('Bugünün Siparişleri', today, todayOrders) },
+          { label: 'Bugünkü hammadde', value: <Money value={costToday} />, hint: peopleToday ? <>kişi başı <Money value={costToday / peopleToday} /></> : 'hazırlık girilmedi', source: costSpec },
+          { label: 'Yarın kişi', value: fmtNum(peopleTomorrow, 0), hint: cutoff > 0 ? `kesime ${Math.floor(cutoff / 60)} sa ${cutoff % 60} dk` : 'kesim saati geçti', source: () => ordersSpec('Yarının Siparişleri', tomorrow, tomorrowOrders) },
           isFinance
-            ? { label: 'Kasa + banka', value: <Money value={balance} />, tone: balance < 0 ? 'warn' : 'default', hint: `${dueSoon.length} ödeme/tahsilat 7 gün içinde` }
+            ? { label: 'Kasa + banka', value: <Money value={balance} />, tone: balance < 0 ? 'warn' : 'default', hint: `${dueSoon.length} vadeli kalem (7 gün)`, source: cashSpec }
             : { label: 'Fiyat bekleyen', value: priceIssues.length, tone: priceIssues.length ? 'warn' : 'good' },
         ]}
       />
@@ -139,8 +220,8 @@ export function DashboardPage() {
           <Panel title={<span className="inline-flex items-center gap-2"><Wallet className="w-4 h-4 text-brand" />Bu ay</span>}
             action={<Link to="/finans" className="text-xs font-semibold text-brand">Finans →</Link>}>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-ink-3">Gelir</span><Money value={inc} className="font-semibold text-ok" /></div>
-              <div className="flex justify-between"><span className="text-ink-3">Gider</span><Money value={exp} className="font-semibold" /></div>
+              <button type="button" onClick={() => setPanelReport(entriesSpec('gelir'))} className="w-full flex justify-between rounded-lg -mx-1 px-1 hover:bg-surface-2"><span className="text-ink-3">Gelir</span><Money value={inc} className="font-semibold text-ok" /></button>
+              <button type="button" onClick={() => setPanelReport(entriesSpec('gider'))} className="w-full flex justify-between rounded-lg -mx-1 px-1 hover:bg-surface-2"><span className="text-ink-3">Gider</span><Money value={exp} className="font-semibold" /></button>
               <div className="flex justify-between pt-2 border-t border-line"><span className="font-semibold text-ink">Net</span><Money value={inc - exp} className={cx('font-bold', inc - exp < 0 ? 'text-stop' : 'text-ink')} /></div>
             </div>
             {dueSoon.length > 0 && (
@@ -176,7 +257,9 @@ export function DashboardPage() {
         </p>
       )}
 
-      {member.role === 'yonetici' && (
+      {panelReport && <ReportPreview spec={panelReport} onClose={() => setPanelReport(null)} />}
+
+      {(member.role === 'yonetici' || member.role === 'kurucu') && (
         <div className="mt-6">
           <button type="button" onClick={() => setShowRoadmap(!showRoadmap)} className="inline-flex items-center gap-2 text-xs font-semibold text-ink-3 hover:text-ink">
             <MapIcon className="w-4 h-4" /> Yol haritası {showRoadmap ? '▴' : '▾'}
