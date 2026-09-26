@@ -13,9 +13,11 @@ Foodsoft gibi eski sistemlerin yerine: az ekran, açıklayıcı sekme adları, h
 | Alan | Ekran | Ne yapar |
 |---|---|---|
 | Genel | Bugün | Bugünkü kişi/maliyet, yarının siparişleri ve 16:00 kesimi, kasa, vadesi gelenler |
-| Mutfak | Günlük Üretim & Maliyet | Siparişlerden üretim listesi, porsiyon maliyeti (o günün fiyatıyla sabit), kişi başı hammadde ve tam maliyet, 14 günlük trend |
+| Mutfak | Günlük Hazırlık & Maliyet | Yemek başlıkları siparişlerden/menü planından gelir; aşçı hazırlanan toplam miktarı girer (stoktan veya elle + fiyat, çiğ yan malzemeler dahil) → kişi sayısına bölünüp 1 porsiyon gramajı ve maliyeti; reçeteden öneri ve sapma; hazırlıktan reçete türetme; üretim emri ve maliyet raporu |
+| Mutfak | Kahvaltı | Kahvaltı hazırlığı ve maliyeti (aynı akış) |
+| Mutfak | Menü Planı | Haftalık gün × öğün planı, firmaya özel plan, geçen haftayı kopyala, haftalık menü raporu |
 | Mutfak | Reçeteler & Gramaj | Net/brüt gramaj, fire, canlı porsiyon maliyeti, üretim ön-hesabı |
-| Mutfak | Menüler | 3-4 kap, porsiyon katsayısı, food cost % |
+| Mutfak | Menüler | Serbest kap sayısı ve kap türü (çorba, ana, yardımcı, salata, meze, tatlı…), kahvaltı / soğuk mezeli / diyet, firmaya özel menü, maliyet kartı |
 | Mutfak | Hammaddeler | Birim, fire, fiyat geçmişi, alerjen |
 | Satış | Siparişler | Gün × öğün × müşteri kişi sayısı, önceki günü kopyala, toplu teslim → gelir kaydı |
 | Satış | Müşteriler | Kişi başı fiyat, KDV, vade, e-fatura bilgisi |
@@ -25,16 +27,18 @@ Foodsoft gibi eski sistemlerin yerine: az ekran, açıklayıcı sekme adları, h
 | Finans | Kasa & Gelirler | Kasa/banka bakiyesi, tahsil edilecek/ödenecek, günlük giriş-çıkış ve bakiye |
 | Sistem | Ekip & Yetkiler | Roller: yönetici, aşçıbaşı, diyetisyen, muhasebe, satınalma, pazarlama, depo, şoför, müşteri |
 
+| Tümü | Raporlar | Her sekmede logolu, holografik mühürlü antetli rapor: Yazdır/PDF, Excel (CSV), WhatsApp ile gönder |
+
 ## Sıradaki fazlar
+0. **Kurucu paneli** — rol × modül yetki matrisi (yok/okur/yazar), kişiye özel istisna, audit log, firma bilgileri.
 1. **Personel, puantaj & maaş** — Kibritçi deneyiminden tek kural: günlük = maaş/30, tam ay = 30 gün, 7,5 saatlik gün, mesai ×1,5; ücretli durumlar açıkça listelenir (Geldi, İzinli, Pazar, Tatil; Raporlu ayrı karar). Avans kesinti kaydı olarak bağlanır (isimle eşleştirme yok). Mobil yoklama (Geldi/Yok/Diğer + mesai ±0,5 sa). Maaş ödemesi → Kasa gideri.
-2. **Menü planı & diyetisyen ekranı** — Firma bazlı haftalık menü, üretim emirleri (mutfak/tatlı), gramaj kontrolü, alerjen etiketi.
-3. **Depo & stok + satınalma** — Üretime çıkış, sayım, SKT; eksik hammadde listesi; tedarikçi fiyat geçmişinden en uygun tedarikçi önerisi.
+3. **Depo & stok + firmalara giden malzemeler** — hazırlıktan otomatik stok çıkışı; tuz/ketçap/mayonez/yağ gönderimleri stoktan ve maliyete. **Satınalma** — Üretime çıkış, sayım, SKT; eksik hammadde listesi; tedarikçi fiyat geçmişinden en uygun tedarikçi önerisi.
 4. **Müşteri portalı** — Firmalar ertesi günün sayısını 16:00’ya kadar kendisi girer (veritabanı kuralı hazır).
-5. **Sevkiyat & araçlar** — Rota, şoför mobil irsaliyesi (imza, sıcaklık), araç yakıt/bakım giderleri araca bağlı.
+5. **Filo, rota & şoför** — Haritada baş şoför rotası, şoför mobil ekranı (teslim, imza, malzeme, müşteri talebi), mazot/bakım/km, Arvento/Mobiliz bağlantısı, ekip sohbeti ve hatırlatmalar.
 6. **Satış e-faturası** — Ay sonu teslimlerden toplu fatura; özel entegratör (Paraşüt/Uyumsoft/Logo) adaptörü; gelen faturaların otomatik çekimi.
 7. **Teklifler** — Kurumsal teklif şablonu; menü maliyeti + genel gider payı + hedef marjla kişi başı fiyat hesaplayıcı.
 8. **Müşteri bulma & saha** — Bölgesel firma botu (yalnız izinli/resmi kaynaklar), pazarlamacı günlük rotası, ziyaret fotoğrafı ve dönüş notu, yönetici kontrolü.
-9. **Sosyal medya** — Embay deneyiminden: günün menüsü paylaşımı, içerik takvimi, onay kuyruğu.
+9. **Sosyal medya** — Embay yöntemi: içerik havuzu, aylık içerik takvimi, platform bazlı taslak, onay kuyruğu.
 10. **Gıda güvenliği** — Şahit numune (72 saat), lot/SKT, sevkiyat sıcaklığı.
 
 ## Açık notlar

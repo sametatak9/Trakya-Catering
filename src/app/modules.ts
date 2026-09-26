@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  BookOpenText, ChefHat, ClipboardList, Building2, FileInput, LayoutDashboard, LineChart, ShieldCheck,
+  BookOpenText, CalendarRange, ChefHat, ClipboardList, Building2, Coffee, FileInput, LayoutDashboard, LineChart, ShieldCheck,
   TrendingDown, UtensilsCrossed, Wallet, Wheat,
 } from 'lucide-react';
 import { ROLES, type AppRole } from '@/lib/domain';
@@ -27,9 +27,11 @@ export const GROUP_LABELS: Record<ModuleDef['group'], string> = {
 export const MODULES: ModuleDef[] = [
   { path: '/', label: 'Bugün', hint: 'Günün özeti', icon: LayoutDashboard, group: 'genel' },
 
-  { path: '/uretim', label: 'Günlük Üretim & Maliyet', hint: 'Bugün ne pişti, kaça mal oldu', icon: ChefHat, group: 'mutfak' },
+  { path: '/uretim', label: 'Günlük Hazırlık & Maliyet', hint: 'Ne hazırlandı, porsiyon kaça mal oldu', icon: ChefHat, group: 'mutfak' },
+  { path: '/kahvalti', label: 'Kahvaltı', hint: 'Kahvaltı hazırlığı ve maliyeti', icon: Coffee, group: 'mutfak' },
+  { path: '/menu-plani', label: 'Menü Planı', hint: 'Haftalık, firmaya özel menüler', icon: CalendarRange, group: 'mutfak' },
   { path: '/receteler', label: 'Reçeteler & Gramaj', hint: '1 porsiyon ve maliyeti', icon: BookOpenText, group: 'mutfak' },
-  { path: '/menuler', label: 'Menüler', hint: '3-4 kap, kişi başı maliyet', icon: UtensilsCrossed, group: 'mutfak' },
+  { path: '/menuler', label: 'Menüler', hint: 'Kaç çeşitse, kişi başı maliyet', icon: UtensilsCrossed, group: 'mutfak' },
   { path: '/hammaddeler', label: 'Hammaddeler', hint: 'Fiyat, fire, alerjen', icon: Wheat, group: 'mutfak' },
 
   { path: '/siparisler', label: 'Siparişler', hint: 'Günlük yemek sayıları', icon: ClipboardList, group: 'satis' },
@@ -45,15 +47,16 @@ export const MODULES: ModuleDef[] = [
 
 /** Planlanan modüller (yalnızca yol haritasında gösterilir; menüyü kalabalıklaştırmaz) */
 export const ROADMAP: Array<{ label: string; detail: string }> = [
-  { label: 'Menü planı & diyetisyen', detail: 'Firma bazlı haftalık menü, üretim emirleri, tatlı üretimi' },
-  { label: 'Depo & stok', detail: 'Üretime çıkış, sayım, SKT, eksik hammadde listesi' },
+  { label: 'Depo & stok', detail: 'Hazırlıktan otomatik çıkış, sayım, SKT, eksik hammadde listesi' },
+  { label: 'Firmalara giden malzemeler', detail: 'Tuz, ketçap, mayonez, yağ… stoktan düşer, maliyete girer' },
   { label: 'Satınalma & tedarikçi ağı', detail: 'Fiyat geçmişi karşılaştırma, en uygun tedarikçi önerisi' },
-  { label: 'Sevkiyat & araçlar', detail: 'Rota, şoför irsaliyesi, imza, sıcaklık kaydı' },
-  { label: 'Personel, puantaj & maaş', detail: 'Günlük yoklama, mesai, avans, maaş ödeme (Kibritçi deneyimiyle)' },
+  { label: 'Filo, rota & şoför', detail: 'Harita üzerinde rota, şoför ekranı, mazot/bakım/km, Arvento-Mobiliz bağlantısı, sohbet' },
+  { label: 'Kurucu paneli', detail: 'Her üyeliğin neyi görüp yazacağını kurucu belirler' },
+  { label: 'Personel, puantaj & bakiye', detail: 'Parmak izi (ZKTeco) yoklaması, 10 saat kuralı, yevmiye/avans canlı bakiye, kartvizit' },
   { label: 'Satış e-faturası', detail: 'Ay sonu irsaliyelerden toplu fatura, entegratör ile gönderim' },
   { label: 'Teklifler', detail: 'Kurumsal teklif şablonu, kişi başı fiyat hesaplayıcı' },
   { label: 'Müşteri bulma & saha', detail: 'Bölgesel firma botu, pazarlamacı günlük rota, ziyaret fotoğrafı' },
-  { label: 'Sosyal medya', detail: 'Günün menüsü paylaşımı, içerik takvimi, onay kuyruğu' },
+  { label: 'Sosyal medya', detail: 'Embay yöntemi: içerik havuzu, aylık takvim, onay kuyruğu' },
   { label: 'Müşteri portalı', detail: 'Firmalar ertesi günün sayısını 16:00’ya kadar kendisi girer' },
 ];
 

@@ -89,7 +89,7 @@ export function EntryDrawer({ entry, defaultKind = 'gider', defaultCategory, onC
       footer={<>
         {entry && !linked && <Button variant="danger" className="mr-auto" icon={<Trash2 className="w-4 h-4" />} onClick={remove} loading={del.isPending}>Sil</Button>}
         <Button onClick={onClose}>Vazgeç</Button>
-        <Button variant="primary" onClick={submit} loading={save.isPending}>Kaydet</Button>
+        <Button variant="holo" onClick={submit} loading={save.isPending}>Kaydet</Button>
       </>}>
       <div className="space-y-4">
         {!entry && (

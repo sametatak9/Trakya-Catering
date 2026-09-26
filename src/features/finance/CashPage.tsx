@@ -7,6 +7,9 @@ import { amountOf } from '@/lib/finance';
 import { Delta, MonthNav } from '@/ui/bits';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { ReportSection, ReportStats } from '@/reports/ReportFrame';
+import { fmtMoney } from '@/lib/format';
 import { useAccounts, useCashMovements, useEntries, useFinanceCategories, useOpenItems, useSaveEntry, type FinanceEntry } from './api';
 import { EntryDrawer } from './EntryDrawer';
 
@@ -67,6 +70,44 @@ export function CashPage() {
       { onSuccess: () => toast.ok(e.kind === 'gelir' ? 'Tahsilat kaydedildi' : 'Ödeme kaydedildi'), onError: toast.error });
   };
 
+  const report = (): ReportSpec => ({
+    title: 'Kasa Hareketleri',
+    subtitle: `${monthLabel(month)} · ay başı ${fmtMoney(monthStart)} → ay sonu ${fmtMoney(monthEnd)}`,
+    summary: [
+      ...balances.map((a) => ({ label: a.name ?? '', value: fmtMoney(a.balance) })),
+      { label: 'Tahsil edilecek', value: fmtMoney(receivables.reduce((s, e) => s + total(e), 0)) },
+      { label: 'Ödenecek', value: fmtMoney(payables.reduce((s, e) => s + total(e), 0)) },
+    ],
+    table: {
+      filename: `kasa-${month}`,
+      header: ['Tarih', 'Tür', 'Karşı taraf', 'Kalem', 'Tutar ₺ (KDV dahil)'],
+      rows: [...inMonth].sort((a, b) => cashDate(a).localeCompare(cashDate(b)))
+        .map((e) => [cashDate(e), e.kind === 'gelir' ? 'Giriş' : 'Çıkış', e.counterparty, catName(e.category_code), e.kind === 'gelir' ? total(e) : -total(e)]),
+    },
+    body: () => (
+      <>
+        <ReportStats items={[
+          { label: 'Ay başı', value: fmtMoney(monthStart) },
+          { label: 'Giriş', value: fmtMoney(inMonth.filter((e) => e.kind === 'gelir').reduce((s, e) => s + total(e), 0)) },
+          { label: 'Çıkış', value: fmtMoney(inMonth.filter((e) => e.kind === 'gider').reduce((s, e) => s + total(e), 0)) },
+          { label: 'Ay sonu', value: fmtMoney(monthEnd) },
+        ]} />
+        <ReportSection title="Günlük hareketler">
+          <table>
+            <thead><tr><th>Tarih</th><th>Tür</th><th>Karşı taraf · kalem</th><th className="num">Tutar</th><th className="num">Gün sonu bakiye</th></tr></thead>
+            <tbody>
+              {[...days].reverse().flatMap((day) => day.items.map((e, i) => (
+                <tr key={e.id}><td>{i === 0 ? shortDay(day.d) : ''}</td><td>{e.kind === 'gelir' ? 'Giriş' : 'Çıkış'}</td>
+                  <td>{[e.counterparty, catName(e.category_code)].filter(Boolean).join(' · ')}</td>
+                  <td className="num">{e.kind === 'gelir' ? '+' : '−'}{fmtMoney(total(e))}</td><td className="num">{i === day.items.length - 1 ? fmtMoney(day.bal) : ''}</td></tr>
+              )))}
+            </tbody>
+          </table>
+        </ReportSection>
+      </>
+    ),
+  });
+
   const OpenList = ({ items, kind }: { items: FinanceEntry[]; kind: 'gelir' | 'gider' }) => (
     items.length === 0 ? <p className="text-sm text-ink-3">{kind === 'gelir' ? 'Bekleyen alacak yok.' : 'Bekleyen borç yok.'}</p> : (
       <ul className="divide-y divide-line -my-2">
@@ -94,9 +135,10 @@ export function CashPage() {
         kicker="Finans · Nakit akışı"
         title="Kasa & Gelirler"
         description="Kasadaki ve bankadaki para, tahsil edilecek alacaklar ve ödenecek borçlar. Her girdi bakiyeyi anında artırır veya azaltır."
-        actions={canEdit && <>
-          <Button icon={<ArrowUpRight className="w-4 h-4" />} onClick={() => setEditing({ entry: null, kind: 'gider' })}>Gider / ödeme</Button>
-          <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing({ entry: null, kind: 'gelir' })}>Gelir ekle</Button>
+        actions={<>
+          <ReportButton spec={report} />
+          {canEdit && <><Button icon={<ArrowUpRight className="w-4 h-4" />} onClick={() => setEditing({ entry: null, kind: 'gider' })}>Gider / ödeme</Button>
+          <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing({ entry: null, kind: 'gelir' })}>Gelir ekle</Button></>}
         </>}
         stats={[
           { label: 'Toplam bakiye', value: <Money value={totalBalance} />, tone: totalBalance < 0 ? 'warn' : 'default' },

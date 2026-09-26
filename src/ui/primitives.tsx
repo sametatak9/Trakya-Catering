@@ -7,13 +7,14 @@ export function cx(...c: Array<string | false | null | undefined>) {
 }
 
 // ---------------------------------------------------------------- Button
-type BtnVariant = 'primary' | 'accent' | 'ghost' | 'subtle' | 'danger';
+type BtnVariant = 'primary' | 'accent' | 'ghost' | 'subtle' | 'danger' | 'holo';
 const BTN: Record<BtnVariant, string> = {
   primary: 'bg-brand text-on-brand hover:bg-brand-strong shadow-sm',
   accent: 'bg-accent text-ink hover:bg-accent-strong hover:text-white shadow-sm',
   ghost: 'bg-transparent text-ink-2 ring-1 ring-line-strong hover:bg-surface-2 hover:text-ink',
   subtle: 'bg-surface-2 text-ink-2 hover:bg-line hover:text-ink',
   danger: 'bg-stop-soft text-stop hover:bg-stop hover:text-white',
+  holo: 'tc-holo',
 };
 export function Button({
   children, variant = 'ghost', size = 'md', className = '', loading = false, icon, ...rest

@@ -48,11 +48,11 @@ export const ALLERGENS: Record<string, string> = {
 };
 
 export const MENU_KINDS: Record<string, string> = {
-  '3_kap': '3 Kap',
-  '4_kap': '4 Kap',
+  standart: 'Standart',
   kahvalti: 'Kahvaltı',
+  soguk_mezeli: 'Soğuk mezeli',
   diyet: 'Diyet',
-  ozel: 'Özel',
+  ozel: 'Özel / organizasyon',
 };
 
 export const MEALS: Record<string, string> = {
@@ -63,6 +63,12 @@ export const MEALS: Record<string, string> = {
 };
 
 /** Stok birimleri (hammadde kartında seçilebilenler) */
+export const PREP_STATUS: Record<string, { label: string; tone: 'idle' | 'wait' | 'ok' }> = {
+  taslak: { label: 'Hazırlanıyor', tone: 'wait' },
+  pisti: { label: 'Pişti', tone: 'ok' },
+  kapandi: { label: 'Kapandı', tone: 'idle' },
+};
+
 export const STOCK_UNITS: Array<{ code: string; label: string; base: 'g' | 'ml' | 'adet'; toBase: number }> = [
   { code: 'kg', label: 'kg', base: 'g', toBase: 1000 },
   { code: 'lt', label: 'lt', base: 'ml', toBase: 1000 },

@@ -292,51 +292,6 @@ export type Database = {
         }
         Relationships: []
       }
-      production_logs: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          id: string
-          meal: string
-          menu_id: string | null
-          note: string | null
-          portions: number
-          prod_date: string
-          recipe_id: string
-          source: string
-          unit_cost: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          meal?: string
-          menu_id?: string | null
-          note?: string | null
-          portions: number
-          prod_date: string
-          recipe_id: string
-          source?: string
-          unit_cost?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          meal?: string
-          menu_id?: string | null
-          note?: string | null
-          portions?: number
-          prod_date?: string
-          recipe_id?: string
-          source?: string
-          unit_cost?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
       purchase_invoices: {
         Row: {
           category_code: string
@@ -420,6 +375,189 @@ export type Database = {
           category_code?: string
           supplier_key?: string
           supplier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      company_settings: {
+        Row: {
+          address: string | null
+          city: string | null
+          email: string | null
+          id: number
+          legal_name: string
+          phone: string | null
+          report_footer: string | null
+          short_name: string
+          slogan: string | null
+          tax_no: string | null
+          tax_office: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          email?: string | null
+          id?: number
+          legal_name?: string
+          phone?: string | null
+          report_footer?: string | null
+          short_name?: string
+          slogan?: string | null
+          tax_no?: string | null
+          tax_office?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          email?: string | null
+          id?: number
+          legal_name?: string
+          phone?: string | null
+          report_footer?: string | null
+          short_name?: string
+          slogan?: string | null
+          tax_no?: string | null
+          tax_office?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      menu_plans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          id: string
+          meal: string
+          menu_id: string
+          note: string | null
+          plan_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          meal?: string
+          menu_id: string
+          note?: string | null
+          plan_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          id?: string
+          meal?: string
+          menu_id?: string
+          note?: string | null
+          plan_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prep_batch_items: {
+        Row: {
+          batch_id: string
+          created_at: string
+          id: string
+          ingredient_id: string | null
+          is_side: boolean
+          manual_name: string | null
+          planned_qty: number | null
+          qty: number
+          sort: number
+          unit: string
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          is_side?: boolean
+          manual_name?: string | null
+          planned_qty?: number | null
+          qty: number
+          sort?: number
+          unit: string
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          is_side?: boolean
+          manual_name?: string | null
+          planned_qty?: number | null
+          qty?: number
+          sort?: number
+          unit?: string
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prep_batches: {
+        Row: {
+          course: string
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          dish_name: string
+          id: string
+          meal: string
+          menu_id: string | null
+          note: string | null
+          portions: number | null
+          portions_source: string
+          prep_date: string
+          recipe_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          course?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          dish_name: string
+          id?: string
+          meal?: string
+          menu_id?: string | null
+          note?: string | null
+          portions?: number | null
+          portions_source?: string
+          prep_date: string
+          recipe_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          course?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          dish_name?: string
+          id?: string
+          meal?: string
+          menu_id?: string | null
+          note?: string | null
+          portions?: number | null
+          portions_source?: string
+          prep_date?: string
+          recipe_id?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -532,6 +670,7 @@ export type Database = {
       }
       menu_items: {
         Row: {
+          course: string
           created_at: string
           id: string
           menu_id: string
@@ -540,6 +679,7 @@ export type Database = {
           sort: number
         }
         Insert: {
+          course?: string
           created_at?: string
           id?: string
           menu_id: string
@@ -548,6 +688,7 @@ export type Database = {
           sort?: number
         }
         Update: {
+          course?: string
           created_at?: string
           id?: string
           menu_id?: string
@@ -588,6 +729,7 @@ export type Database = {
       }
       menus: {
         Row: {
+          customer_id: string | null
           active: boolean
           code: string | null
           created_at: string
@@ -600,6 +742,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          customer_id?: string | null
           active?: boolean
           code?: string | null
           created_at?: string
@@ -612,6 +755,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          customer_id?: string | null
           active?: boolean
           code?: string | null
           created_at?: string
@@ -813,6 +957,7 @@ export type Database = {
       }
       v_menu_costs: {
         Row: {
+          customer_id: string | null
           active: boolean | null
           code: string | null
           cost_avg: number | null
@@ -825,6 +970,55 @@ export type Database = {
           missing_price_count: number | null
           name: string | null
           target_price: number | null
+        }
+        Relationships: []
+      }
+      v_prep_batch_costs: {
+        Row: {
+          batch_id: string | null
+          prep_date: string | null
+          meal: string | null
+          dish_name: string | null
+          recipe_id: string | null
+          menu_id: string | null
+          course: string | null
+          customer_id: string | null
+          portions: number | null
+          portions_source: string | null
+          status: string | null
+          item_count: number | null
+          missing_price_count: number | null
+          total_cost: number | null
+          side_cost: number | null
+          cost_per_portion: number | null
+          planned_cost: number | null
+          variance_pct: number | null
+          total_g: number | null
+        }
+        Relationships: []
+      }
+      v_prep_items: {
+        Row: {
+          id: string | null
+          batch_id: string | null
+          ingredient_id: string | null
+          manual_name: string | null
+          qty: number | null
+          unit: string | null
+          unit_price: number | null
+          planned_qty: number | null
+          is_side: boolean | null
+          sort: number | null
+          created_at: string | null
+          updated_at: string | null
+          item_name: string | null
+          dimension: string | null
+          base_unit: string | null
+          qty_base: number | null
+          planned_qty_base: number | null
+          line_cost: number | null
+          planned_cost: number | null
+          allergens: string[] | null
         }
         Relationships: []
       }
@@ -937,12 +1131,14 @@ export type Database = {
         }[]
       }
       needs_bootstrap: { Args: never; Returns: boolean }
-      order_is_open: { Args: { p_service_date: string }; Returns: boolean }
-      plan_production_from_orders: {
-        Args: { p_date: string; p_meal: string }
-        Returns: number
+      effective_menu: {
+        Args: { p_customer: string | null; p_date: string; p_meal: string; p_order_menu: string | null }
+        Returns: string
       }
-      refresh_production_costs: { Args: { p_date: string }; Returns: number }
+      plan_prep_from_orders: { Args: { p_date: string; p_meal: string }; Returns: number }
+      prep_fill_from_recipe: { Args: { p_batch_id: string }; Returns: number }
+      recipe_from_prep: { Args: { p_batch_id: string; p_category?: string | null }; Returns: string }
+      order_is_open: { Args: { p_service_date: string }; Returns: boolean }
       save_menu: {
         Args: { p_header: Json; p_id: string | null; p_items: Json }
         Returns: string

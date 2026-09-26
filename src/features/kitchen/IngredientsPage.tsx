@@ -5,6 +5,8 @@ import { ALLERGENS, INGREDIENT_CATEGORIES, PRICE_STALE_DAYS, STOCK_UNITS, unitIn
 import { daysSince, fmtDate, fmtPct, parseNum } from '@/lib/format';
 import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { fmtMoney } from '@/lib/format';
 import { useDeleteIngredient, useIngredients, usePriceHistory, useSaveIngredient, type Ingredient } from './api';
 
 export function IngredientsPage() {
@@ -27,13 +29,34 @@ export function IngredientsPage() {
   const withAllergen = list.filter((i) => i.allergens.length > 0).length;
   const usedCats = Array.from(new Set(list.map((i) => i.category)));
 
+  const report = (): ReportSpec => ({
+    title: 'Hammadde Fiyat Listesi',
+    subtitle: `${filtered.length} kalem · son alış fiyatları (KDV hariç)`,
+    summary: filtered.slice(0, 30).map((i) => ({ label: i.name, value: i.last_price === null ? 'fiyat yok' : `${fmtMoney(i.last_price)} / ${i.stock_unit}` })),
+    table: {
+      filename: 'hammadde-fiyatlari',
+      header: ['Kod', 'Hammadde', 'Kategori', 'Birim', 'Fire %', 'Son fiyat ₺', 'Fiyat tarihi', 'Alerjenler'],
+      rows: filtered.map((i) => [i.code, i.name, INGREDIENT_CATEGORIES[i.category], i.stock_unit, i.waste_pct, i.last_price, i.price_updated_at?.slice(0, 10), i.allergens.map((a) => ALLERGENS[a]).join(', ')]),
+    },
+    body: () => (
+      <table>
+        <thead><tr><th>Hammadde</th><th>Kategori</th><th className="num">Fire</th><th className="num">Son fiyat</th><th>Fiyat tarihi</th><th>Alerjen</th></tr></thead>
+        <tbody>{filtered.map((i) => <tr key={i.id}><td>{i.name}</td><td>{INGREDIENT_CATEGORIES[i.category]}</td><td className="num">{Number(i.waste_pct) ? `%${i.waste_pct}` : '—'}</td>
+          <td className="num">{i.last_price === null ? '—' : `${fmtMoney(i.last_price)}/${i.stock_unit}`}</td><td>{fmtDate(i.price_updated_at)}</td><td>{i.allergens.map((a) => ALLERGENS[a]).join(', ')}</td></tr>)}</tbody>
+      </table>
+    ),
+  });
+
   return (
     <>
       <ModuleHero
         kicker="Mutfak · Stok kartları"
         title="Hammaddeler"
         description="Birim, temizleme firesi, alış fiyatı ve alerjen bilgisi. Reçete maliyetleri buradaki son fiyattan anlık hesaplanır."
-        actions={canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Yeni hammadde</Button>}
+        actions={<>
+          <ReportButton spec={report} disabled={list.length === 0} />
+          {canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Yeni hammadde</Button>}
+        </>}
         stats={[
           { label: 'Hammadde kartı', value: list.length },
           { label: 'Fiyatı girilmemiş', value: noPrice, tone: noPrice ? 'warn' : 'default', hint: 'Maliyete katılamaz' },
@@ -179,7 +202,7 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
         <>
           {ingredient && canEdit && <Button variant="danger" className="mr-auto" icon={<Trash2 className="w-4 h-4" />} onClick={remove} loading={del.isPending}>Sil</Button>}
           <Button onClick={onClose}>Vazgeç</Button>
-          <Button variant="primary" onClick={submit} loading={save.isPending}>{canEdit ? 'Kaydet' : 'Fiyatı kaydet'}</Button>
+          <Button variant="holo" onClick={submit} loading={save.isPending}>{canEdit ? 'Kaydet' : 'Fiyatı kaydet'}</Button>
         </>
       )}>
       <fieldset disabled={readOnly} className="space-y-4">

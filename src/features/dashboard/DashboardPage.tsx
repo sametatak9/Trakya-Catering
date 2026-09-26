@@ -10,7 +10,7 @@ import { daysSince, fmtNum } from '@/lib/format';
 import { Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useAccounts, useEntries, useOpenItems } from '../finance/api';
 import { useIngredients, useMenuCosts, useRecipeCosts } from '../kitchen/api';
-import { useProduction } from '../production/api';
+import { usePrepBatches } from '../production/api';
 import { orderPeople, useCustomers, useOrders } from '../sales/api';
 
 function greeting() {
@@ -24,7 +24,7 @@ export function DashboardPage() {
   const today = todayISO();
   const tomorrow = addDays(today, 1);
   const orders = useOrders(today, tomorrow);
-  const prod = useProduction(today);
+  const prod = usePrepBatches(today);
   const customers = useCustomers();
   const ing = useIngredients();
   const rec = useRecipeCosts();
@@ -42,7 +42,7 @@ export function DashboardPage() {
   const tomorrowOrders = ords.filter((o) => o.service_date === tomorrow);
   const peopleToday = todayOrders.reduce((s, o) => s + orderPeople(o), 0);
   const peopleTomorrow = tomorrowOrders.reduce((s, o) => s + orderPeople(o), 0);
-  const costToday = (prod.data ?? []).reduce((s, l) => s + Number(l.portions) * Number(l.unit_cost), 0);
+  const costToday = (prod.data ?? []).reduce((s, b) => s + Number(b.total_cost ?? 0), 0);
   const custName = (id: string) => (customers.data ?? []).find((c) => c.id === id)?.name ?? '—';
   const cutoff = minutesToCutoff();
 
@@ -57,7 +57,7 @@ export function DashboardPage() {
   const steps = [
     { done: ingredients.length > 0, label: 'Hammaddeleri ekle', hint: 'birim, fire, alış fiyatı', to: '/hammaddeler' },
     { done: (rec.data ?? []).some((r) => (r.line_count ?? 0) > 0), label: 'Reçete gramajlarını gir', hint: '1 porsiyonun net gramajı', to: '/receteler' },
-    { done: (menus.data ?? []).length > 0, label: 'Menüleri kur', hint: '3-4 kap kombinasyonu', to: '/menuler' },
+    { done: (menus.data ?? []).length > 0, label: 'Menüleri kur', hint: 'kaç çeşitse o kadar kap', to: '/menuler' },
     { done: (customers.data ?? []).length > 0, label: 'Müşterileri ekle', hint: 'kişi başı fiyat ve vade', to: '/musteriler' },
     { done: ords.length > 0, label: 'Sipariş gir', hint: 'yarının yemek sayıları', to: '/siparisler' },
   ];
@@ -65,7 +65,7 @@ export function DashboardPage() {
 
   const byMeal = Object.keys(MEALS).map((m) => ({
     m, people: todayOrders.filter((o) => o.meal === m).reduce((s, o) => s + orderPeople(o), 0),
-    cost: (prod.data ?? []).filter((l) => l.meal === m).reduce((s, l) => s + Number(l.portions) * Number(l.unit_cost), 0),
+    cost: (prod.data ?? []).filter((b) => b.meal === m).reduce((s, b) => s + Number(b.total_cost ?? 0), 0),
   })).filter((x) => x.people > 0 || x.cost > 0);
 
   return (
@@ -75,7 +75,7 @@ export function DashboardPage() {
         title={`${greeting()}, ${member.fullName.split(' ')[0]}`}
         stats={[
           { label: 'Bugün kişi', value: fmtNum(peopleToday, 0), hint: `${todayOrders.length} sipariş` },
-          { label: 'Bugünkü hammadde', value: <Money value={costToday} />, hint: peopleToday ? <>kişi başı <Money value={costToday / peopleToday} /></> : 'üretim girilmedi' },
+          { label: 'Bugünkü hammadde', value: <Money value={costToday} />, hint: peopleToday ? <>kişi başı <Money value={costToday / peopleToday} /></> : 'hazırlık girilmedi' },
           { label: 'Yarın kişi', value: fmtNum(peopleTomorrow, 0), hint: cutoff > 0 ? `kesime ${Math.floor(cutoff / 60)} sa ${cutoff % 60} dk` : 'kesim saati geçti' },
           isFinance
             ? { label: 'Kasa + banka', value: <Money value={balance} />, tone: balance < 0 ? 'warn' : 'default', hint: `${dueSoon.length} ödeme/tahsilat 7 gün içinde` }
@@ -103,8 +103,8 @@ export function DashboardPage() {
 
       <div className="grid lg:grid-cols-3 gap-4">
         <Panel title={<span className="inline-flex items-center gap-2"><ChefHat className="w-4 h-4 text-brand" />Bugün mutfakta</span>}
-          action={<Link to="/uretim" className="text-xs font-semibold text-brand">Üretim →</Link>}>
-          {byMeal.length === 0 ? <p className="text-sm text-ink-3">Bugün için sipariş ya da üretim kaydı yok.</p> : (
+          action={<Link to="/uretim" className="text-xs font-semibold text-brand">Hazırlık →</Link>}>
+          {byMeal.length === 0 ? <p className="text-sm text-ink-3">Bugün için sipariş ya da hazırlık kaydı yok.</p> : (
             <ul className="space-y-3">
               {byMeal.map((x) => (
                 <li key={x.m} className="flex items-center justify-between gap-3">

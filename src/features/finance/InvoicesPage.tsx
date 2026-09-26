@@ -14,6 +14,10 @@ import { useIngredients, type Ingredient } from '../kitchen/api';
 import { useDeleteInvoice, useFinanceCategories, useInvoices, useSaveInvoice, useSupplierMemory, type PurchaseInvoice } from './api';
 import { CategorySelect } from './EntryDrawer';
 import { useQueryClient } from '@tanstack/react-query';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { ReportStats } from '@/reports/ReportFrame';
+import { ListToolbar, matches } from '@/ui/ListToolbar';
+import { fmtMoney } from '@/lib/format';
 
 const STATUS: Record<string, { label: string; tone: Tone }> = {
   taslak: { label: 'Onay bekliyor', tone: 'wait' },
@@ -46,11 +50,41 @@ export function InvoicesPage() {
   const [manual, setManual] = useState(false);
   const catName = (code: string) => (cats.data ?? []).find((c) => c.code === code)?.name ?? code;
 
+  const [q, setQ] = useState('');
   const list = invoices.data ?? [];
-  const shown = list.filter((i) => status === 'all' || i.status === status);
+  const shown = list.filter((i) => (status === 'all' || i.status === status) && matches(q, i.supplier_name, i.invoice_no, i.supplier_tax_no, catName(i.category_code)));
   const approved = list.filter((i) => i.status === 'onaylandi');
   const byCat = approved.reduce<Record<string, number>>((a, i) => { a[i.category_code] = (a[i.category_code] ?? 0) + Number(i.net_amount); return a; }, {});
   const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
+
+  const report = (): ReportSpec => ({
+    title: 'Gelen Faturalar',
+    subtitle: `${monthLabel(month)} · ${shown.length} fatura`,
+    summary: [
+      { label: 'Onaylı (KDV hariç)', value: fmtMoney(approved.reduce((s, i) => s + Number(i.net_amount), 0)) },
+      ...Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, v]) => ({ label: catName(c), value: fmtMoney(v) })),
+    ],
+    table: {
+      filename: `gelen-faturalar-${month}`,
+      header: ['Tarih', 'Tedarikçi', 'VKN', 'Fatura no', 'Kalem', 'KDV hariç ₺', 'KDV ₺', 'Ödenecek ₺', 'Durum'],
+      rows: shown.map((i) => [i.invoice_date, i.supplier_name, i.supplier_tax_no, i.invoice_no, catName(i.category_code), i.net_amount, i.vat_amount, i.total_amount, STATUS[i.status]?.label]),
+    },
+    body: () => (
+      <>
+        <ReportStats items={[
+          { label: 'Fatura', value: shown.length },
+          { label: 'KDV hariç', value: fmtMoney(shown.reduce((s, i) => s + Number(i.net_amount), 0)) },
+          { label: 'KDV', value: fmtMoney(shown.reduce((s, i) => s + Number(i.vat_amount), 0)) },
+          { label: 'Ödenecek', value: fmtMoney(shown.reduce((s, i) => s + Number(i.total_amount), 0)) },
+        ]} />
+        <table>
+          <thead><tr><th>Tarih</th><th>Tedarikçi</th><th>Kalem</th><th className="num">KDV hariç</th><th className="num">Ödenecek</th><th>Durum</th></tr></thead>
+          <tbody>{shown.map((i) => <tr key={i.id}><td>{shortDay(i.invoice_date)}</td><td>{i.supplier_name}<div style={{ color: '#857B6D' }}>{i.invoice_no}</div></td>
+            <td>{catName(i.category_code)}</td><td className="num">{fmtMoney(i.net_amount)}</td><td className="num">{fmtMoney(i.total_amount)}</td><td>{STATUS[i.status]?.label}</td></tr>)}</tbody>
+        </table>
+      </>
+    ),
+  });
 
   const onFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -100,10 +134,11 @@ export function InvoicesPage() {
         kicker="Finans · e-Fatura"
         title="Gelen Faturalar"
         description="e-Fatura / e-Arşiv XML dosyalarını yükleyin: tedarikçi, tutar ve gider kalemi (elektrik, su, mazot, kasap…) otomatik bulunur. Onaylanan fatura Giderler’e ve ödenecekler listesine düşer."
-        actions={canEdit && <>
-          <Button icon={<FilePlus2 className="w-4 h-4" />} onClick={() => setManual(true)}>Elle fatura</Button>
+        actions={<>
+          <ReportButton spec={report} disabled={list.length === 0} />
+          {canEdit && <><Button icon={<FilePlus2 className="w-4 h-4" />} onClick={() => setManual(true)}>Elle fatura</Button>
           <Button variant="primary" icon={<Upload className="w-4 h-4" />} onClick={() => fileRef.current?.click()}>XML yükle</Button>
-          <input ref={fileRef} type="file" accept=".xml,application/xml,text/xml" multiple hidden onChange={(e) => void onFiles(e.target.files)} />
+          <input ref={fileRef} type="file" accept=".xml,application/xml,text/xml" multiple hidden onChange={(e) => void onFiles(e.target.files)} /></>}
         </>}
         stats={[
           { label: `${monthLabel(month)} onaylı`, value: <Money value={approved.reduce((s, i) => s + Number(i.net_amount), 0)} />, hint: `${approved.length} fatura · KDV hariç` },
@@ -167,6 +202,7 @@ export function InvoicesPage() {
       </div>
 
       <Panel pad={false}>
+        <ListToolbar search={q} onSearch={setQ} placeholder="Tedarikçi, fatura no, VKN, kalem ara…" />
         {invoices.isLoading ? <Loading /> : invoices.error ? <div className="p-4"><ErrorNote>Faturalar yüklenemedi.</ErrorNote></div>
           : shown.length === 0 ? (
             <EmptyState icon={<FileInput className="w-5 h-5" />} title="Bu ay fatura yok"
@@ -271,7 +307,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
         {invoice.status !== 'reddedildi' && <Button onClick={() => setStatus('reddedildi')}>Reddet</Button>}
         {invoice.status === 'onaylandi'
           ? <Button variant="primary" onClick={() => setStatus('onaylandi')} loading={save.isPending}>Kaydet</Button>
-          : <Button variant="primary" icon={<Check className="w-4 h-4" />} onClick={() => setStatus('onaylandi')} loading={save.isPending}>Onayla</Button>}
+          : <Button variant="holo" icon={<Check className="w-4 h-4" />} onClick={() => setStatus('onaylandi')} loading={save.isPending}>Onayla</Button>}
       </>}>
       <div className="grid grid-cols-3 gap-3 mb-5">
         <div className="tc-card p-3"><div className="text-[11px] text-ink-3">KDV hariç</div><Money value={invoice.net_amount} className="font-bold" /></div>

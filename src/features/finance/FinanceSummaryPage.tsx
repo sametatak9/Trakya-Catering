@@ -6,7 +6,7 @@ import { amountOf, monthlyTotals, perPersonBreakdown } from '@/lib/finance';
 import { fmtNum, fmtPct } from '@/lib/format';
 import { Delta, Hint, Meter, MonthNav } from '@/ui/bits';
 import { ErrorNote, Loading, ModuleHero, Money, Panel, cx } from '@/ui/primitives';
-import { useProduction } from '../production/api';
+import { usePrepBatches } from '../production/api';
 import { orderPeople, useOrders } from '../sales/api';
 import { useEntries, useFinanceCategories } from './api';
 
@@ -19,7 +19,7 @@ export function FinanceSummaryPage() {
   const entries = useEntries(monthRange(months[0]).from, monthRange(month).to);
   const cats = useFinanceCategories();
   const { from, to } = monthRange(month);
-  const prod = useProduction(from, to);
+  const prod = usePrepBatches(from, to);
   const orders = useOrders(from, to);
 
   const rows = entries.data ?? [];
@@ -31,7 +31,7 @@ export function FinanceSummaryPage() {
   const pct = (a: number, b: number) => (b ? ((a - b) / Math.abs(b)) * 100 : null);
 
   const people = (orders.data ?? []).filter((o) => o.status !== 'iptal').reduce((s, o) => s + orderPeople(o), 0);
-  const theoreticalFood = (prod.data ?? []).reduce((s, l) => s + Number(l.portions) * Number(l.unit_cost), 0);
+  const theoreticalFood = (prod.data ?? []).reduce((s, b) => s + Number(b.total_cost ?? 0), 0);
   const monthRows = rows.filter((r) => monthKey(r.entry_date) === month);
   const actualFood = monthRows.filter((r) => r.kind === 'gider' && r.category_code === FOOD).reduce((s, r) => s + amountOf(r), 0);
   const groupOf = (code: string) => (cats.data ?? []).find((c) => c.code === code)?.group_name ?? 'Diğer';
@@ -92,7 +92,7 @@ export function FinanceSummaryPage() {
                 {breakdown.map((b, i) => (
                   <li key={b.group} className="flex items-center gap-3 text-sm">
                     <span className={cx('w-2.5 h-2.5 rounded-full shrink-0', GROUP_COLORS[i % GROUP_COLORS.length])} />
-                    <span className="flex-1 text-ink-2">{b.group}{b.group === 'Hammadde' && theoreticalFood > 0 && <span className="text-[11px] text-ink-3"> (reçeteye göre)</span>}</span>
+                    <span className="flex-1 text-ink-2">{b.group}{b.group === 'Hammadde' && theoreticalFood > 0 && <span className="text-[11px] text-ink-3"> (mutfak hazırlığından)</span>}</span>
                     <span className="text-xs text-ink-3 tc-num w-12 text-right">%{fmtNum(b.share, 0)}</span>
                     <Money value={b.perPerson} className="font-semibold text-ink w-24 text-right" />
                   </li>
@@ -102,10 +102,10 @@ export function FinanceSummaryPage() {
           )}
         </Panel>
 
-        <Panel title="Hammadde kontrolü" subtitle="Reçeteye göre harcanması gereken ile faturalardaki gıda alımı">
+        <Panel title="Hammadde kontrolü" subtitle="Mutfakta kullanılan (hazırlık kayıtları) ile faturalardaki gıda alımı">
           <div className="space-y-3">
             <div>
-              <div className="flex justify-between text-sm mb-1"><span className="text-ink-2">Reçeteye göre (üretim kayıtları)</span><Money value={theoreticalFood} className="font-semibold" /></div>
+              <div className="flex justify-between text-sm mb-1"><span className="text-ink-2">Mutfakta kullanılan (hazırlık)</span><Money value={theoreticalFood} className="font-semibold" /></div>
               <Meter value={theoreticalFood} max={Math.max(theoreticalFood, actualFood)} tone="ok" />
             </div>
             <div>
@@ -115,16 +115,16 @@ export function FinanceSummaryPage() {
             {theoreticalFood > 0 && actualFood > 0 ? (() => {
               const diffPct = ((actualFood - theoreticalFood) / theoreticalFood) * 100;
               const tone = diffPct > 5 ? 'bg-stop-soft text-stop' : diffPct < -5 ? 'bg-wait-soft text-wait' : 'bg-ok-soft text-ok';
-              const msg = diffPct > 5 ? 'Reçetenin gerektirdiğinden fazla alım: fire, gramaj aşımı, kayıp veya stok birikmesi olabilir.'
-                : diffPct < -5 ? 'Alım reçetenin gerektirdiğinden az: faturası girilmemiş alımlar olabilir ya da stoktan kullanıldı.'
-                : 'Alım reçeteyle uyumlu (±%5).';
+              const msg = diffPct > 5 ? 'Kullanılandan fazla alım: stok birikmesi, kayıt dışı kullanım veya kayıp olabilir.'
+                : diffPct < -5 ? 'Alım kullanılandan az: faturası girilmemiş alım olabilir ya da önceki stoktan kullanıldı.'
+                : 'Alım ve kullanım uyumlu (±%5).';
               return (
                 <div className={cx('rounded-xl px-3 py-2.5 text-sm', tone)}>
                   Fark <b><Money value={actualFood - theoreticalFood} /></b> ({fmtPct(diffPct)}). {msg}
                 </div>
               );
             })() : (
-              <p className="text-xs text-ink-3 flex gap-1.5"><Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />Karşılaştırma için hem <Link to="/uretim" className="text-brand font-semibold">günlük üretim</Link> hem de gıda faturaları gerekir.</p>
+              <p className="text-xs text-ink-3 flex gap-1.5"><Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />Karşılaştırma için hem <Link to="/uretim" className="text-brand font-semibold">günlük hazırlık</Link> hem de gıda faturaları gerekir.</p>
             )}
           </div>
         </Panel>

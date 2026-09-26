@@ -1,4 +1,4 @@
--- Sipariş → üretim maliyeti → teslim = gelir ; gelen fatura onayı = gider ; ödeme = kasa bakiyesi ; portal kesim saati
+-- Teslim = gelir ; gelen fatura onayı = gider ; ödeme = kasa bakiyesi ; portal kesim saati
 begin;
 do $$
 declare
@@ -23,20 +23,11 @@ begin
   insert into public.meal_orders (service_date, customer_id, menu_id, ordered_qty, unit_price) values (d, c, m, 100, 150) returning id into o;
   perform set_config('request.jwt.claims', json_build_object('sub', u_cook, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  n := public.plan_production_from_orders(d, 'ogle');
-  assert n = 1, 'üretim satırı oluşmalı';
-  select portions * unit_cost into v from public.production_logs where prod_date = d and recipe_id = r;
-  assert round(v, 2) = 8000, format('günün hammadde maliyeti 8000 olmalı: %s', v);
   -- Aşçıbaşı finans defterini göremez
   select count(*) into n from public.finance_entries;
   assert n = 0, 'aşçıbaşı defteri görmemeli';
   reset role;
 
-  -- Fiyat artsa bile geçmiş gün fotoğrafı değişmez
-  update public.ingredients set last_price = 900 where id = i1;
-  select unit_cost into v from public.production_logs where prod_date = d and recipe_id = r;
-  assert round(v, 2) = 80, 'kayıtlı porsiyon maliyeti sabit kalmalı';
-  update public.ingredients set last_price = 600 where id = i1;
 
   -- Teslim → gelir (alacak)
   update public.meal_orders set status = 'teslim_edildi', delivered_qty = 98 where id = o;

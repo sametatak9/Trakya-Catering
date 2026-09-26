@@ -7,6 +7,7 @@ import { fmtDate } from '@/lib/format';
 import { supabase, unwrap } from '@/lib/supabase';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Panel, Pill } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { CompanyPanel } from '../settings/CompanyPanel';
 
 // Müşteri portal rolü, cari (customers) modülü ile Faz 3'te atanabilir olacak.
 const ASSIGNABLE: AppRole[] = ['yonetici', 'asci_basi', 'diyetisyen', 'muhasebe', 'satinalma', 'pazarlamaci', 'depo', 'sofor'];
@@ -103,6 +104,7 @@ export function TeamPage() {
           <div className="flex items-center gap-2 text-[11px] text-ink-3 mt-3"><ShieldCheck className="w-3.5 h-3.5" /> Son aktif yönetici kaldırılamaz.</div>
         </Panel>
       </div>
+      <div className="mt-4"><CompanyPanel /></div>
     </>
   );
 }

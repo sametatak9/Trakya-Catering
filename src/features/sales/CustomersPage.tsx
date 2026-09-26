@@ -6,6 +6,8 @@ import { ROLES } from '@/lib/domain';
 import { fmtNum, parseNum } from '@/lib/format';
 import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { fmtMoney } from '@/lib/format';
 import { orderPeople, useCustomers, useOrders, useSaveCustomer, type Customer } from './api';
 
 export function CustomersPage() {
@@ -32,11 +34,34 @@ export function CustomersPage() {
   const monthPeople = [...peopleBy.values()].reduce((s, x) => s + x.people, 0);
   const monthAmount = [...peopleBy.values()].reduce((s, x) => s + x.amount, 0);
 
+  const report = (): ReportSpec => ({
+    title: 'Müşteri Listesi',
+    subtitle: `Bu ay · ${fmtNum(monthPeople, 0)} kişi · ${fmtMoney(monthAmount)}`,
+    summary: filtered.map((c) => ({ label: c.name, value: `${fmtNum(peopleBy.get(c.id)?.people ?? 0, 0)} kişi · ${fmtMoney(peopleBy.get(c.id)?.amount ?? 0)}` })),
+    table: {
+      filename: 'musteriler',
+      header: ['Firma', 'VKN/TCKN', 'Vergi dairesi', 'İl', 'İlçe', 'Yetkili', 'Telefon', 'Kişi başı ₺', 'KDV %', 'Vade', 'Bu ay kişi', 'Bu ay tutar ₺'],
+      rows: filtered.map((c) => [c.name, c.tax_no, c.tax_office, c.city, c.district, c.contact_name, c.phone, c.default_meal_price, c.vat_rate, c.payment_term_days,
+        peopleBy.get(c.id)?.people ?? 0, peopleBy.get(c.id)?.amount ?? 0]),
+    },
+    body: () => (
+      <table>
+        <thead><tr><th>Firma</th><th>Yetkili</th><th className="num">Kişi başı</th><th className="num">Vade</th><th className="num">Bu ay kişi</th><th className="num">Bu ay tutar</th></tr></thead>
+        <tbody>{filtered.map((c) => <tr key={c.id}><td>{c.name}<div style={{ color: '#857B6D' }}>{[c.district, c.city].filter(Boolean).join(' / ')}</div></td>
+          <td>{c.contact_name}<div style={{ color: '#857B6D' }}>{c.phone}</div></td><td className="num">{fmtMoney(c.default_meal_price)}</td><td className="num">{c.payment_term_days} gün</td>
+          <td className="num">{fmtNum(peopleBy.get(c.id)?.people ?? 0, 0)}</td><td className="num">{fmtMoney(peopleBy.get(c.id)?.amount ?? 0)}</td></tr>)}</tbody>
+      </table>
+    ),
+  });
+
   return (
     <>
       <ModuleHero kicker="Satış · Cari kartlar" title="Müşteriler"
         description="Yemek verilen firmalar: kişi başı fiyat, KDV, ödeme vadesi ve fatura bilgileri. Siparişte fiyat buradan otomatik gelir."
-        actions={canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Yeni müşteri</Button>}
+        actions={<>
+          <ReportButton spec={report} disabled={list.length === 0} />
+          {canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Yeni müşteri</Button>}
+        </>}
         stats={[
           { label: 'Aktif müşteri', value: list.filter((c) => c.active).length },
           { label: 'Bu ay kişi', value: fmtNum(monthPeople, 0) },
@@ -132,7 +157,7 @@ function CustomerDrawer({ customer, canEdit, onClose }: { customer: Customer | n
 
   return (
     <Drawer open onClose={onClose} title={c ? c.name : 'Yeni müşteri'} subtitle="Fiyat, vade ve fatura bilgileri"
-      footer={canEdit && <><Button onClick={onClose}>Vazgeç</Button><Button variant="primary" onClick={submit} loading={save.isPending}>Kaydet</Button></>}>
+      footer={canEdit && <><Button onClick={onClose}>Vazgeç</Button><Button variant="holo" onClick={submit} loading={save.isPending}>Kaydet</Button></>}>
       <fieldset disabled={!canEdit} className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <Field label="Firma / kişi adı" className="col-span-2"><input className="tc-input" value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder="Çorlu OSB Tekstil A.Ş." /></Field>

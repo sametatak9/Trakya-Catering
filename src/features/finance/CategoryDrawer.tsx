@@ -38,7 +38,7 @@ export function CategoryDrawer({ onClose, defaultKind = 'gider' }: { onClose: ()
 
   return (
     <Drawer open onClose={onClose} title="Yeni kategori" subtitle="Takip etmek istediğiniz her kalem için bir kategori açabilirsiniz"
-      footer={<><Button onClick={onClose}>Vazgeç</Button><Button variant="primary" onClick={submit} loading={save.isPending}>Ekle</Button></>}>
+      footer={<><Button onClick={onClose}>Vazgeç</Button><Button variant="holo" onClick={submit} loading={save.isPending}>Ekle</Button></>}>
       <div className="space-y-4">
         <Tabs value={kind} onChange={setKind} items={[{ id: 'gider', label: 'Gider' }, { id: 'gelir', label: 'Gelir' }]} />
         <Field label="Kategori adı"><input className="tc-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jeneratör bakımı" /></Field>

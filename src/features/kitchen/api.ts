@@ -171,8 +171,8 @@ export function useMenu(id: string | null) {
   });
 }
 
-export interface MenuHeaderDraft { code: string; name: string; kind: string; meal: string; target_price: number | null; notes: string; active: boolean }
-export interface MenuItemDraft { recipe_id: string; portion_factor: number }
+export interface MenuHeaderDraft { code: string; name: string; kind: string; meal: string; target_price: number | null; notes: string; active: boolean; customer_id: string | null }
+export interface MenuItemDraft { recipe_id: string; portion_factor: number; course: string }
 
 export function useSaveMenu() {
   const invalidate = useInvalidateCosts();

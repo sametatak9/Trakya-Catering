@@ -6,6 +6,8 @@ import { ALLERGENS, ROLES } from '@/lib/domain';
 import { fmtNum } from '@/lib/format';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Pill, Tabs, cx } from '@/ui/primitives';
 import { useCategories, useRecipeCosts } from './api';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { fmtMoney } from '@/lib/format';
 
 export function RecipesPage() {
   const { go } = useRouter();
@@ -32,13 +34,34 @@ export function RecipesPage() {
     ...(cats.data ?? []).filter((c) => list.some((r) => r.category_code === c.code))
       .map((c) => ({ id: c.code, label: c.name, count: list.filter((r) => r.category_code === c.code).length }))];
 
+  const report = (): ReportSpec => ({
+    title: 'Reçete Maliyet Listesi',
+    subtitle: `${filtered.length} reçete · 1 porsiyon, son alış fiyatlarıyla`,
+    summary: filtered.map((r) => ({ label: r.name ?? '', value: `${fmtMoney(r.cost_last)} / porsiyon` })),
+    table: {
+      filename: 'recete-maliyetleri',
+      header: ['Reçete', 'Kategori', 'Kalem', 'Net gram', 'Porsiyon maliyeti ₺', 'Eksik fiyat', 'Alerjenler'],
+      rows: filtered.map((r) => [r.name, catName(r.category_code), r.line_count, r.total_net_g, r.cost_last, r.missing_price_count, (r.allergens ?? []).map((a) => ALLERGENS[a]).join(', ')]),
+    },
+    body: () => (
+      <table>
+        <thead><tr><th>Reçete</th><th>Kategori</th><th className="num">Kalem</th><th className="num">Net gram</th><th className="num">1 porsiyon</th><th>Alerjen</th></tr></thead>
+        <tbody>{filtered.map((r) => <tr key={r.recipe_id}><td>{r.name}</td><td>{catName(r.category_code)}</td><td className="num">{r.line_count}</td>
+          <td className="num">{fmtNum(r.total_net_g, 0)}</td><td className="num"><b>{fmtMoney(r.cost_last)}</b></td><td>{(r.allergens ?? []).map((a) => ALLERGENS[a]).join(', ')}</td></tr>)}</tbody>
+      </table>
+    ),
+  });
+
   return (
     <>
       <ModuleHero
         kicker="Mutfak · Ürün ağacı (BOM)"
         title="Reçeteler & Gramaj"
         description="1 porsiyonun net gramajı, fire ile brüt ihtiyaç ve güncel alış fiyatlarından anlık porsiyon maliyeti."
-        actions={canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => go('/receteler/yeni')}>Yeni reçete</Button>}
+        actions={<>
+          <ReportButton spec={report} disabled={list.length === 0} />
+          {canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => go('/receteler/yeni')}>Yeni reçete</Button>}
+        </>}
         stats={[
           { label: 'Reçete', value: list.length },
           { label: 'Ort. porsiyon maliyeti', value: avg === null ? '—' : <Money value={avg} /> },

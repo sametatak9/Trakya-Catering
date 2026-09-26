@@ -135,3 +135,59 @@
 
 @keyframes tc-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .tc-toast-in { animation: tc-toast-in .2s ease-out; }
+
+/* =====================================================================
+   HOLOGRAM — yalnız önemli eylemler (Kaydet, Onayla, Rapor) ve rapor mührü
+   ===================================================================== */
+@keyframes tc-holo-shift { from { background-position: 0% 50%; } to { background-position: 250% 50%; } }
+@keyframes tc-holo-sheen { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(220%) skewX(-20deg); } }
+.tc-holo {
+  position: relative;
+  overflow: hidden;
+  color: #1A0D09 !important;
+  background: linear-gradient(110deg, #F2BC45 0%, #F7DE9C 14%, #E0694E 30%, #F4A38E 42%, #6FD3C4 56%, #B9A6F2 70%, #F2BC45 84%, #F7DE9C 100%);
+  background-size: 250% 100%;
+  animation: tc-holo-shift 7s linear infinite;
+  box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 6px 18px -8px rgba(180,67,42,.55);
+}
+.tc-holo::after {
+  content: "";
+  position: absolute; inset: 0 auto 0 0; width: 35%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+  animation: tc-holo-sheen 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.tc-holo:hover { filter: saturate(1.15) brightness(1.03); }
+.tc-holo-seal {
+  background: conic-gradient(from 0deg, #F2BC45, #E0694E, #6FD3C4, #B9A6F2, #F7DE9C, #E0694E, #F2BC45);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 4px 14px -4px rgba(0,0,0,.25);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tc-holo, .tc-holo::after { animation: none; }
+}
+
+/* =====================================================================
+   RAPOR / YAZDIRMA — yalnız rapor sayfası basılır
+   ===================================================================== */
+.tc-report-page {
+  background: #fff;
+  color: #221F1B;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 14mm 14mm 18mm;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,.35);
+}
+.tc-report-page table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.tc-report-page th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; color: #857B6D; border-bottom: 1.5px solid #221F1B; padding: 5px 6px; }
+.tc-report-page td { border-bottom: 1px solid #EAE3D6; padding: 5px 6px; vertical-align: top; }
+.tc-report-page .num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  .tc-print-root, .tc-print-root * { visibility: visible !important; }
+  .tc-print-root { position: absolute; left: 0; top: 0; width: 100%; }
+  .tc-report-page { box-shadow: none; width: auto; min-height: auto; }
+  .tc-no-print { display: none !important; }
+  .tc-holo-seal { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

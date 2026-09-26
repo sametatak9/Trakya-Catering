@@ -41,12 +41,15 @@ Doğruluk kaynağı veritabanıdır (`v_recipe_lines`, `v_recipe_costs`, `v_menu
 
 ## Ekranlar
 
-Bugün · Günlük Üretim & Maliyet · Reçeteler & Gramaj · Menüler · Hammaddeler · Siparişler · Müşteriler · Finans Özeti · Giderler · Gelen Faturalar · Kasa & Gelirler · Ekip & Yetkiler
+Bugün · Günlük Hazırlık & Maliyet · Kahvaltı · Menü Planı · Reçeteler & Gramaj · Menüler · Hammaddeler · Siparişler · Müşteriler · Finans Özeti · Giderler · Gelen Faturalar · Kasa & Gelirler · Ekip & Yetkiler
 
 Otomatik akışlar (veritabanı trigger'ları):
 - Sipariş **teslim edildi** → gelir (alacak) kaydı, vade müşteri kartından
 - Gelen fatura **onaylandı** → gider (borç) kaydı, tedarikçinin kategorisi hatırlanır
-- Üretim kaydı → o günkü porsiyon maliyeti sabitlenir (sonraki zamlar geçmişi bozmaz)
+- Hazırlık satırı → birim fiyat kayıt anında sabitlenir (sonraki zamlar geçmişi bozmaz)
+- Siparişler + menü planı → günün yemek başlıkları ve kişi sayıları (`plan_prep_from_orders`)
+
+Her sekmede **Rapor**: logolu antet + holografik mühür, Yazdır/PDF, Excel (CSV), WhatsApp.
 
 ## Yol haritası
 

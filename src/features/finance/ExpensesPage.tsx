@@ -5,6 +5,10 @@ import { monthlyByCategory, trend } from '@/lib/finance';
 import { fmtNum } from '@/lib/format';
 import { Delta, Meter, MonthNav, SparkBars } from '@/ui/bits';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { ReportSection, ReportStats } from '@/reports/ReportFrame';
+import { ListToolbar, matches } from '@/ui/ListToolbar';
+import { fmtMoney, fmtPct } from '@/lib/format';
 import { orderPeople, useOrders } from '../sales/api';
 import { useEntries, useFinanceCategories, type FinanceEntry } from './api';
 import { CategoryDrawer } from './CategoryDrawer';
@@ -20,6 +24,8 @@ export function ExpensesPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [editing, setEditing] = useState<FinanceEntry | 'new' | null>(null);
   const [catOpen, setCatOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const [statusF, setStatusF] = useState('');
   const months = lastMonths(month, 6);
   const range = { from: monthRange(months[0]).from, to: monthRange(month).to };
   const entries = useEntries(range.from, range.to);
@@ -41,10 +47,48 @@ export function ExpensesPage() {
   const monthTotal = Object.values(byCat[month] ?? {}).reduce((a, b) => a + b, 0);
   const prevTotal = Object.values(byCat[addMonths(month, -1)] ?? {}).reduce((a, b) => a + b, 0);
   const people = (orders.data ?? []).filter((o) => o.status !== 'iptal').reduce((s, o) => s + orderPeople(o), 0);
-  const monthRows = rows.filter((r) => r.kind === 'gider' && monthKey(r.entry_date) === month && (!selected || r.category_code === selected));
+  const monthRows = rows.filter((r) => r.kind === 'gider' && monthKey(r.entry_date) === month && (!selected || r.category_code === selected)
+    && (!statusF || r.status === statusF) && matches(q, r.description, r.counterparty, catList.find((c) => c.code === r.category_code)?.name));
   const unpaid = rows.filter((r) => r.kind === 'gider' && monthKey(r.entry_date) === month && r.status === 'bekliyor').reduce((s, r) => s + Number(r.net_amount), 0);
   const biggestRise = [...cards].filter((x) => x.t.delta > 0).sort((a, b) => b.t.delta - a.t.delta)[0];
   const groups = Array.from(new Set(cards.map((x) => x.c.group_name)));
+
+  const report = (): ReportSpec => ({
+    title: 'Gider Analizi',
+    subtitle: `${monthLabel(month)} · bu ay / geçen ay karşılaştırmalı`,
+    summary: [
+      { label: 'Toplam gider', value: `${fmtMoney(monthTotal)} (geçen ay ${fmtMoney(prevTotal)})` },
+      ...cards.filter((x) => x.t.current > 0).sort((a, b) => b.t.current - a.t.current).slice(0, 10)
+        .map((x) => ({ label: x.c.name, value: `${fmtMoney(x.t.current)}${x.t.pct !== null ? ` (${x.t.delta >= 0 ? '▲' : '▼'} %${fmtNum(Math.abs(x.t.pct), 0)})` : ''}` })),
+    ],
+    table: {
+      filename: `giderler-${month}`,
+      header: ['Tarih', 'Kalem', 'Açıklama', 'Kime', 'Durum', 'Tutar ₺ (KDV hariç)', 'KDV ₺'],
+      rows: monthRows.map((r) => [r.entry_date, catName(r.category_code), r.description, r.counterparty, r.status === 'odendi' ? 'Ödendi' : 'Bekliyor', r.net_amount, r.vat_amount]),
+    },
+    body: () => (
+      <>
+        <ReportStats items={[
+          { label: 'Toplam gider', value: fmtMoney(monthTotal) },
+          { label: 'Geçen ay', value: fmtMoney(prevTotal) },
+          { label: 'Değişim', value: prevTotal ? fmtPct(((monthTotal - prevTotal) / prevTotal) * 100) : '—' },
+          { label: 'Kişi başı gider', value: people ? fmtMoney(monthTotal / people) : '—' },
+        ]} />
+        <ReportSection title="Kalem bazında">
+          <table>
+            <thead><tr><th>Grup</th><th>Kalem</th><th className="num">Bu ay</th><th className="num">Geçen ay</th><th className="num">Değişim</th><th className="num">Pay</th></tr></thead>
+            <tbody>
+              {cards.filter((x) => x.t.current > 0 || x.t.previous > 0).map((x) => (
+                <tr key={x.c.code}><td>{x.c.group_name}</td><td>{x.c.name}</td><td className="num">{fmtMoney(x.t.current)}</td><td className="num">{fmtMoney(x.t.previous)}</td>
+                  <td className="num" style={{ color: x.t.delta > 0 ? '#C2261F' : x.t.delta < 0 ? '#0F766E' : undefined }}>{x.t.pct === null ? '—' : `${x.t.delta >= 0 ? '▲' : '▼'} %${fmtNum(Math.abs(x.t.pct), 0)}`}</td>
+                  <td className="num">{monthTotal ? `%${fmtNum((x.t.current / monthTotal) * 100, 0)}` : '—'}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </ReportSection>
+      </>
+    ),
+  });
 
   return (
     <>
@@ -53,6 +97,7 @@ export function ExpensesPage() {
         title="Giderler"
         description="Her kalem bu ayı geçen ayla karşılaştırır: kırmızı ok artış, yeşil ok azalış. Onaylanan faturalar buraya kendiliğinden düşer; faturası olmayan giderleri elle ekleyin."
         actions={<>
+          <ReportButton spec={report} />
           <Button icon={<FolderPlus className="w-4 h-4" />} onClick={() => setCatOpen(true)}>Kategori ekle</Button>
           <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Gider ekle</Button>
         </>}
@@ -101,6 +146,10 @@ export function ExpensesPage() {
 
       <Panel pad={false} title={selected ? `${catName(selected)} · ${monthLabel(month)}` : `${monthLabel(month)} gider kayıtları`}
         subtitle="Satıra tıklayarak ödeme durumunu güncelleyin">
+        <ListToolbar search={q} onSearch={setQ} placeholder="Açıklama, tedarikçi, kalem ara…"
+          filters={<select className="tc-input !w-auto" value={statusF} onChange={(e) => setStatusF(e.target.value)} aria-label="Durum">
+            <option value="">Tüm durumlar</option><option value="odendi">Ödendi</option><option value="bekliyor">Bekliyor</option>
+          </select>} />
         {monthRows.length === 0 ? (
           <EmptyState icon={<TrendingDown className="w-5 h-5" />} title="Kayıt yok"
             action={<Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Gider ekle</Button>}>

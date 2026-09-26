@@ -130,7 +130,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
         {canEdit && (
           <div className="flex gap-2">
             {id && <Button variant="danger" icon={<Trash2 className="w-4 h-4" />} onClick={remove} loading={del.isPending}>Sil</Button>}
-            <Button variant="primary" icon={<Save className="w-4 h-4" />} onClick={submit} loading={save.isPending} disabled={!dirty && Boolean(id)}>Kaydet</Button>
+            <Button variant="holo" icon={<Save className="w-4 h-4" />} onClick={submit} loading={save.isPending} disabled={!dirty && Boolean(id)}>Kaydet</Button>
           </div>
         )}
       </div>

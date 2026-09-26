@@ -10,6 +10,11 @@ import { NumCell } from '@/ui/NumCell';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, Tabs, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
 import { useMenuCosts } from '../kitchen/api';
+import { effectiveMenu, useMenuPlans } from '../production/api';
+import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
+import { ReportStats } from '@/reports/ReportFrame';
+import { dayLabel } from '@/lib/dates';
+import { fmtMoney } from '@/lib/format';
 import { orderPeople, useBulkOrders, useCustomers, useDeleteOrder, useOrders, useSaveOrder, useUpdateOrders } from './api';
 
 export function OrdersPage() {
@@ -20,6 +25,7 @@ export function OrdersPage() {
   const orders = useOrders(addDays(date, -1), date);
   const customers = useCustomers();
   const menus = useMenuCosts();
+  const plans = useMenuPlans(date);
   const save = useSaveOrder();
   const bulk = useBulkOrders();
   const updateMany = useUpdateOrders();
@@ -88,6 +94,42 @@ export function OrdersPage() {
     try { await updateMany.mutateAsync(items); toast.ok('Teslimler kaydedildi'); } catch (e) { toast.error(e); }
   };
 
+  const report = (): ReportSpec => ({
+    title: 'Sipariş Listesi',
+    subtitle: `${dayLabel(date)} · ${MEALS[meal]}`,
+    summary: [
+      ...active.map((o) => ({ label: custById.get(o.customer_id)?.name ?? '', value: `${fmtNum(orderPeople(o), 0)} kişi` })),
+      { label: 'Toplam', value: `${fmtNum(people, 0)} kişi · ${fmtMoney(amount)}` },
+    ],
+    table: {
+      filename: `siparisler-${date}-${meal}`,
+      header: ['Müşteri', 'Menü', 'Tür', 'Sipariş', 'Teslim', 'Kişi başı ₺', 'Tutar ₺', 'Durum'],
+      rows: rows.map((o) => [custById.get(o.customer_id)?.name, (menus.data ?? []).find((m) => m.menu_id === effectiveMenu(plans.data ?? [], date, meal, o.customer_id, o.menu_id))?.name,
+        ORDER_KINDS[o.kind], o.ordered_qty, o.delivered_qty, o.unit_price, orderPeople(o) * Number(o.unit_price), ORDER_STATUS[o.status]?.label]),
+    },
+    body: () => (
+      <>
+        <ReportStats items={[
+          { label: 'Kişi', value: fmtNum(people, 0) },
+          { label: 'Tutar (KDV hariç)', value: fmtMoney(amount) },
+          { label: 'Müşteri', value: new Set(active.map((o) => o.customer_id)).size },
+          { label: 'Teslim edilen', value: `${delivered} / ${rows.length}` },
+        ]} />
+        <table>
+          <thead><tr><th>Müşteri</th><th>Menü</th><th className="num">Sipariş</th><th className="num">Teslim</th><th className="num">Kişi başı</th><th className="num">Tutar</th><th>Durum</th></tr></thead>
+          <tbody>
+            {rows.map((o) => (
+              <tr key={o.id}><td>{custById.get(o.customer_id)?.name}</td>
+                <td>{(menus.data ?? []).find((m) => m.menu_id === effectiveMenu(plans.data ?? [], date, meal, o.customer_id, o.menu_id))?.name ?? '—'}</td>
+                <td className="num">{fmtNum(o.ordered_qty, 0)}</td><td className="num">{o.delivered_qty ?? '—'}</td>
+                <td className="num">{fmtMoney(o.unit_price)}</td><td className="num">{fmtMoney(orderPeople(o) * Number(o.unit_price))}</td><td>{ORDER_STATUS[o.status]?.label}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </>
+    ),
+  });
+
   const patch = (id: string, p: Parameters<typeof save.mutate>[0]['draft']) =>
     save.mutate({ id, draft: p }, { onError: toast.error });
 
@@ -96,7 +138,8 @@ export function OrdersPage() {
       <ModuleHero
         kicker="Satış · Günlük yemek sayıları"
         title="Siparişler"
-        description="Her müşterinin gün ve öğün bazında kaç kişi yiyeceği. Teslim edilen siparişler otomatik olarak gelir (alacak) kaydına dönüşür."
+        description="Her müşterinin gün ve öğün bazında kaç kişi yiyeceği. Menü seçilmezse menü planından gelir; teslim edilen siparişler otomatik olarak gelir (alacak) kaydına dönüşür."
+        actions={<ReportButton spec={report} disabled={rows.length === 0} />}
         stats={[
           { label: `${MEALS[meal]} · toplam kişi`, value: fmtNum(people, 0) },
           { label: 'Tutar (KDV hariç)', value: <Money value={amount} /> },
@@ -155,7 +198,7 @@ export function OrdersPage() {
                       <td className="px-2 py-2">
                         <select className="tc-input !py-1.5" value={o.menu_id ?? ''} disabled={locked}
                           onChange={(e) => patch(o.id, { menu_id: e.target.value || null })} aria-label="Menü">
-                          <option value="">— menü seçilmedi —</option>
+                          <option value="">{(() => { const pm = effectiveMenu(plans.data ?? [], date, meal, o.customer_id, null); return pm ? `↳ plandan: ${(menus.data ?? []).find((m) => m.menu_id === pm)?.name ?? ''}` : '— menü seçilmedi —'; })()}</option>
                           {(menus.data ?? []).filter((m) => m.active || m.menu_id === o.menu_id).map((m) => <option key={m.menu_id} value={m.menu_id!}>{m.name}</option>)}
                         </select>
                       </td>
