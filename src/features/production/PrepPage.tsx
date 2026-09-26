@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { askConfirm } from '@/ui/confirm';
-import { BookmarkPlus, ChefHat, ChevronDown, ChevronRight, ListRestart, Plus, Trash2, Wand2, WandSparkles, X } from 'lucide-react';
+import { BookmarkPlus, ChefHat, PackageMinus, ChevronDown, ChevronRight, ListRestart, Plus, Trash2, Wand2, WandSparkles, X } from 'lucide-react';
 import { Link } from '@/app/router';
 import { useCan } from '@/app/session';
 import { addDays, dayLabel, shortDay, todayISO } from '@/lib/dates';
@@ -14,6 +14,8 @@ import { DateNav, Delta, Hint, SparkBars } from '@/ui/bits';
 import { NumCell } from '@/ui/NumCell';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, Tabs, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { useInsertRows, useRows } from '@/lib/crud';
+import { askConfirm as confirmStock } from '@/ui/confirm';
 import { useEntries } from '../finance/api';
 import { useIngredients, useMenuCosts, useRecipeCosts, type Ingredient } from '../kitchen/api';
 import { orderPeople, useCustomers, useOrders, type MealOrder } from '../sales/api';
@@ -47,9 +49,13 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
   const plan = usePlanPrep();
   const saveBatch = useSaveBatch();
   const fillAll = useFillFromRecipe();
+  const allIngredients = useIngredients();
+  const stockOut = useInsertRows('stock_movements', ['ingredients']);
 
   const all = batches.data ?? [];
   const dayBatches = all.filter((b) => b.prep_date === date && b.meal === meal);
+  const dayIds = dayBatches.map((b) => b.batch_id!);
+  const issued = useRows('stock_movements', { key: ['hazirlik', date, meal, dayIds.join(',')], enabled: dayIds.length > 0, filter: (x) => x.eq('source', 'hazirlik').in('source_id', dayIds) });
   const items = usePrepItems(dayBatches.map((b) => b.batch_id!));
   const itemsBy = useMemo(() => {
     const m = new Map<string, PrepItem[]>();
@@ -201,6 +207,23 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
     ),
   });
 
+  // Hazırlıktaki stok malzemeleri depodan düşülür (aynı yemek ikinci kez düşülmez)
+  const issueStock = async () => {
+    const done = new Set((issued.data ?? []).map((m) => m.source_id));
+    const ingsById = new Map((allIngredients.data ?? []).map((i) => [i.id, i]));
+    const rowsOut = dayBatches.filter((b) => !done.has(b.batch_id)).flatMap((b) => (itemsBy.get(b.batch_id!) ?? []).filter((it) => it.ingredient_id).map((it) => {
+      const ing = ingsById.get(it.ingredient_id!);
+      if (!ing) return null;
+      const qty = Number(it.qty) * unitInfo(it.unit!).toBase / unitInfo(ing.stock_unit).toBase;
+      return { ingredient_id: ing.id, move_date: date, kind: 'cikis', qty: -Math.round(qty * 1000) / 1000, unit_cost: it.unit_price == null ? null : Number(it.unit_price) * unitInfo(ing.stock_unit).toBase / unitInfo(it.unit!).toBase,
+        source: 'hazirlik', source_id: b.batch_id, note: b.dish_name };
+    })).filter((x) => x && x.qty < 0) as Record<string, unknown>[];
+    if (rowsOut.length === 0) return toast.error('Düşülecek yeni stok malzemesi yok');
+    if (!(await confirmStock(`${rowsOut.length} kalem malzeme depodan düşülsün mü?`))) return;
+    try { await stockOut.mutateAsync({ rows: rowsOut }); await issued.refetch(); toast.ok('Malzemeler stoktan düşüldü'); } catch (e) { toast.error(e); }
+  };
+  const allIssued = dayBatches.length > 0 && dayBatches.every((b) => (issued.data ?? []).some((m) => m.source_id === b.batch_id));
+
   const emptyWithRecipe = dayBatches.filter((b) => b.recipe_id && (b.item_count ?? 0) === 0 && b.portions);
   const fillAllFromRecipes = async () => {
     try {
@@ -302,6 +325,9 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
                   Boşları reçeteden doldur ({emptyWithRecipe.length})
                 </Button>
               )}
+              {dayBatches.length > 0 && (allIssued
+                ? <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ok px-2"><PackageMinus className="w-4 h-4" />Stoktan düşüldü</span>
+                : <Button icon={<PackageMinus className="w-4 h-4" />} onClick={issueStock} loading={stockOut.isPending} title="Hazırlıktaki stok malzemelerini depodan düşer">Stoktan düş</Button>)}
             </div>
           )}
           {adding && (

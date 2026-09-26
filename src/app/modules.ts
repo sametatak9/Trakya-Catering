@@ -80,7 +80,7 @@ export interface PermissionMaps {
 }
 
 /** Ekranı yazılmakta olan sekmeler (menüde gösterilmez; bitince listeden çıkar) */
-export const IN_PROGRESS = new Set<string>(['/stok', '/sevk', '/satinalma', '/tedarikciler', '/irsaliye', '/teklifler', '/pazarlama', '/sosyal-medya', '/rota', '/sofor', '/filo', '/cek-senet']);
+export const IN_PROGRESS = new Set<string>(['/irsaliye', '/teklifler', '/pazarlama', '/sosyal-medya', '/rota', '/sofor', '/filo', '/cek-senet']);
 
 export function defaultVisible(m: ModuleDef, role: AppRole): boolean {
   return !m.roles || m.roles.includes(role);
