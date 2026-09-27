@@ -77,7 +77,7 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 - ✅ Maaş hesabı + hakedişi deftere yazma; canlı bakiye (yevmiye/avans/ödeme), toplu ödeme
 - ✅ Dijital kartvizit (herkese açık link, rehbere kaydet)
 - ✅ İzin / avans / mesai talepleri (kendi talebini onaylayamaz — veritabanı kuralı)
-- ⏳ **Canlı bağlantılar:** personel avans talep eder veya yönetici avans girer → onay → personel bakiyesi anında değişir; uçtan uca test (Faz 3C-0)
+- ✅ **Canlı bağlantılar:** personel avans talep eder → yönetici Onaylar'da ödeme hesabını seçip onaylar → defter + kasa + personel bakiyesi anında değişir; yönetici doğrudan avans girişi de bakiyeye canlı yansır (uçtan uca SQL testi)
 - ✅ Maaş/IBAN yalnız yönetici ve muhasebe görür; diğerleri yalnız rehber (ad, unvan, telefon)
 - 🔌 Parmak izi cihazına doğrudan bağlantı (işyerinde aktarım programı)
 
@@ -95,8 +95,8 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 ## Sıra (şu an) — ANA-PROMPT §8
 1. ✅ Faz 3A — güvenlik ve bütünlük
 2. ✅ Faz 3B — navigasyon 30 → 14, rol çalışma alanı
-3. 🔨 Faz 3C-0 — onay merkezi + avans → bakiye canlı bağlantısı
-4. ⏳ Faz 3C — üretim emri onayı → stok/sipariş/gelir
+3. ✅ Faz 3C-0 — onay merkezi + avans → bakiye canlı bağlantısı
+4. 🔨 Faz 3C — üretim emri onayı → stok/sipariş/gelir
 5. ⏳ Faz 3D — menü tipleri, müşteri menüsü, **menü kartı HTML/PDF (standart, kalorili, kahvaltı)**
 6. ⏳ Faz 3E — stok partileri, depolar, sayım, güncellenen stoklar, satınalma talep formu, stok/yemek iskeleti
 7. ⏳ 3F → 3H → 3G → 4 (cari/fatura) → 5 (lojistik, filo kartviziti) → 6 → 7 → 8A → 8 → 8B → 9 → 10

@@ -11,7 +11,7 @@ export type CardId =
   | 'kritik_stok' | 'bugun_stok_cikis' | 'bugun_sevk'
   | 'acik_satinalma' | 'eski_fiyat'
   | 'vadesi_gelen' | 'taslak_fatura' | 'bekleyen_talep' | 'fiyatsiz_siparis'
-  | 'siparis_girmeyen' | 'aktif_musteri' | 'bugun_teslim';
+  | 'siparis_girmeyen' | 'aktif_musteri' | 'bugun_teslim' | 'taleplerim';
 
 export interface CardDef {
   id: CardId;
@@ -37,17 +37,18 @@ export const CARDS: Record<CardId, CardDef> = {
   siparis_girmeyen: { id: 'siparis_girmeyen', title: 'Yarın için sayı vermeyen firmalar', to: '/siparisler' },
   aktif_musteri: { id: 'aktif_musteri', title: 'Aktif müşteriler', to: '/cari/musteriler' },
   bugun_teslim: { id: 'bugun_teslim', title: 'Bugünkü teslimler', to: null },
+  taleplerim: { id: 'taleplerim', title: 'Taleplerim (avans, izin…)', to: null },
 };
 
 /** Rol → kart sırası. Yönetici ve kurucu "Özet · Onaylar" görür (kart seti yok). */
 export const ROLE_CARDS: Partial<Record<AppRole, CardId[]>> = {
-  asci_basi: ['yarin_uretim', 'bugun_recetesiz', 'bugun_fiyatsiz_malzeme', 'kritik_stok', 'menu_plani_bos'],
-  diyetisyen: ['yarin_uretim', 'menu_plani_bos', 'bugun_recetesiz', 'bugun_fiyatsiz_malzeme'],
-  depo: ['kritik_stok', 'bugun_stok_cikis', 'bugun_sevk', 'yarin_uretim'],
-  satinalma: ['acik_satinalma', 'kritik_stok', 'eski_fiyat', 'taslak_fatura'],
-  muhasebe: ['vadesi_gelen', 'taslak_fatura', 'fiyatsiz_siparis', 'bekleyen_talep'],
-  pazarlamaci: ['siparis_girmeyen', 'fiyatsiz_siparis', 'aktif_musteri'],
-  sofor: ['bugun_teslim', 'bugun_sevk'],
+  asci_basi: ['yarin_uretim', 'bugun_recetesiz', 'bugun_fiyatsiz_malzeme', 'kritik_stok', 'menu_plani_bos', 'taleplerim'],
+  diyetisyen: ['yarin_uretim', 'menu_plani_bos', 'bugun_recetesiz', 'bugun_fiyatsiz_malzeme', 'taleplerim'],
+  depo: ['kritik_stok', 'bugun_stok_cikis', 'bugun_sevk', 'yarin_uretim', 'taleplerim'],
+  satinalma: ['acik_satinalma', 'kritik_stok', 'eski_fiyat', 'taslak_fatura', 'taleplerim'],
+  muhasebe: ['vadesi_gelen', 'taslak_fatura', 'fiyatsiz_siparis', 'bekleyen_talep', 'taleplerim'],
+  pazarlamaci: ['siparis_girmeyen', 'fiyatsiz_siparis', 'aktif_musteri', 'taleplerim'],
+  sofor: ['bugun_teslim', 'bugun_sevk', 'taleplerim'],
 };
 
 export const hasManagerHome = (role: AppRole) => role === 'yonetici' || role === 'kurucu';

@@ -37,11 +37,11 @@ export function monthLabel(month: string, short = false): string {
 }
 
 export function dayLabel(iso: string): string {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('tr-TR', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' });
+  return new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('tr-TR', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 export function shortDay(iso: string): string {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('tr-TR', { timeZone: 'UTC', day: 'numeric', month: 'short' });
+  return new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('tr-TR', { timeZone: 'UTC', day: 'numeric', month: 'short' });
 }
 
 /** Ertesi günün siparişleri için kesim (16:00 İstanbul) — kalan dakika; geçtiyse 0 */

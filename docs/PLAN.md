@@ -40,8 +40,8 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 |---|---|---|
 | 3A | Güvenlik, bütünlük, migration sürümleri, parseNum, çıkış önbelleği, hata kaydı, CI | ✅ (rapor: `raporlar/faz-3A.md`) |
 | 3B | Navigasyon 30 → 14 modül, sekmeler, eski yolların yönlendirmesi, rol çalışma alanı | ✅ (rapor: `raporlar/faz-3B.md`) |
-| 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ⏳ sıradaki |
-| 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ⏳ |
+| 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ✅ (rapor: `raporlar/faz-3C0.md`) |
+| 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ⏳ sıradaki |
 | 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ⏳ |
 | 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | ⏳ |
 | 3F | Finans › Maliyet (gün/ay/yıl, sürümlü), menüden sürümlü satınalma planı, teklif analizi | ⏳ |
@@ -62,7 +62,8 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 - **Fiyatsız teslim:** Veritabanı reddeder (kişi başı fiyat 0 iken teslim → hata); asistan önceden uyarır.
 - **Mesai kuralı:** Günlük çalışma 10 saat (kartta değiştirilebilir), üstü ×1,5.
 - **Sekme adresleri:** Hash yönlendiricide ikinci `#` kullanılamadığı için sekme adresi `/modul/sekme` (ör. `/finans/giderler`); yetki anahtarı belgedeki gibi `/finans#giderler`.
-- **Onaylar sekmesi:** Faz 3C-0'a kadar bekleyen personel talepleri (izin/avans/mesai) burada onaylanır.
+- **Avans onayı = ödeme:** Personel defterinde avans ödenmiş para demektir (hesap zorunlu). Bu yüzden avans onaylanırken ödeme hesabı seçilir; onay anında deftere ve kasaya yazılır. Personel adına yönetici talep girerse talebin sahibi personeldir (girişi yapan ayrıca kaydedilir).
+- **Onay kuralları:** Avans, izin, mesai, satınalma planı, maliyet düzenleme, stok düzeltme → yönetici; gider/ödeme 20.000 ₺'ye kadar muhasebe, üstü yönetici; modül kapatma, kullanıcı silme, hata düzeltme → kurucu. Kurucu kuralları değiştirebilir (`approval_policies`).
 - **Main dalı:** Belge gereği her faz testleri geçince `main`'e ve canlı dala aynı commit gönderilir.
 
 ## Açık notlar

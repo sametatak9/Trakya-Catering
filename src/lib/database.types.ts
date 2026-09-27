@@ -15,6 +15,142 @@ export type Database = {
   }
   public: {
     Tables: {
+      approval_events: {
+        Row: {
+          action: string
+          actor: string | null
+          at: string
+          chain_seq: number | null
+          hash: string | null
+          id: number
+          note: string | null
+          prev_hash: string | null
+          request_id: string
+          snapshot: Json
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          at?: string
+          chain_seq?: number | null
+          hash?: string | null
+          id?: never
+          note?: string | null
+          prev_hash?: string | null
+          request_id: string
+          snapshot?: Json
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          at?: string
+          chain_seq?: number | null
+          hash?: string | null
+          id?: never
+          note?: string | null
+          prev_hash?: string | null
+          request_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "approval_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_policies: {
+        Row: {
+          above_roles: string[] | null
+          active: boolean
+          approver_roles: string[]
+          code: string
+          name: string
+          threshold: number | null
+        }
+        Insert: {
+          above_roles?: string[] | null
+          active?: boolean
+          approver_roles: string[]
+          code: string
+          name: string
+          threshold?: number | null
+        }
+        Update: {
+          above_roles?: string[] | null
+          active?: boolean
+          approver_roles?: string[]
+          code?: string
+          name?: string
+          threshold?: number | null
+        }
+        Relationships: []
+      }
+      approval_requests: {
+        Row: {
+          amount: number | null
+          decided_at: string | null
+          decided_by: string | null
+          decision: Json
+          decision_note: string | null
+          entered_by: string | null
+          id: string
+          payload: Json
+          policy_code: string
+          requested_at: string
+          requested_by: string | null
+          status: string
+          subject_id: string | null
+          subject_table: string | null
+          title: string
+        }
+        Insert: {
+          amount?: number | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: Json
+          decision_note?: string | null
+          entered_by?: string | null
+          id?: string
+          payload?: Json
+          policy_code: string
+          requested_at?: string
+          requested_by?: string | null
+          status?: string
+          subject_id?: string | null
+          subject_table?: string | null
+          title: string
+        }
+        Update: {
+          amount?: number | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: Json
+          decision_note?: string | null
+          entered_by?: string | null
+          id?: string
+          payload?: Json
+          policy_code?: string
+          requested_at?: string
+          requested_by?: string | null
+          status?: string
+          subject_id?: string | null
+          subject_table?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_requests_policy_code_fkey"
+            columns: ["policy_code"]
+            isOneToOne: false
+            referencedRelation: "approval_policies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       attendance_days: {
         Row: {
           created_at: string
@@ -462,6 +598,7 @@ export type Database = {
           id: string
           kind: string
           period: string | null
+          request_id: string | null
         }
         Insert: {
           account_id?: string | null
@@ -474,6 +611,7 @@ export type Database = {
           id?: string
           kind: string
           period?: string | null
+          request_id?: string | null
         }
         Update: {
           account_id?: string | null
@@ -486,6 +624,7 @@ export type Database = {
           id?: string
           kind?: string
           period?: string | null
+          request_id?: string | null
         }
         Relationships: [
           {
@@ -507,6 +646,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_ledger_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "employee_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -2775,6 +2921,13 @@ export type Database = {
       }
     }
     Functions: {
+      approval_event_hash: {
+        Args: {
+          e: Database["public"]["Tables"]["approval_events"]["Row"]
+          p_prev: string
+        }
+        Returns: string
+      }
       audit_row_hash: {
         Args: {
           p: Database["public"]["Tables"]["audit_log"]["Row"]
@@ -2783,8 +2936,21 @@ export type Database = {
         Returns: string
       }
       base_unit: { Args: { p_dimension: string }; Returns: string }
+      can_decide: {
+        Args: { p_amount: number; p_policy: string }
+        Returns: boolean
+      }
       current_app_role: { Args: never; Returns: string }
       current_customer_id: { Args: never; Returns: string }
+      decide_approval: {
+        Args: {
+          p_decision: string
+          p_extra?: Json
+          p_id: string
+          p_note?: string
+        }
+        Returns: undefined
+      }
       effective_menu: {
         Args: {
           p_customer: string
@@ -2872,6 +3038,17 @@ export type Database = {
           stock_unit: string
         }[]
       }
+      request_approval: {
+        Args: {
+          p_amount?: number
+          p_payload?: Json
+          p_policy: string
+          p_subject_id?: string
+          p_subject_table?: string
+          p_title: string
+        }
+        Returns: string
+      }
       save_menu: {
         Args: { p_header: Json; p_id: string | null; p_items: Json }
         Returns: string
@@ -2880,6 +3057,7 @@ export type Database = {
         Args: { p_header: Json; p_id: string | null; p_lines: Json }
         Returns: string
       }
+      verify_approval_chain: { Args: never; Returns: boolean }
       verify_audit_chain: { Args: never; Returns: boolean }
     }
     Enums: {

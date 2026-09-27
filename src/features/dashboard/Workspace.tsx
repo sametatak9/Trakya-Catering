@@ -1,20 +1,21 @@
 import { useState, type ReactNode } from 'react';
-import { ArrowRight, Check, Inbox, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { usePermissionMaps } from '@/app/permissions';
 import { Link } from '@/app/router';
 import { useMember } from '@/app/session';
 import { hasManagerHome, workspaceCards, type CardDef, type CardId } from '@/app/workspaces';
-import { useRows, useSaveRow } from '@/lib/crud';
+import { useRows } from '@/lib/crud';
 import { addDays, shortDay, todayISO } from '@/lib/dates';
 import { MEALS, PRICE_STALE_DAYS, ROLE_LABELS } from '@/lib/domain';
 import { daysSince, fmtMoney, fmtNum } from '@/lib/format';
 import { stockLevels } from '@/lib/stock';
-import { Button, EmptyState, Loading, ModuleHero, Panel, Tabs, cx } from '@/ui/primitives';
-import { useToast } from '@/ui/toast';
+import { ModuleHero, Panel, Tabs, cx } from '@/ui/primitives';
+import { ApprovalsPanel, usePendingApprovalCount } from '../approvals/ApprovalsPanel';
+import { APPROVAL_STATUS, useApprovals } from '../approvals/api';
 import { useAlerts } from '../assistant/Notifications';
 import { useInvoices, useOpenItems } from '../finance/api';
 import { useIngredients } from '../kitchen/api';
-import { REQUEST_KINDS, useEmployees } from '../people/api';
+import { REQUEST_KINDS } from '../people/api';
 import { useMenuPlans, usePrepBatches } from '../production/api';
 import { orderPeople, useCustomers, useOrders } from '../sales/api';
 import { useStockMoves } from '../stock/StockPage';
@@ -28,57 +29,13 @@ export function HomePage() {
 
 function ManagerHome() {
   const [tab, setTab] = useState<'ozet' | 'onaylar'>('ozet');
-  const pending = useRows('employee_requests', { key: ['bekleyen'], filter: (q) => q.eq('status', 'bekliyor') });
+  const pending = usePendingApprovalCount();
   return (
     <>
       <div className="mb-4"><Tabs value={tab} onChange={setTab} items={[
-        { id: 'ozet', label: 'Özet' }, { id: 'onaylar', label: 'Onaylar', count: (pending.data ?? []).length },
+        { id: 'ozet', label: 'Özet' }, { id: 'onaylar', label: 'Onaylar', count: pending },
       ]} /></div>
       {tab === 'ozet' ? <DashboardPage /> : <ApprovalsPanel />}
-    </>
-  );
-}
-
-/** Onay bekleyen işler. Şimdilik personel talepleri (izin, avans, mesai); Faz 3C-0'da onay merkezine bağlanır. */
-function ApprovalsPanel() {
-  const toast = useToast();
-  const me = useMember();
-  const pending = useRows('employee_requests', { key: ['bekleyen'], order: 'created_at', filter: (q) => q.eq('status', 'bekliyor') });
-  const employees = useEmployees();
-  const save = useSaveRow('employee_requests');
-  const nameOf = (id: string) => (employees.data ?? []).find((e) => e.id === id)?.full_name ?? '—';
-  const decide = async (id: string, status: 'onaylandi' | 'reddedildi') => {
-    try {
-      await save.mutateAsync({ id, row: { status, decided_by: me.userId } });
-      toast.ok(status === 'onaylandi' ? 'Onaylandı' : 'Reddedildi');
-    } catch (e) { toast.error(e); }
-  };
-  const list = pending.data ?? [];
-  return (
-    <>
-      <ModuleHero kicker="Bugün · Yönetici" title="Onaylar"
-        description="Son onay sizde. Talep eden kendi talebini onaylayamaz; her karar denetim kaydına yazılır. Satınalma planı, maliyet düzenleme ve eşik üstü ödemeler de ilerleyen fazda buraya düşecek." />
-      <Panel pad={false} title="Personel talepleri" subtitle="İzin, avans ve fazla mesai">
-        {pending.isLoading ? <Loading /> : list.length === 0 ? (
-          <EmptyState icon={<Inbox className="w-5 h-5" />} title="Bekleyen onay yok">Personel talep açtığında burada görünür.</EmptyState>
-        ) : (
-          <ul className="divide-y divide-line">
-            {list.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                <span className="flex-1 min-w-0">
-                  <span className="block font-semibold text-ink">{nameOf(r.employee_id)} · {REQUEST_KINDS[r.kind] ?? r.kind}</span>
-                  <span className="block text-xs text-ink-3">
-                    {r.start_date ? shortDay(r.start_date) : ''}{r.end_date && r.end_date !== r.start_date ? ` – ${shortDay(r.end_date)}` : ''}
-                    {r.amount ? ` · ${fmtMoney(r.amount)}` : ''}{r.note ? ` · ${r.note}` : ''} · talep {shortDay(r.created_at)}
-                  </span>
-                </span>
-                <Button size="sm" icon={<X className="w-3.5 h-3.5" />} onClick={() => decide(r.id, 'reddedildi')}>Reddet</Button>
-                <Button size="sm" variant="holo" icon={<Check className="w-3.5 h-3.5" />} onClick={() => decide(r.id, 'onaylandi')}>Onayla</Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
     </>
   );
 }
@@ -157,6 +114,7 @@ const CARD_VIEWS: Record<CardId, (p: { def: CardDef }) => ReactNode> = {
   siparis_girmeyen: MissingOrders,
   aktif_musteri: ActiveCustomers,
   bugun_teslim: TodayDeliveries,
+  taleplerim: MyRequests,
 };
 
 function WorkspaceCard({ def }: { def: CardDef }) {
@@ -283,6 +241,14 @@ function ActiveCustomers({ def }: { def: CardDef }) {
   const customers = useCustomers();
   const active = (customers.data ?? []).filter((c) => c.active);
   return <CardShell def={def} loading={customers.isLoading} value={active.length} lines={active.map((c) => c.name)} />;
+}
+
+function MyRequests({ def }: { def: CardDef }) {
+  const me = useMember();
+  const list = (useApprovals().data ?? []).filter((a) => a.requested_by === me.userId || a.entered_by === me.userId);
+  const open = list.filter((a) => a.status === 'bekliyor').length;
+  return <CardShell def={def} value={`${open} bekliyor`}
+    lines={list.slice(0, 4).map((a) => `${a.title} · ${APPROVAL_STATUS[a.status].label}`)} />;
 }
 
 function TodayDeliveries({ def }: { def: CardDef }) {

@@ -7,6 +7,7 @@ import { amountOf } from '@/lib/finance';
 import { Delta, MonthNav } from '@/ui/bits';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { useLiveTables } from '@/lib/live';
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
 import { ReportSection, ReportStats } from '@/reports/ReportFrame';
 import { fmtMoney } from '@/lib/format';
@@ -18,6 +19,8 @@ const total = (e: FinanceEntry) => Number(e.total_amount ?? Number(e.net_amount)
 
 export function CashPage() {
   const toast = useToast();
+  // Canlı: onaylanan avans, teslim, ödeme… başka ekrandan girilse de bakiye anında değişir
+  useLiveTables(['finance_entries'], [['finance']]);
   const canEdit = useCan(ROLES.finance);
   const [month, setMonth] = useState(() => monthKey(todayISO()));
   const [editing, setEditing] = useState<{ entry: FinanceEntry | null; kind: 'gelir' | 'gider' } | null>(null);

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Contact, Copy, MessageCircle, Plus, UsersRound } from 'lucide-react';
 import { hrefFor } from '@/app/router';
 import { useCan } from '@/app/session';
+import { useLiveTables } from '@/lib/live';
+import { DecisionRow } from '../approvals/ApprovalsPanel';
+import { useApprovals } from '../approvals/api';
 import { useDeleteRow, useRows, useSaveRow } from '@/lib/crud';
 import { fmtMoney, fmtNum } from '@/lib/format';
 import { ledgerBalance } from '@/lib/payroll';
@@ -12,7 +15,7 @@ import { FormDrawer, type FieldDef } from '@/ui/FormDrawer';
 import { ListToolbar, matches } from '@/ui/ListToolbar';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, Tabs, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
-import { DEPARTMENTS, PAY_TYPES, REQUEST_KINDS, slugify, useEmployees, useLedger, type Employee, type EmployeeRequest } from './api';
+import { DEPARTMENTS, PAY_TYPES, REQUEST_KINDS, slugify, useEmployees, useLedger, type Employee } from './api';
 
 export const cardUrl = (slug: string) => `${window.location.origin}${window.location.pathname}${hrefFor(`/kart/${slug}`)}`;
 
@@ -45,7 +48,6 @@ export function PersonnelPage() {
   const requests = useRows('employee_requests', { order: 'created_at', ascending: false });
   const save = useSaveRow('employees');
   const del = useDeleteRow('employees');
-  const saveReq = useSaveRow('employee_requests');
   const [tab, setTab] = useState<'liste' | 'talepler'>('liste');
   const [q, setQ] = useState('');
   const [dept, setDept] = useState('');
@@ -86,9 +88,11 @@ export function PersonnelPage() {
     ),
   });
 
-  const decide = async (r: EmployeeRequest, status: 'onaylandi' | 'reddedildi') => {
-    try { await saveReq.mutateAsync({ id: r.id, row: { status } }); toast.ok(status === 'onaylandi' ? 'Talep onaylandı' : 'Talep reddedildi'); } catch (e) { toast.error(e); }
-  };
+  // Karar onay merkezinden verilir (talep eden kendi talebini onaylayamaz; onaylı avans seçilen kasadan ödenir)
+  const approvals = useApprovals('bekliyor');
+  useLiveTables(['employee_requests', 'approval_requests']);
+  const approvalOf = (requestId: string) => (approvals.data ?? []).find((a) => a.subject_table === 'employee_requests' && a.subject_id === requestId);
+  const canDecideHere = useCan(['yonetici']);
 
   return (
     <>
@@ -160,23 +164,22 @@ export function PersonnelPage() {
             )}
         </Panel>
       ) : (
-        <Panel pad={false} title="İzin, avans ve mesai talepleri" subtitle="Onaylanan avans, Personel Bakiyeleri ekranından ödenir">
+        <Panel pad={false} title="İzin, avans ve mesai talepleri" subtitle="Onaylanan avans seçilen kasadan ödenir ve bakiyeye anında yansır">
           {(requests.data ?? []).length === 0 ? <EmptyState title="Talep yok">Personel kendi hesabından veya yönetici adına talep açılabilir.</EmptyState> : (
             <ul className="divide-y divide-line">
-              {(requests.data ?? []).map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-ink">{empName(r.employee_id)} · {REQUEST_KINDS[r.kind]}</div>
-                    <div className="text-xs text-ink-3">{[r.start_date, r.end_date].filter(Boolean).join(' → ')}{r.amount ? ` · ${fmtMoney(r.amount)}` : ''}{r.note ? ` · ${r.note}` : ''}</div>
-                  </div>
-                  {r.status === 'bekliyor' && canEdit ? (
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => decide(r, 'reddedildi')}>Reddet</Button>
-                      <Button size="sm" variant="holo" onClick={() => decide(r, 'onaylandi')}>Onayla</Button>
+              {(requests.data ?? []).map((r) => {
+                const ap = approvalOf(r.id);
+                if (r.status === 'bekliyor' && ap && canDecideHere) return <DecisionRow key={r.id} a={ap} policy={REQUEST_KINDS[r.kind]} />;
+                return (
+                  <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-ink">{empName(r.employee_id)} · {REQUEST_KINDS[r.kind]}</div>
+                      <div className="text-xs text-ink-3">{[r.start_date, r.end_date].filter(Boolean).join(' → ')}{r.amount ? ` · ${fmtMoney(r.amount)}` : ''}{r.note ? ` · ${r.note}` : ''}</div>
                     </div>
-                  ) : <Pill tone={r.status === 'onaylandi' ? 'ok' : r.status === 'reddedildi' ? 'stop' : 'wait'}>{r.status === 'onaylandi' ? 'Onaylandı' : r.status === 'reddedildi' ? 'Reddedildi' : 'Bekliyor'}</Pill>}
-                </li>
-              ))}
+                    <Pill tone={r.status === 'onaylandi' ? 'ok' : r.status === 'reddedildi' ? 'stop' : 'wait'}>{r.status === 'onaylandi' ? 'Onaylandı' : r.status === 'reddedildi' ? 'Reddedildi' : 'Onay bekliyor'}</Pill>
+                  </li>
+                );
+              })}
             </ul>
           )}
           {canEdit && <NewRequest employees={active} />}
