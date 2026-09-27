@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
-interface RouterApi { path: string; go: (path: string) => void }
+interface RouterApi { path: string; go: (path: string, opts?: { replace?: boolean }) => void }
 
 /** VITE_ROUTER=hash: adres çubuğu yerine #/yol kullanılır (statik barındırma, gömülü önizleme). */
 const HASH = import.meta.env.VITE_ROUTER === 'hash';
@@ -16,9 +16,10 @@ export function RouterProvider({ children }: { children: ReactNode }) {
     window.addEventListener('hashchange', onPop);
     return () => { window.removeEventListener('popstate', onPop); window.removeEventListener('hashchange', onPop); };
   }, []);
-  const go = useCallback((next: string) => {
+  const go = useCallback((next: string, opts?: { replace?: boolean }) => {
     if (next === currentPath()) return;
-    window.history.pushState({}, '', hrefFor(next));
+    if (opts?.replace) window.history.replaceState({}, '', hrefFor(next));
+    else window.history.pushState({}, '', hrefFor(next));
     setPath(next);
     window.scrollTo({ top: 0 });
   }, []);

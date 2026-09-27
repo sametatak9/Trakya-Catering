@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { supabaseConfigured } from '@/lib/supabase';
-import { DashboardPage, NotFound } from '@/features/dashboard/DashboardPage';
+import { NotFound } from '@/features/dashboard/DashboardPage';
+import { HomePage } from '@/features/dashboard/Workspace';
 import { CashPage } from '@/features/finance/CashPage';
 import { ExpensesPage } from '@/features/finance/ExpensesPage';
 import { FinanceSummaryPage } from '@/features/finance/FinanceSummaryPage';
@@ -26,49 +27,51 @@ import { RecipesPage } from '@/features/kitchen/RecipesPage';
 import { TeamPage } from '@/features/team/TeamPage';
 import { Loading } from '@/ui/primitives';
 import { LoginScreen, PendingAccess, PortalComingSoon, SetupMissing } from './AuthScreens';
-import { activeModule } from './modules';
-import { useVisibleModules } from './permissions';
+import { resolveAlias, resolveRoute } from './modules';
+import { ModuleTabs } from './ModuleTabs';
+import { usePermissionMaps, useVisibleModules } from './permissions';
 import { matchPath, useRouter } from './router';
-import { useSessionState } from './session';
+import { useMember, useSessionState } from './session';
 import { Shell } from './Shell';
 import { applyTheme, readTheme } from './theme';
 
-function Routes() {
-  const { path } = useRouter();
-  const visible = useVisibleModules();
-  const mod = activeModule(path);
-
-  if (!mod || !visible.includes(mod)) return <NotFound />;
-
-  const recipe = matchPath('/receteler/:id', path);
-  if (recipe) return <RecipeEditor id={recipe.id === 'yeni' ? null : recipe.id} />;
-
-  switch (mod.path) {
-    case '/': return <DashboardPage />;
-    case '/hammaddeler': return <IngredientsPage />;
-    case '/receteler': return <RecipesPage />;
-    case '/menuler': return <MenusPage />;
-    case '/uretim': return <PrepPage />;
-    case '/mutfak-ekrani': return <KitchenScreen />;
-    case '/kahvalti': return <PrepPage fixedMeal="kahvalti" title="Kahvaltı" kicker="Mutfak · Kahvaltı hazırlığı" />;
-    case '/menu-plani': return <MenuPlanPage />;
-    case '/siparisler': return <OrdersPage />;
-    case '/musteriler': return <CustomersPage />;
-    case '/finans': return <FinanceSummaryPage />;
-    case '/giderler': return <ExpensesPage />;
-    case '/gelen-faturalar': return <InvoicesPage />;
-    case '/kasa': return <CashPage />;
-    case '/ekip': return <TeamPage />;
-    case '/kurucu': return <FounderPage />;
-    case '/stok': return <StockPage />;
-    case '/sevk': return <SuppliesPage />;
+/** Modül + sekmeye göre sayfa. Sayfa bileşenleri taşınmadı; yalnız sekme kabuğunda gösterilir. */
+function pageFor(mod: string, tab: string | undefined, rest: string[]) {
+  switch (mod) {
+    case '/': return <HomePage />;
+    case '/uretim': return tab === 'mutfak' ? <KitchenScreen /> : <PrepPage initialMeal={rest[0]} />;
+    case '/menuler': return tab === 'plan' ? <MenuPlanPage /> : <MenusPage />;
+    case '/receteler': return rest[0] ? <RecipeEditor id={rest[0] === 'yeni' ? null : rest[0]} /> : <RecipesPage />;
+    case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'hammaddeler' ? <IngredientsPage /> : <StockPage />;
     case '/satinalma': return <PurchasingPage />;
-    case '/tedarikciler': return <SuppliersPage />;
-    case '/personel': return <PersonnelPage />;
-    case '/puantaj': return <AttendancePage />;
-    case '/personel-bakiye': return <BalancesPage />;
+    case '/siparisler': return <OrdersPage />;
+    case '/cari': return tab === 'tedarikciler' ? <SuppliersPage /> : <CustomersPage />;
+    case '/personel': return tab === 'puantaj' ? <AttendancePage /> : tab === 'bakiye' ? <BalancesPage /> : <PersonnelPage />;
+    case '/finans': return tab === 'giderler' ? <ExpensesPage /> : tab === 'faturalar' ? <InvoicesPage /> : <FinanceSummaryPage />;
+    case '/kasa': return <CashPage />;
+    case '/ayarlar': return tab === 'yetkiler' ? <FounderPage /> : <TeamPage />;
     default: return <NotFound />;
   }
+}
+
+function Routes() {
+  const { path, go } = useRouter();
+  const me = useMember();
+  const perms = usePermissionMaps();
+  const visible = useVisibleModules();
+  const alias = resolveAlias(path);
+  // Eski adres (yer imi) → yeni modül/sekme; geçmişte iz bırakmadan
+  useEffect(() => { if (alias) go(alias, { replace: true }); }, [alias, go]);
+  if (alias) return <Loading />;
+
+  const { mod, tab, rest, tabs } = resolveRoute(path, me.role, perms);
+  if (!mod || !visible.includes(mod) || (mod.tabs && !tab)) return <NotFound />;
+  return (
+    <>
+      {tabs.length > 1 && !(mod.path === '/receteler' && rest.length) && <ModuleTabs mod={mod} tabs={tabs} active={tab?.id} />}
+      <div key={`${mod.path}/${tab?.id ?? ''}`}>{pageFor(mod.path, tab?.id, rest)}</div>
+    </>
+  );
 }
 
 export function App() {

@@ -170,7 +170,7 @@ export function OrdersPage() {
       </div>
 
       {(customers.data ?? []).length === 0 && !customers.isLoading && (
-        <div className="mb-4"><Hint action={<Link to="/musteriler" className="text-sm font-semibold text-brand whitespace-nowrap">Müşteri ekle →</Link>}>
+        <div className="mb-4"><Hint action={<Link to="/cari/musteriler" className="text-sm font-semibold text-brand whitespace-nowrap">Müşteri ekle →</Link>}>
           Sipariş girebilmek için önce müşteri (firma) kartı açın; kişi başı fiyat ve vade oradan gelir.
         </Hint></div>
       )}

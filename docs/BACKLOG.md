@@ -82,7 +82,9 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 - 🔌 Parmak izi cihazına doğrudan bağlantı (işyerinde aktarım programı)
 
 ## 7. Sistem
-- ✅ Kurucu paneli: rol × sekme görünürlüğü, kişiye özel istisna, bağlantı durumları
+- ✅ Kurucu paneli: rol × sekme görünürlüğü (sekme düzeyinde), kişiye özel istisna, bağlantı durumları
+- ✅ Sade menü: 30 ekran → 14 modül + sekmeler; eski adresler yönlendirilir
+- ✅ Bugün = rol iş masası (aşçıbaşı, diyetisyen, depo, satınalma, muhasebe, pazarlama, şoför için kartlar); yönetici: Özet · Onaylar
 - ✅ Ekip & firma bilgileri (antet), logo
 - ✅ Asistan / bildirim merkezi: zam, vadesi geçen alacak, yaklaşan ödeme, eksik fiyat, gelmeyen sipariş
 - ✅ Asistan: fiyatsız sipariş uyarısı
@@ -92,8 +94,8 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 
 ## Sıra (şu an) — ANA-PROMPT §8
 1. ✅ Faz 3A — güvenlik ve bütünlük
-2. ⏳ Faz 3B — navigasyon 30 → 14, rol çalışma alanı
-3. ⏳ Faz 3C-0 — onay merkezi + avans → bakiye canlı bağlantısı
+2. ✅ Faz 3B — navigasyon 30 → 14, rol çalışma alanı
+3. 🔨 Faz 3C-0 — onay merkezi + avans → bakiye canlı bağlantısı
 4. ⏳ Faz 3C — üretim emri onayı → stok/sipariş/gelir
 5. ⏳ Faz 3D — menü tipleri, müşteri menüsü, **menü kartı HTML/PDF (standart, kalorili, kahvaltı)**
 6. ⏳ Faz 3E — stok partileri, depolar, sayım, güncellenen stoklar, satınalma talep formu, stok/yemek iskeleti

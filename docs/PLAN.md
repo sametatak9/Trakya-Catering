@@ -39,8 +39,8 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 | Faz | Konu | Durum |
 |---|---|---|
 | 3A | Güvenlik, bütünlük, migration sürümleri, parseNum, çıkış önbelleği, hata kaydı, CI | ✅ (rapor: `raporlar/faz-3A.md`) |
-| 3B | Navigasyon 30 → 14 modül, sekmeler, eski yolların yönlendirmesi, rol çalışma alanı | ⏳ sıradaki |
-| 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ⏳ |
+| 3B | Navigasyon 30 → 14 modül, sekmeler, eski yolların yönlendirmesi, rol çalışma alanı | ✅ (rapor: `raporlar/faz-3B.md`) |
+| 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ⏳ sıradaki |
 | 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ⏳ |
 | 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ⏳ |
 | 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | ⏳ |
@@ -61,6 +61,8 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 - **Stok düzeltme:** Stok hareketi silinmez/değiştirilmez; yönetici dışındaki roller "ters kayıt" ile düzeltir. Sayım hareketi = fark (delta).
 - **Fiyatsız teslim:** Veritabanı reddeder (kişi başı fiyat 0 iken teslim → hata); asistan önceden uyarır.
 - **Mesai kuralı:** Günlük çalışma 10 saat (kartta değiştirilebilir), üstü ×1,5.
+- **Sekme adresleri:** Hash yönlendiricide ikinci `#` kullanılamadığı için sekme adresi `/modul/sekme` (ör. `/finans/giderler`); yetki anahtarı belgedeki gibi `/finans#giderler`.
+- **Onaylar sekmesi:** Faz 3C-0'a kadar bekleyen personel talepleri (izin/avans/mesai) burada onaylanır.
 - **Main dalı:** Belge gereği her faz testleri geçince `main`'e ve canlı dala aynı commit gönderilir.
 
 ## Açık notlar

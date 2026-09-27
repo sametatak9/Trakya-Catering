@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Fragment, useState } from 'react';
 import { CheckCircle2, CircleDashed, Eye, EyeOff, PlugZap } from 'lucide-react';
-import { GROUP_LABELS, MODULES, defaultVisible, type ModuleDef } from '@/app/modules';
+import { GROUP_LABELS, MODULES, defaultVisible, permKey, type ModuleDef, type TabDef } from '@/app/modules';
 import { useInsertRows, useRows } from '@/lib/crud';
 import { ROLE_LABELS, type AppRole } from '@/lib/domain';
 import { supabase, unwrap } from '@/lib/supabase';
@@ -9,7 +9,12 @@ import { Button, ModuleHero, Panel, Pill, Tabs, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
 
 const ROLES_EDITABLE: AppRole[] = ['yonetici', 'asci_basi', 'diyetisyen', 'depo', 'satinalma', 'muhasebe', 'pazarlamaci', 'sofor'];
-const EDITABLE_MODULES = MODULES.filter((m) => m.path !== '/kurucu' && m.path !== '/');
+const EDITABLE_MODULES = MODULES.filter((m) => m.path !== '/');
+/** Matris satırları: sekmeli modülde her sekme ayrı satır (yetki anahtarı `/modul#sekme`) */
+interface Row { m: ModuleDef; tab?: TabDef; key: string; label: string; hint: string }
+const ROWS: Row[] = EDITABLE_MODULES.flatMap((m) => (m.tabs
+  ? m.tabs.filter((t) => !(m.path === '/ayarlar' && t.id === 'yetkiler')).map((t) => ({ m, tab: t, key: permKey(m, t), label: `${m.label} › ${t.label}`, hint: m.hint }))
+  : [{ m, key: m.path, label: m.label, hint: m.hint }]));
 
 /** Kurucu: her üyeliğin görebileceği sekmeleri belirler. Veriye yazma yetkisi ayrıca veritabanında (RLS) rolle korunur. */
 export function FounderPage() {
@@ -33,16 +38,16 @@ function RoleMatrix() {
   const perms = useRows('role_permissions', { key: ['all'] });
   const upsert = useInsertRows('role_permissions');
   const map = new Map((perms.data ?? []).map((r) => [`${r.role}|${r.module}`, r.level]));
-  const visible = (m: ModuleDef, role: AppRole) => {
-    const lv = map.get(`${role}|${m.path}`);
-    return lv ? lv !== 'yok' : defaultVisible(m, role);
+  const visible = (r: Row, role: AppRole) => {
+    const lv = map.get(`${role}|${r.key}`) ?? (r.tab ? map.get(`${role}|${r.m.path}`) : undefined);
+    return lv ? lv !== 'yok' : defaultVisible(r.m, role, r.tab);
   };
-  const toggle = async (m: ModuleDef, role: AppRole) => {
+  const toggle = async (r: Row, role: AppRole) => {
     try {
-      await upsert.mutateAsync({ rows: [{ role, module: m.path, level: visible(m, role) ? 'yok' : 'gor' }], onConflict: 'role,module' });
+      await upsert.mutateAsync({ rows: [{ role, module: r.key, level: visible(r, role) ? 'yok' : 'gor' }], onConflict: 'role,module' });
     } catch (e) { toast.error(e); }
   };
-  const groups = (Object.keys(GROUP_LABELS) as ModuleDef['group'][]).map((g) => ({ g, items: EDITABLE_MODULES.filter((m) => m.group === g) })).filter((x) => x.items.length);
+  const groups = (Object.keys(GROUP_LABELS) as ModuleDef['group'][]).map((g) => ({ g, items: ROWS.filter((r) => r.m.group === g) })).filter((x) => x.items.length);
 
   return (
     <Panel pad={false} title="Hangi rol hangi sekmeyi görsün?" subtitle="Hücreye dokunun: göz açık = görür. Değişiklik o roldeki herkesin menüsüne hemen yansır.">
@@ -59,7 +64,7 @@ function RoleMatrix() {
               <Fragment key={g}>
                 <tr><td colSpan={ROLES_EDITABLE.length + 1} className="sticky left-0 bg-surface-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">{GROUP_LABELS[g]}</td></tr>
                 {items.map((m) => (
-                  <tr key={m.path}>
+                  <tr key={m.key}>
                     <td className="sticky left-0 z-10 bg-card px-4 py-2 border-b border-line"><div className="font-semibold text-ink">{m.label}</div><div className="text-[11px] text-ink-3">{m.hint}</div></td>
                     {ROLES_EDITABLE.map((r) => {
                       const on = visible(m, r);
@@ -113,7 +118,7 @@ function MemberOverrides() {
           <option value="">Kişi seç…</option>{members.map((m) => <option key={m.user_id} value={m.user_id}>{m.full_name || m.email} · {ROLE_LABELS[m.role as AppRole]}</option>)}
         </select>
         <select className="tc-input" value={mod} onChange={(e) => setMod(e.target.value)} aria-label="Sekme">
-          <option value="">Sekme seç…</option>{EDITABLE_MODULES.map((m) => <option key={m.path} value={m.path}>{m.label}</option>)}
+          <option value="">Sekme seç…</option>{ROWS.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
         </select>
         <select className="tc-input" value={level} onChange={(e) => setLevel(e.target.value as 'gor' | 'yok')} aria-label="Durum">
           <option value="gor">Görsün</option><option value="yok">Görmesin</option>
@@ -125,7 +130,7 @@ function MemberOverrides() {
         {(perms.data ?? []).map((p) => (
           <li key={`${p.user_id}${p.module}`} className="flex items-center gap-3 py-2.5 text-sm">
             <span className="font-semibold text-ink">{nameOf(p.user_id)}</span>
-            <span className="text-ink-3">{MODULES.find((m) => m.path === p.module)?.label ?? p.module}</span>
+            <span className="text-ink-3">{ROWS.find((r) => r.key === p.module)?.label ?? MODULES.find((m) => m.path === p.module)?.label ?? p.module}</span>
             <Pill tone={p.level === 'yok' ? 'stop' : 'ok'}>{p.level === 'yok' ? 'görmez' : 'görür'}</Pill>
             <button type="button" className="ml-auto text-xs text-ink-3 hover:text-stop" onClick={() => remove(p.user_id, p.module)}>kaldır</button>
           </li>

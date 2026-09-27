@@ -135,10 +135,10 @@ export function DashboardPage() {
     };
   };
   const steps = [
-    { done: ingredients.length > 0, label: 'Hammaddeleri ekle', hint: 'birim, fire, alış fiyatı', to: '/hammaddeler' },
+    { done: ingredients.length > 0, label: 'Hammaddeleri ekle', hint: 'birim, fire, alış fiyatı', to: '/stok/hammaddeler' },
     { done: (rec.data ?? []).some((r) => (r.line_count ?? 0) > 0), label: 'Reçete gramajlarını gir', hint: '1 porsiyonun net gramajı', to: '/receteler' },
     { done: (menus.data ?? []).length > 0, label: 'Menüleri kur', hint: 'kaç çeşitse o kadar kap', to: '/menuler' },
-    { done: (customers.data ?? []).length > 0, label: 'Müşterileri ekle', hint: 'kişi başı fiyat ve vade', to: '/musteriler' },
+    { done: (customers.data ?? []).length > 0, label: 'Müşterileri ekle', hint: 'kişi başı fiyat ve vade', to: '/cari/musteriler' },
     { done: ords.length > 0, label: 'Sipariş gir', hint: 'yarının yemek sayıları', to: '/siparisler' },
   ];
   const setupDone = steps.every((s) => s.done);
@@ -238,7 +238,7 @@ export function DashboardPage() {
             )}
           </Panel>
         ) : (
-          <Panel title="Fiyat bekleyen hammaddeler" action={<Link to="/hammaddeler" className="text-xs font-semibold text-brand">Tümü →</Link>}>
+          <Panel title="Fiyat bekleyen hammaddeler" action={<Link to="/stok/hammaddeler" className="text-xs font-semibold text-brand">Tümü →</Link>}>
             {priceIssues.length === 0 ? <p className="text-sm text-ink-3">Tüm fiyatlar güncel.</p> : (
               <ul className="divide-y divide-line -my-1.5">
                 {priceIssues.slice(0, 7).map((i) => (
@@ -252,7 +252,7 @@ export function DashboardPage() {
 
       {isFinance && priceIssues.length > 0 && (
         <p className="text-xs text-ink-3 mt-4">
-          {priceIssues.length} hammaddenin fiyatı yok veya {PRICE_STALE_DAYS} günden eski — maliyetler yanıltıcı olabilir. <Link to="/hammaddeler" className="text-brand font-semibold">Güncelle →</Link>
+          {priceIssues.length} hammaddenin fiyatı yok veya {PRICE_STALE_DAYS} günden eski — maliyetler yanıltıcı olabilir. <Link to="/stok/hammaddeler" className="text-brand font-semibold">Güncelle →</Link>
         </p>
       )}
 

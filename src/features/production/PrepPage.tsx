@@ -28,12 +28,12 @@ import {
 const TREND_DAYS = 14;
 
 /** Günlük Hazırlık & Maliyet. `fixedMeal` verilirse (ör. Kahvaltı sekmesi) öğün sabitlenir. */
-export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; title?: string; kicker?: string }) {
+export function PrepPage({ fixedMeal, initialMeal, title, kicker }: { fixedMeal?: string; initialMeal?: string; title?: string; kicker?: string }) {
   const toast = useToast();
   const canEdit = useCan(ROLES.production);
   const isFinance = useCan(ROLES.finance);
   const [date, setDate] = useState(todayISO);
-  const [mealState, setMeal] = useState(fixedMeal ?? 'ogle');
+  const [mealState, setMeal] = useState(fixedMeal ?? (initialMeal && initialMeal in MEALS ? initialMeal : 'ogle'));
   const meal = fixedMeal ?? mealState;
   const from = addDays(date, -(TREND_DAYS - 1));
 
@@ -309,7 +309,7 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
       </div>
 
       {(recipes.data ?? []).length === 0 && (menus.data ?? []).length === 0 && !recipes.isLoading && (
-        <div className="mb-4"><Hint action={<Link to="/menu-plani" className="text-sm font-semibold text-brand whitespace-nowrap">Menü planı →</Link>}>
+        <div className="mb-4"><Hint action={<Link to="/menuler/plan" className="text-sm font-semibold text-brand whitespace-nowrap">Menü planı →</Link>}>
           Reçete şart değil: “Yemek ekle” ile başlayıp malzemeleri çalışırken girebilirsiniz. Menü planı ve siparişler varsa yemekler kendiliğinden gelir.
         </Hint></div>
       )}

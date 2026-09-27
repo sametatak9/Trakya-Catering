@@ -56,7 +56,7 @@ export function buildAlerts(x: AlertInput): Alert[] {
       id: `fiyat:${id}:${last.noted_at.slice(0, 10)}`, kind: 'fiyat', tone: change > 0 ? (change >= 10 ? 'stop' : 'wait') : 'ok',
       title: `${ing.name} ${change > 0 ? 'zamlandı' : 'ucuzladı'} ${change > 0 ? '+' : '−'}${pct(Math.abs(change))}`,
       body: `${money(prev.price)} → ${money(last.price)} / ${ing.stock_unit}. Bu malzemeyi kullanan reçetelerin maliyeti ${change > 0 ? 'arttı' : 'düştü'}.`,
-      to: '/hammaddeler', weight: 60 + Math.min(Math.abs(change), 30),
+      to: '/stok/hammaddeler', weight: 60 + Math.min(Math.abs(change), 30),
     });
   }
 
@@ -65,13 +65,13 @@ export function buildAlerts(x: AlertInput): Alert[] {
   if (missing.length) out.push({
     id: `fiyat-yok:${missing.map((m) => m.id).sort().join(',')}`, kind: 'fiyat', tone: 'wait',
     title: `${missing.length} hammaddenin fiyatı yok`, body: `${missing.slice(0, 3).map((m) => m.name).join(', ')}${missing.length > 3 ? '…' : ''} — maliyet eksik hesaplanır.`,
-    to: '/hammaddeler', weight: 40,
+    to: '/stok/hammaddeler', weight: 40,
   });
   const stale = x.ingredients.filter((i) => i.active && i.last_price != null && i.price_updated_at && days(i.price_updated_at, x.today) > x.staleDays);
   if (stale.length) out.push({
     id: `fiyat-eski:${x.today}`, kind: 'fiyat', tone: 'info',
     title: `${stale.length} hammaddenin fiyatı ${x.staleDays} günden eski`, body: `${stale.slice(0, 3).map((m) => m.name).join(', ')} — son faturayla güncelleyin.`,
-    to: '/hammaddeler', weight: 25,
+    to: '/stok/hammaddeler', weight: 25,
   });
 
   // 3) Alacaklar ve borçlar (finans yetkisi varsa)
@@ -148,7 +148,7 @@ export function buildAlerts(x: AlertInput): Alert[] {
 
   if (x.draftInvoices > 0) out.push({
     id: `fatura:${x.today}:${x.draftInvoices}`, kind: 'fatura', tone: 'info', title: `${x.draftInvoices} e-fatura onay bekliyor`,
-    body: 'Gider kategorisi otomatik önerildi; onaylayınca giderlere ve borçlara işlenir.', to: '/gelen-faturalar', weight: 42,
+    body: 'Gider kategorisi otomatik önerildi; onaylayınca giderlere ve borçlara işlenir.', to: '/finans/faturalar', weight: 42,
   });
 
   return out.sort((a, b) => b.weight - a.weight);

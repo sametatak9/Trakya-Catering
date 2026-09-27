@@ -51,7 +51,23 @@ Doğruluk kaynağı veritabanıdır (`v_recipe_lines`, `v_recipe_costs`, `v_menu
 
 ## Ekranlar
 
-Bugün · Günlük Hazırlık & Maliyet · Mutfak Ekranı · Kahvaltı · Menü Planı · Reçeteler & Gramaj · Menüler · Hammaddeler · Siparişler · Müşteriler · Finans Özeti · Giderler · Gelen Faturalar · Kasa & Gelirler · Ekip & Yetkiler
+Bir iş akışı = bir modül; ayrıntılar sekme (`src/app/modules.ts`). Eski adresler (`/kahvalti`, `/giderler`, `/kurucu`…) yeni yerine yönlendirilir.
+
+| Modül | Sekmeler |
+|---|---|
+| Bugün | Rolüne göre iş masası · yönetici/kurucu: Özet · Onaylar |
+| Üretim | Günlük üretim (öğün seçimli) · Mutfak ekranı |
+| Menüler | Menü kartları · Menü planı |
+| Reçeteler | — |
+| Stok | Stok durumu · Firmalara giden · Hammadde kartları |
+| Satınalma · Siparişler | — |
+| Cari Hesaplar | Müşteriler · Tedarikçiler |
+| Personel | Kartlar & talepler · Puantaj & maaş · Bakiye & ödemeler |
+| Finans | Özet · Giderler · Gelen faturalar |
+| Kasa & Banka | — |
+| Ayarlar | Kullanıcılar & firma · Yetkiler (kurucu) |
+
+Yapımı süren: Teklifler & Sunum, Sosyal Medya, Lojistik, Şoför Ekranı. Kurucu panelinde görünürlük sekme düzeyinde ayarlanır (`/finans#giderler`).
 
 Otomatik akışlar (veritabanı trigger'ları):
 - Sipariş **teslim edildi** → gelir (alacak) kaydı, vade müşteri kartından

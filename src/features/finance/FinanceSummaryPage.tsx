@@ -154,7 +154,7 @@ export function FinanceSummaryPage() {
         </Panel>
 
         <Panel title="Gider dağılımı" subtitle={monthLabel(month)} className="xl:col-span-2"
-          action={<Link to="/giderler" className="text-xs font-semibold text-brand">Giderler →</Link>}>
+          action={<Link to="/finans/giderler" className="text-xs font-semibold text-brand">Giderler →</Link>}>
           {expByGroup.length === 0 ? <p className="text-sm text-ink-3">Bu ay gider kaydı yok.</p> : (
             <ul className="grid md:grid-cols-2 gap-x-8 gap-y-3">
               {expByGroup.map(([g, v]) => (
