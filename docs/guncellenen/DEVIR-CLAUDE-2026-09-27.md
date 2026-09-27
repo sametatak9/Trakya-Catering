@@ -86,5 +86,5 @@ Trakya-Catering için bu devir dosyasını oku: docs/guncellenen/DEVIR-CLAUDE-20
 
 ## Yayın durumu
 
-- Render `main`'i değil, `claude/catering-erp-transformation-lxyhbx` dalını otomatik yayınlıyor (`autoDeploy=yes`). İstekteki “`main` ve canlı aynı olsun” gereğini karşılamak için bu turdaki kod + handoff commit'i `main`, Claude dalı ve `grok/gece-calismasi` dalına aynı SHA ile gönderilmelidir.
-- Push ve Render dağıtımı sonrası SHA/deploy durumu ve public HTTP kontrolü bu başlıkta sonradan doldurulacak.
+- Uygulama commit'i `5569e2302fbda61dbf4cbd5cbe9b93d163313516` aynı anda `main`, `claude/catering-erp-transformation-lxyhbx` ve `grok/gece-calismasi` dallarına push edildi; push anında üç uzak ref de bu SHA idi. GitHub CI, bu commit için `main` ve Claude dalında başarılı oldu.
+- Render `main`'i değil, `claude/catering-erp-transformation-lxyhbx` dalını otomatik yayınlıyor (`autoDeploy=yes`); dal, uygulama commit'iyle eşitlendi. Son kontrol anında Render'ın yeni deployment kaydı/public HTML asset'i henüz görünmedi. Bu yüzden push/CI tamam, fakat **yeni sürümün canlıda açıldığı doğrulanmış değil**. Claude `Render` deployment listesi ve public URL'deki Vite asset hash'ini kontrol etmeli; deployment başarısızsa log nedenini incelemeli.
