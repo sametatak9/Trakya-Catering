@@ -1,4 +1,4 @@
-// Supabase şemasından üretildi (generate_typescript_types); canlı DB yalnızca okundu.
+// Supabase şemasından üretildi (generate_typescript_types). save_* RPC p_id alanları yeni kayıt için null kabul eder.
 export type Json =
   | string
   | number
@@ -777,6 +777,7 @@ export type Database = {
           lng: number | null
           name: string
           notes: string | null
+          order_link_used_at: string | null
           order_token: string
           payment_term_days: number
           phone: string | null
@@ -801,6 +802,7 @@ export type Database = {
           lng?: number | null
           name: string
           notes?: string | null
+          order_link_used_at?: string | null
           order_token?: string
           payment_term_days?: number
           phone?: string | null
@@ -825,6 +827,7 @@ export type Database = {
           lng?: number | null
           name?: string
           notes?: string | null
+          order_link_used_at?: string | null
           order_token?: string
           payment_term_days?: number
           phone?: string | null
@@ -4092,6 +4095,7 @@ export type Database = {
         }
         Returns: string
       }
+      rotate_order_token: { Args: { p_customer: string }; Returns: string }
       save_menu: {
         Args: { p_header: Json; p_id: string | null; p_items: Json }
         Returns: string

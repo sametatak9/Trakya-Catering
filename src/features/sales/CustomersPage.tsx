@@ -6,6 +6,7 @@ import { ROLES } from '@/lib/domain';
 import { fmtNum, parseNum } from '@/lib/format';
 import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { OrderLinkPanel } from './OrderLinkPanel';
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
 import { fmtMoney } from '@/lib/format';
 import { orderPeople, useCustomers, useOrders, useSaveCustomer, type Customer } from './api';
@@ -133,6 +134,7 @@ function CustomerDrawer({ customer, canEdit, onClose }: { customer: Customer | n
     vat: String(c?.vat_rate ?? 10), term: String(c?.payment_term_days ?? 30), e_invoice: c?.e_invoice ?? false, notes: c?.notes ?? '', active: c?.active ?? true,
   });
   const [err, setErr] = useState<string | null>(null);
+  const [tab, setTab] = useState<'bilgi' | 'link'>('bilgi');
   const set = (p: Partial<typeof f>) => setF((x) => ({ ...x, ...p }));
 
   const submit = async () => {
@@ -157,7 +159,16 @@ function CustomerDrawer({ customer, canEdit, onClose }: { customer: Customer | n
 
   return (
     <Drawer open onClose={onClose} title={c ? c.name : 'Yeni müşteri'} subtitle="Fiyat, vade ve fatura bilgileri"
-      footer={canEdit && <><Button onClick={onClose}>Vazgeç</Button><Button variant="holo" onClick={submit} loading={save.isPending}>Kaydet</Button></>}>
+      footer={canEdit && tab === 'bilgi' && <><Button onClick={onClose}>Vazgeç</Button><Button variant="holo" onClick={submit} loading={save.isPending}>Kaydet</Button></>}>
+      {c && (
+        <div role="tablist" aria-label="Müşteri kartı" className="mb-4 flex gap-1 rounded-xl bg-surface-2 p-1 text-sm font-semibold">
+          {([['bilgi', 'Bilgiler'], ['link', 'Sipariş linki']] as const).map(([id, label]) => (
+            <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+              className={cx('flex-1 rounded-lg px-3 py-1.5 transition', tab === id ? 'bg-card text-ink shadow-sm' : 'text-ink-3 hover:text-ink')}>{label}</button>
+          ))}
+        </div>
+      )}
+      {c && tab === 'link' ? <OrderLinkPanel customer={c} /> : <>
       <fieldset disabled={!canEdit} className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <Field label="Firma / kişi adı" className="col-span-2"><input className="tc-input" value={f.name} onChange={(e) => set({ name: e.target.value })} placeholder="Çorlu OSB Tekstil A.Ş." /></Field>
@@ -193,6 +204,7 @@ function CustomerDrawer({ customer, canEdit, onClose }: { customer: Customer | n
         </label>
       </fieldset>
       {err && <div className="mt-4"><ErrorNote>{err}</ErrorNote></div>}
+      </>}
     </Drawer>
   );
 }
