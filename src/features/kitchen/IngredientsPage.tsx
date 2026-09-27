@@ -31,17 +31,17 @@ export function IngredientsPage() {
   const usedCats = Array.from(new Set(list.map((i) => i.category)));
 
   const report = (): ReportSpec => ({
-    title: 'Hammadde Fiyat Listesi',
+    title: 'Stok Kartı Fiyat Listesi',
     subtitle: `${filtered.length} kalem · son alış fiyatları (KDV hariç)`,
     summary: filtered.slice(0, 30).map((i) => ({ label: i.name, value: i.last_price === null ? 'fiyat yok' : `${fmtMoney(i.last_price)} / ${i.stock_unit}` })),
     table: {
-      filename: 'hammadde-fiyatlari',
-      header: ['Kod', 'Hammadde', 'Kategori', 'Birim', 'Fire %', 'Son fiyat ₺', 'Fiyat tarihi', 'Alerjenler'],
+      filename: 'stok-karti-fiyatlari',
+      header: ['Kod', 'Stok kartı', 'Kategori', 'Birim', 'Fire %', 'Son fiyat ₺', 'Fiyat tarihi', 'Alerjenler'],
       rows: filtered.map((i) => [i.code, i.name, INGREDIENT_CATEGORIES[i.category], i.stock_unit, i.waste_pct, i.last_price, i.price_updated_at?.slice(0, 10), i.allergens.map((a) => ALLERGENS[a]).join(', ')]),
     },
     body: () => (
       <table>
-        <thead><tr><th>Hammadde</th><th>Kategori</th><th className="num">Fire</th><th className="num">Son fiyat</th><th>Fiyat tarihi</th><th>Alerjen</th></tr></thead>
+        <thead><tr><th>Stok kartı</th><th>Kategori</th><th className="num">Fire</th><th className="num">Son fiyat</th><th>Fiyat tarihi</th><th>Alerjen</th></tr></thead>
         <tbody>{filtered.map((i) => <tr key={i.id}><td>{i.name}</td><td>{INGREDIENT_CATEGORIES[i.category]}</td><td className="num">{Number(i.waste_pct) ? `%${i.waste_pct}` : '—'}</td>
           <td className="num">{i.last_price === null ? '—' : `${fmtMoney(i.last_price)}/${i.stock_unit}`}</td><td>{fmtDate(i.price_updated_at)}</td><td>{i.allergens.map((a) => ALLERGENS[a]).join(', ')}</td></tr>)}</tbody>
       </table>
@@ -52,14 +52,14 @@ export function IngredientsPage() {
     <>
       <ModuleHero
         kicker="Mutfak · Stok kartları"
-        title="Hammaddeler"
+        title="Stok kartları"
         description="Birim, temizleme firesi, alış fiyatı ve alerjen bilgisi. Reçete maliyetleri buradaki son fiyattan anlık hesaplanır."
         actions={<>
           <ReportButton spec={report} disabled={list.length === 0} />
-          {canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Yeni hammadde</Button>}
+          {canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>Yeni stok kartı</Button>}
         </>}
         stats={[
-          { label: 'Hammadde kartı', value: list.length },
+          { label: 'Stok kartı', value: list.length },
           { label: 'Fiyatı girilmemiş', value: noPrice, tone: noPrice ? 'warn' : 'default', hint: 'Maliyete katılamaz' },
           { label: `Fiyatı ${PRICE_STALE_DAYS} günden eski`, value: stale, tone: stale ? 'warn' : 'default' },
           { label: 'Alerjen içeren', value: withAllergen },
@@ -78,10 +78,10 @@ export function IngredientsPage() {
           </select>
         </div>
 
-        {isLoading ? <Loading /> : error ? <div className="p-4"><ErrorNote>Hammaddeler yüklenemedi.</ErrorNote></div>
+        {isLoading ? <Loading /> : error ? <div className="p-4"><ErrorNote>Stok kartları yüklenemedi.</ErrorNote></div>
           : list.length === 0 ? (
-            <EmptyState icon={<Wheat className="w-5 h-5" />} title="Henüz hammadde yok"
-              action={canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>İlk hammaddeyi ekle</Button>}>
+            <EmptyState icon={<Wheat className="w-5 h-5" />} title="Henüz stok kartı yok"
+              action={canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => setEditing('new')}>İlk stok kartını ekle</Button>}>
               Dana kuşbaşı, pirinç, ayçiçek yağı gibi stok kartlarını birim ve fire oranıyla ekleyin.
             </EmptyState>
           ) : (
@@ -89,7 +89,7 @@ export function IngredientsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
-                    <th className="px-4 py-2.5 font-semibold">Hammadde</th>
+                    <th className="px-4 py-2.5 font-semibold">Stok kartı</th>
                     <th className="px-3 py-2.5 font-semibold hidden md:table-cell">Kategori</th>
                     <th className="px-3 py-2.5 font-semibold text-right">Fire</th>
                     <th className="px-3 py-2.5 font-semibold text-right">Son fiyat</th>
@@ -128,7 +128,7 @@ export function IngredientsPage() {
                     );
                   })}
                   {filtered.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-8 text-center text-ink-3">Filtreye uyan hammadde yok.</td></tr>
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-ink-3">Filtreye uyan stok kartı yok.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -178,7 +178,7 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
     if (canEdit && ingredient && unit !== ingredient.stock_unit) {
       const a = unitInfo(ingredient.stock_unit), b = unitInfo(unit);
       const msg = a.base !== b.base
-        ? `Birim ${ingredient.stock_unit} → ${unit}: farklı ölçü türü. Fiyat veya stok geçmişi varsa kaydedilmez; yeni bir hammadde açın.`
+        ? `Birim ${ingredient.stock_unit} → ${unit}: farklı ölçü türü. Fiyat veya stok geçmişi varsa kaydedilmez; yeni bir stok kartı açın.`
         : `Birim ${ingredient.stock_unit} → ${unit} değişecek. Son fiyat, ortalama maliyet, en az stok, fiyat geçmişi ve stok hareketleri otomatik çevrilir (1 ${ingredient.stock_unit} = ${a.toBase / b.toBase} ${unit}). Devam edilsin mi?`;
       if (!(await askConfirm(msg))) return;
     }
@@ -192,19 +192,19 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
         newPrice: canPrice ? priceN : null,
         supplier,
       });
-      toast.ok(ingredient ? 'Hammadde güncellendi' : 'Hammadde eklendi');
+      toast.ok(ingredient ? 'Stok kartı güncellendi' : 'Stok kartı eklendi');
       onClose();
     } catch (e) { toast.error(e); }
   };
 
   const remove = async () => {
     if (!ingredient || !await askConfirm(`"${ingredient.name}" silinsin mi? Reçetelerde kullanılıyorsa silinemez; pasife alın.`)) return;
-    try { await del.mutateAsync(ingredient.id); toast.ok('Hammadde silindi'); onClose(); } catch (e) { toast.error(e); }
+    try { await del.mutateAsync(ingredient.id); toast.ok('Stok kartı silindi'); onClose(); } catch (e) { toast.error(e); }
   };
 
   return (
     <Drawer open onClose={onClose}
-      title={ingredient ? ingredient.name : 'Yeni hammadde'}
+      title={ingredient ? ingredient.name : 'Yeni stok kartı'}
       subtitle={ingredient ? 'Stok kartı ve fiyat geçmişi' : 'Birim ve fire doğru girilirse reçete maliyeti doğru çıkar'}
       footer={(canEdit || (canPrice && ingredient)) && (
         <>

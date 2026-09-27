@@ -83,7 +83,7 @@ export function RecipesPage() {
           <div className="tc-card">
             <EmptyState icon={<BookOpenText className="w-5 h-5" />} title="Henüz reçete yok"
               action={canEdit && <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={() => go('/receteler/yeni')}>İlk reçeteyi oluştur</Button>}>
-              Önce hammaddeleri ekleyin, sonra 1 porsiyonun gramajını girerek reçeteyi oluşturun.
+              Önce stok kartlarını ekleyin, sonra 1 porsiyonun gramajını girerek reçeteyi oluşturun.
             </EmptyState>
           </div>
         ) : (

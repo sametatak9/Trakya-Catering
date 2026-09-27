@@ -38,7 +38,7 @@ export function FinanceSummaryPage() {
 
   // Kişi başı maliyet: hammadde reçeteden (teorik) — yoksa faturadan — + diğer giderler grup grup
   const groupTotals: Record<string, number> = {};
-  groupTotals['Hammadde'] = theoreticalFood > 0 ? theoreticalFood : actualFood;
+  groupTotals['Gıda malzemesi'] = theoreticalFood > 0 ? theoreticalFood : actualFood;
   for (const r of monthRows) {
     if (r.kind !== 'gider' || r.category_code === FOOD) continue;
     const g = groupOf(r.category_code) === 'Mutfak' ? 'Sarf & ambalaj' : groupOf(r.category_code);
@@ -92,7 +92,7 @@ export function FinanceSummaryPage() {
                 {breakdown.map((b, i) => (
                   <li key={b.group} className="flex items-center gap-3 text-sm">
                     <span className={cx('w-2.5 h-2.5 rounded-full shrink-0', GROUP_COLORS[i % GROUP_COLORS.length])} />
-                    <span className="flex-1 text-ink-2">{b.group}{b.group === 'Hammadde' && theoreticalFood > 0 && <span className="text-[11px] text-ink-3"> (mutfak hazırlığından)</span>}</span>
+                    <span className="flex-1 text-ink-2">{b.group}{b.group === 'Gıda malzemesi' && theoreticalFood > 0 && <span className="text-[11px] text-ink-3"> (mutfak hazırlığından)</span>}</span>
                     <span className="text-xs text-ink-3 tc-num w-12 text-right">%{fmtNum(b.share, 0)}</span>
                     <Money value={b.perPerson} className="font-semibold text-ink w-24 text-right" />
                   </li>
@@ -102,7 +102,7 @@ export function FinanceSummaryPage() {
           )}
         </Panel>
 
-        <Panel title="Hammadde kontrolü" subtitle="Mutfakta kullanılan (hazırlık kayıtları) ile faturalardaki gıda alımı">
+        <Panel title="Gıda malzemesi kontrolü" subtitle="Mutfakta kullanılan (hazırlık kayıtları) ile faturalardaki gıda alımı">
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm mb-1"><span className="text-ink-2">Mutfakta kullanılan (hazırlık)</span><Money value={theoreticalFood} className="font-semibold" /></div>

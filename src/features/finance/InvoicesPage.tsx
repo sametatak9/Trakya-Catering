@@ -341,7 +341,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
       const toStock = already.length === 0 ? mergeByIngredient(stock).filter((r) => !skip.has(r.ingredient_id)).map((r) => ({ ...r, supplier_id: supplier?.id ?? null })) : [];
       if (toStock.length) unwrap(await supabase.from('stock_movements').insert(toStock as never).select('id'));
       await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['recipe_costs'] }), qc.invalidateQueries({ queryKey: ['menu_costs'] }), qc.invalidateQueries({ queryKey: ['t', 'stock_movements'] }), qc.invalidateQueries({ queryKey: ['t', 'purchase_invoices'] })]);
-      toast.ok(`${rows.length} hammaddenin fiyatı güncellendi${toStock.length ? `, ${toStock.length} kalem stoğa girdi` : ''}${skip.size ? `; ${skip.size} kalem sipariş teslimiyle zaten stokta` : ''}; reçete maliyetleri yenilendi`);
+      toast.ok(`${rows.length} stok kartının fiyatı güncellendi${toStock.length ? `, ${toStock.length} kalem stoğa girdi` : ''}${skip.size ? `; ${skip.size} kalem sipariş teslimiyle zaten stokta` : ''}; reçete maliyetleri yenilendi`);
     } catch (e) { toast.error(e); } finally { setBusy(false); }
   };
 
@@ -380,7 +380,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
       {invoice.note && <p className="text-xs text-ink-3 mb-4">{invoice.note}</p>}
 
       {lines.length > 0 && (
-        <Panel pad={false} title="Kalemler" subtitle={category === 'gida_hammadde' ? 'Kalemleri hammaddelerle eşleştirip alış fiyatlarını tek tuşla güncelleyin' : undefined}
+        <Panel pad={false} title="Kalemler" subtitle={category === 'gida_hammadde' ? 'Kalemleri stok kartlarıyla eşleştirip alış fiyatlarını tek tuşla güncelleyin' : undefined}
           action={canEdit && category === 'gida_hammadde' && <Button size="sm" variant="primary" onClick={pushPrices} loading={busy}>Fiyat ve stoğa işle</Button>}>
           <div className="overflow-x-auto tc-scroll">
             <table className="w-full text-sm min-w-[620px]">
@@ -390,7 +390,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
                   <th className="px-2 py-2 font-semibold text-right">Miktar</th>
                   <th className="px-2 py-2 font-semibold text-right">Birim fiyat</th>
                   <th className="px-2 py-2 font-semibold text-right">Tutar</th>
-                  {category === 'gida_hammadde' && <th className="px-4 py-2 font-semibold">Hammadde</th>}
+                  {category === 'gida_hammadde' && <th className="px-4 py-2 font-semibold">Stok kartı</th>}
                 </tr>
               </thead>
               <tbody>
@@ -405,7 +405,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
                       <td className="px-2 py-2 text-right font-semibold"><Money value={l.lineTotal} /></td>
                       {category === 'gida_hammadde' && (
                         <td className="px-4 py-2">
-                          <select className="tc-input !py-1.5" value={chosen(i)} disabled={!canEdit} onChange={(e) => setMap({ ...map, [i]: e.target.value })} aria-label="Hammadde">
+                          <select className="tc-input !py-1.5" value={chosen(i)} disabled={!canEdit} onChange={(e) => setMap({ ...map, [i]: e.target.value })} aria-label="Stok kartı">
                             <option value="">— eşleştirme yok —</option>
                             {ings.filter((x) => x.active).map((x) => <option key={x.id} value={x.id}>{x.name} ({x.stock_unit})</option>)}
                           </select>

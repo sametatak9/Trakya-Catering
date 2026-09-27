@@ -89,7 +89,7 @@ export function MenusPage() {
         </>}
         stats={[
           { label: 'Menü', value: list.length, hint: `${list.filter((m) => m.customer_id).length} firmaya özel` },
-          { label: 'Ort. food cost', value: avgFc === null ? '—' : fmtPct(avgFc), tone: avgFc !== null && avgFc > 45 ? 'warn' : 'default', hint: 'hammadde ÷ satış' },
+          { label: 'Ort. food cost', value: avgFc === null ? '—' : fmtPct(avgFc), tone: avgFc !== null && avgFc > 45 ? 'warn' : 'default', hint: 'malzeme ÷ satış' },
           { label: 'Fiyatsız menü', value: list.filter((m) => !m.target_price).length },
           { label: 'Eksik fiyatlı kalem', value: list.reduce((s, m) => s + (m.missing_price_count ?? 0), 0), tone: list.some((m) => (m.missing_price_count ?? 0) > 0) ? 'warn' : 'default' },
         ]}

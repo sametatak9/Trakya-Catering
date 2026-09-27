@@ -29,7 +29,7 @@ export const CARDS: Record<CardId, CardDef> = {
   bugun_stok_cikis: { id: 'bugun_stok_cikis', title: 'Bugünkü stok hareketleri', to: '/stok' },
   bugun_sevk: { id: 'bugun_sevk', title: 'Bugün firmalara giden', to: '/stok/sevk' },
   acik_satinalma: { id: 'acik_satinalma', title: 'Açık satınalma siparişleri', to: '/satinalma' },
-  eski_fiyat: { id: 'eski_fiyat', title: 'Fiyatı eskiyen hammaddeler', to: '/stok/hammaddeler' },
+  eski_fiyat: { id: 'eski_fiyat', title: 'Fiyatı eskiyen stok kartları', to: '/stok/kartlar' },
   vadesi_gelen: { id: 'vadesi_gelen', title: '7 gün içinde vadesi gelenler', to: '/kasa' },
   taslak_fatura: { id: 'taslak_fatura', title: 'Onay bekleyen faturalar', to: '/finans/faturalar' },
   bekleyen_talep: { id: 'bekleyen_talep', title: 'Bekleyen personel talepleri', to: '/personel' },

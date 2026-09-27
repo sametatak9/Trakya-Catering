@@ -143,7 +143,7 @@ function MemberOverrides() {
 const INTEGRATIONS: Array<{ name: string; ready: boolean; now: string; next: string }> = [
   { name: 'Parmak izi (ZKTeco)', ready: true, now: 'Cihazın dışa aktardığı CSV dosyası Puantaj ekranından yüklenir; ilk giriş / son çıkış otomatik eşleşir.', next: 'Doğrudan cihaz bağlantısı için işyerinde küçük bir aktarım programı kurulur.' },
   { name: 'Müşteri sipariş linki', ready: true, now: 'Her firmanın gizli linki Müşteriler & Cari ekranında. Firma giriş yapmadan sayı girer; 16:00 kesimi uygulanır.', next: '—' },
-  { name: 'Gelen e-Fatura', ready: true, now: 'GİB/entegratör XML dosyaları toplu yüklenir; gider kalemi ve hammadde fiyatı otomatik tespit edilir.', next: 'Entegratör API bilgisi girilince faturalar kendiliğinden düşer.' },
+  { name: 'Gelen e-Fatura', ready: true, now: 'GİB/entegratör XML dosyaları toplu yüklenir; gider kalemi ve stok kartı fiyatı otomatik tespit edilir.', next: 'Entegratör API bilgisi girilince faturalar kendiliğinden düşer.' },
   { name: 'Satış e-Fatura / e-Arşiv', ready: false, now: 'İrsaliyelerden aylık satış faturası oluşur ve UBL-TR XML olarak indirilir (entegratör portalına yüklenebilir).', next: 'Entegratör (ör. QNB eFinans, Uyumsoft, Logo) API anahtarı sunucu tarafında tanımlanınca tek tuşla gönderim.' },
   { name: 'Navigasyon', ready: true, now: 'Rota ve şoför ekranında her durak için Google Haritalar / Yandex Navigasyon yol tarifi açılır.', next: '—' },
   { name: 'Araç takip (Arvento / Mobiliz)', ready: false, now: 'Km, yakıt fişi ve bakım Araçlar ekranından girilir; kasaya gider olarak düşer.', next: 'Takip firmasının API anahtarı girilince km ve yakıt tüketimi otomatik çekilir.' },

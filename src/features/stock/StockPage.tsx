@@ -60,13 +60,13 @@ export function StockPage() {
   const report = (): ReportSpec => ({
     title: 'Stok Durum Raporu', subtitle: `${shortDay(today)} · ${shown.length} kalem · değer ${fmtMoney(totalValue)}`,
     summary: shown.filter((r) => r.onHand !== 0 || r.low).slice(0, 30).map((r) => ({ label: r.i.name, value: `${fmtNum(r.onHand, 2)} ${r.i.stock_unit}${r.low ? ' (kritik)' : ''}` })),
-    table: { filename: `stok-${today}`, header: ['Hammadde', 'Kategori', 'Eldeki', 'Birim', 'Kritik seviye', 'Ort. maliyet ₺', 'Değer ₺', 'Kaç gün yeter'],
+    table: { filename: `stok-${today}`, header: ['Stok kartı', 'Kategori', 'Eldeki', 'Birim', 'Kritik seviye', 'Ort. maliyet ₺', 'Değer ₺', 'Kaç gün yeter'],
       rows: shown.map((r) => [r.i.name, INGREDIENT_CATEGORIES[r.i.category], r.onHand, r.i.stock_unit, r.i.min_stock, r.cost, Math.round(r.value * 100) / 100, r.cover]) },
     body: () => (
       <>
         <ReportStats items={[{ label: 'Stok değeri', value: fmtMoney(totalValue) }, { label: 'Kalem', value: shown.length }, { label: 'Kritik seviyede', value: lowCount }, { label: 'Son 30 gün çıkış', value: fmtMoney(monthOut) }]} />
         <ReportSection title="Stok durumu">
-          <table><thead><tr><th>Hammadde</th><th className="num">Eldeki</th><th className="num">Kritik</th><th className="num">Ort. maliyet</th><th className="num">Değer</th><th className="num">Yeter</th></tr></thead>
+          <table><thead><tr><th>Stok kartı</th><th className="num">Eldeki</th><th className="num">Kritik</th><th className="num">Ort. maliyet</th><th className="num">Değer</th><th className="num">Yeter</th></tr></thead>
             <tbody>{shown.map((r) => <tr key={r.i.id}><td>{r.i.name}{r.low ? ' ⚠' : ''}</td><td className="num">{fmtNum(r.onHand, 2)} {r.i.stock_unit}</td><td className="num">{fmtNum(r.i.min_stock, 0)}</td>
               <td className="num">{fmtMoney(r.cost, true)}</td><td className="num">{fmtMoney(r.value)}</td><td className="num">{r.cover === null ? '—' : `${fmtNum(r.cover, 0)} gün`}</td></tr>)}</tbody></table>
         </ReportSection>
@@ -97,7 +97,7 @@ export function StockPage() {
         </>}
         stats={[
           { label: 'Stok değeri', value: <Money value={totalValue} />, source: report },
-          { label: 'Kritik seviyede', value: lowCount, tone: lowCount ? 'warn' : 'good', hint: 'kritik seviye hammadde kartında' },
+          { label: 'Kritik seviyede', value: lowCount, tone: lowCount ? 'warn' : 'good', hint: 'kritik seviye stok kartında' },
           { label: 'Son 30 gün çıkış', value: <Money value={monthOut} /> },
           { label: 'Hareket (toplam)', value: fmtNum(all.length, 0) },
         ]} />
@@ -106,18 +106,18 @@ export function StockPage() {
 
       {tab === 'durum' && (
         <Panel pad={false}>
-          <ListToolbar search={q} onSearch={setQ} placeholder="Hammadde ara…" filters={<>
+          <ListToolbar search={q} onSearch={setQ} placeholder="Stok kartı ara…" filters={<>
             <select className="tc-input !w-auto" value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Kategori"><option value="">Tüm kategoriler</option>
               {Object.entries(INGREDIENT_CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
             <label className="flex items-center gap-1.5 text-xs text-ink-2"><input type="checkbox" checked={onlyLow} onChange={(e) => setOnlyLow(e.target.checked)} /> Yalnız kritik</label>
           </>} />
           {ingredients.isLoading || moves.isLoading ? <Loading /> : shown.length === 0 ? (
-            <EmptyState icon={<Boxes className="w-5 h-5" />} title="Kayıt yok">Hammaddeler ekranından malzeme ekleyin; alış faturasındaki “Fiyat ve stoğa işle” ile stok kendiliğinden girer.</EmptyState>
+            <EmptyState icon={<Boxes className="w-5 h-5" />} title="Kayıt yok">Stok kartları ekranından malzeme ekleyin; alış faturasındaki “Fiyat ve stoğa işle” ile stok kendiliğinden girer.</EmptyState>
           ) : (
             <div className="overflow-x-auto tc-scroll">
               <table className="w-full text-sm min-w-[640px]">
                 <thead><tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
-                  <th className="px-4 py-2.5">Hammadde</th><th className="px-2 text-right">Eldeki</th><th className="px-2 text-right">Ort. maliyet</th><th className="px-2 text-right">Değer</th><th className="px-4 text-right">Kaç gün yeter</th>
+                  <th className="px-4 py-2.5">Stok kartı</th><th className="px-2 text-right">Eldeki</th><th className="px-2 text-right">Ort. maliyet</th><th className="px-2 text-right">Değer</th><th className="px-4 text-right">Kaç gün yeter</th>
                 </tr></thead>
                 <tbody>
                   {shown.map((r) => (
@@ -158,7 +158,7 @@ export function StockPage() {
           action={canEdit && <Button size="sm" variant="holo" icon={<ClipboardCheck className="w-3.5 h-3.5" />} onClick={saveCounts} loading={insert.isPending}>Sayımı işle</Button>}>
           <div className="overflow-x-auto tc-scroll">
             <table className="w-full text-sm min-w-[520px]">
-              <thead><tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line"><th className="px-4 py-2.5">Hammadde</th><th className="px-2 text-right">Sistemde</th><th className="px-2 w-40">Sayılan</th><th className="px-4 text-right">Fark</th></tr></thead>
+              <thead><tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line"><th className="px-4 py-2.5">Stok kartı</th><th className="px-2 text-right">Sistemde</th><th className="px-2 w-40">Sayılan</th><th className="px-4 text-right">Fark</th></tr></thead>
               <tbody>
                 {rows.filter((r) => matches(q, r.i.name)).map((r) => {
                   const c = parseNum(counts[r.i.id] ?? ''); const diff = c === null ? null : c - r.onHand;
@@ -181,7 +181,7 @@ export function StockPage() {
       {adding && (
         <FormDrawer open title={adding === 'giris' ? 'Stok girişi' : adding === 'cikis' ? 'Mutfağa çıkış' : 'Fire / bozulma'} onClose={() => setAdding(null)} saving={save.isPending}
           fields={[
-            { key: 'ingredient_id', label: 'Hammadde', type: 'select', required: true, span: 2, options: ings.map((i) => ({ value: i.id, label: `${i.name} (${i.stock_unit})` })) },
+            { key: 'ingredient_id', label: 'Stok kartı', type: 'select', required: true, span: 2, options: ings.map((i) => ({ value: i.id, label: `${i.name} (${i.stock_unit})` })) },
             { key: 'kind', label: 'Hareket', type: 'select', required: true, options: [{ value: 'giris', label: 'Giriş' }, { value: 'cikis', label: 'Mutfağa çıkış' }, { value: 'fire', label: 'Fire / bozulma' }] },
             { key: 'qty', label: 'Miktar (stok biriminde)', type: 'number', required: true },
             { key: 'unit_cost', label: 'Birim maliyet ₺ (giriş)', type: 'money', show: (v) => v.kind === 'giris', hint: 'Boşsa son alış fiyatı' },

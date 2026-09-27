@@ -17,7 +17,7 @@ function AuthFrame({ children }: { children: ReactNode }) {
         </div>
         <div className="relative z-10 max-w-md">
           <h1 className="font-display text-4xl font-bold leading-tight">Reçeteden faturaya,<br />her porsiyonun hesabı.</h1>
-          <p className="mt-4 text-[15px] opacity-85">Gramaj, fire, hammadde ihtiyacı, sevkiyat ve gerçek porsiyon maliyeti — tek yerde.</p>
+          <p className="mt-4 text-[15px] opacity-85">Gramaj, fire, malzeme ihtiyacı, sevkiyat ve gerçek porsiyon maliyeti — tek yerde.</p>
         </div>
         <div className="text-xs opacity-70">Toplu yemek üretim ERP</div>
         {/* Ayçiçeği tarlası dokusu */}

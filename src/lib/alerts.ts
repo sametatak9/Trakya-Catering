@@ -56,7 +56,7 @@ export function buildAlerts(x: AlertInput): Alert[] {
       id: `fiyat:${id}:${last.noted_at.slice(0, 10)}`, kind: 'fiyat', tone: change > 0 ? (change >= 10 ? 'stop' : 'wait') : 'ok',
       title: `${ing.name} ${change > 0 ? 'zamlandı' : 'ucuzladı'} ${change > 0 ? '+' : '−'}${pct(Math.abs(change))}`,
       body: `${money(prev.price)} → ${money(last.price)} / ${ing.stock_unit}. Bu malzemeyi kullanan reçetelerin maliyeti ${change > 0 ? 'arttı' : 'düştü'}.`,
-      to: '/stok/hammaddeler', weight: 60 + Math.min(Math.abs(change), 30),
+      to: '/stok/kartlar', weight: 60 + Math.min(Math.abs(change), 30),
     });
   }
 
@@ -64,14 +64,14 @@ export function buildAlerts(x: AlertInput): Alert[] {
   const missing = x.ingredients.filter((i) => i.active && i.last_price == null);
   if (missing.length) out.push({
     id: `fiyat-yok:${missing.map((m) => m.id).sort().join(',')}`, kind: 'fiyat', tone: 'wait',
-    title: `${missing.length} hammaddenin fiyatı yok`, body: `${missing.slice(0, 3).map((m) => m.name).join(', ')}${missing.length > 3 ? '…' : ''} — maliyet eksik hesaplanır.`,
-    to: '/stok/hammaddeler', weight: 40,
+    title: `${missing.length} stok kartının fiyatı yok`, body: `${missing.slice(0, 3).map((m) => m.name).join(', ')}${missing.length > 3 ? '…' : ''} — maliyet eksik hesaplanır.`,
+    to: '/stok/kartlar', weight: 40,
   });
   const stale = x.ingredients.filter((i) => i.active && i.last_price != null && i.price_updated_at && days(i.price_updated_at, x.today) > x.staleDays);
   if (stale.length) out.push({
     id: `fiyat-eski:${x.today}`, kind: 'fiyat', tone: 'info',
-    title: `${stale.length} hammaddenin fiyatı ${x.staleDays} günden eski`, body: `${stale.slice(0, 3).map((m) => m.name).join(', ')} — son faturayla güncelleyin.`,
-    to: '/stok/hammaddeler', weight: 25,
+    title: `${stale.length} stok kartının fiyatı ${x.staleDays} günden eski`, body: `${stale.slice(0, 3).map((m) => m.name).join(', ')} — son faturayla güncelleyin.`,
+    to: '/stok/kartlar', weight: 25,
   });
 
   // 3) Alacaklar ve borçlar (finans yetkisi varsa)
@@ -158,10 +158,10 @@ export function buildAlerts(x: AlertInput): Alert[] {
 export function assistantSummary(alerts: Alert[], ctx: { people: number; perPerson: number | null; name: string }): string {
   const parts: string[] = [];
   parts.push(ctx.people > 0
-    ? `Bugün ${new Intl.NumberFormat('tr-TR').format(ctx.people)} kişilik üretim var${ctx.perPerson ? `, kişi başı hammadde ${money(ctx.perPerson)}` : ''}.`
+    ? `Bugün ${new Intl.NumberFormat('tr-TR').format(ctx.people)} kişilik üretim var${ctx.perPerson ? `, kişi başı malzeme ${money(ctx.perPerson)}` : ''}.`
     : 'Bugün için sipariş görünmüyor.');
   const rises = alerts.filter((a) => a.kind === 'fiyat' && a.title.includes('zamlandı'));
-  if (rises.length) parts.push(`${rises.length} hammaddede zam var; en büyüğü ${rises[0].title.replace(' zamlandı', '')}.`);
+  if (rises.length) parts.push(`${rises.length} stok kartında zam var; en büyüğü ${rises[0].title.replace(' zamlandı', '')}.`);
   const receivable = alerts.filter((a) => a.kind === 'alacak').reduce((s, a) => s + (a.amount ?? 0), 0);
   if (receivable > 0) parts.push(`Vadesi geçmiş alacak ${money(receivable)}.`);
   const pay = alerts.find((a) => a.kind === 'borc');

@@ -148,7 +148,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
     ],
     table: {
       filename: `recete-${h.name}`,
-      header: ['Hammadde', 'Net', 'Fire %', 'Brüt', 'Maliyet'],
+      header: ['Stok kartı', 'Net', 'Fire %', 'Brüt', 'Maliyet'],
       rows: computed.map((c) => [c.ing?.name ?? '', fmtQty(c.net, c.unit.base), fmtNum(c.waste, 1), c.r ? fmtQty(c.r.gross, c.unit.base) : '', c.r?.cost ?? '']),
     },
     body: () => (
@@ -161,7 +161,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
         ]} />
         <ReportSection title="1 porsiyon gramaj">
           <table>
-            <thead><tr><th>Hammadde</th><th className="num">Net</th><th className="num">Fire</th><th className="num">Brüt</th><th className="num">{fmtNum(portionsN, 0)} porsiyon</th><th className="num">Maliyet</th></tr></thead>
+            <thead><tr><th>Stok kartı</th><th className="num">Net</th><th className="num">Fire</th><th className="num">Brüt</th><th className="num">{fmtNum(portionsN, 0)} porsiyon</th><th className="num">Maliyet</th></tr></thead>
             <tbody>
               {computed.map((c) => (
                 <tr key={c.l.ingredientId}>
@@ -247,7 +247,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
               <table className="w-full text-sm min-w-[720px]">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
-                    <th className="px-4 py-2.5 font-semibold">Hammadde</th>
+                    <th className="px-4 py-2.5 font-semibold">Stok kartı</th>
                     <th className="px-2 py-2.5 font-semibold w-28">Net</th>
                     <th className="px-2 py-2.5 font-semibold w-24">Fire %</th>
                     <th className="px-2 py-2.5 font-semibold text-right">Brüt</th>
@@ -261,7 +261,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
                   {computed.map((c, idx) => (
                     <tr key={c.l.ingredientId} className="border-b border-line">
                       <td className="px-4 py-2.5">
-                        <div className="font-semibold text-ink">{c.ing?.name ?? 'Silinmiş hammadde'}</div>
+                        <div className="font-semibold text-ink">{c.ing?.name ?? 'Silinmiş stok kartı'}</div>
                         <div className="mt-1 flex items-center gap-2">
                           <select className="bg-transparent text-[11px] text-ink-2 focus:outline-none" value={c.l.cutStyle} disabled={!canEdit}
                             onChange={(e) => updLine(idx, { cutStyle: e.target.value })} aria-label="Doğrama biçimi">
@@ -282,7 +282,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
                       </td>
                       <td className="px-2 py-2.5">
                         <input className="tc-input tc-num !py-1.5 !px-2 text-right" inputMode="decimal" value={c.l.wasteOverride} disabled={!canEdit}
-                          placeholder={fmtInput(c.ing?.waste_pct ?? 0)} title="Boş bırakılırsa hammadde kartındaki fire kullanılır"
+                          placeholder={fmtInput(c.ing?.waste_pct ?? 0)} title="Boş bırakılırsa stok kartındaki fire kullanılır"
                           onChange={(e) => updLine(idx, { wasteOverride: e.target.value })} aria-label="Fire yüzdesi" />
                       </td>
                       <td className="px-2 py-2.5 text-right tc-num text-ink-2 whitespace-nowrap">{c.r ? fmtQty(c.r.gross, c.unit.base) : '—'}</td>
@@ -303,7 +303,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
                     </tr>
                   ))}
                   {draft.length === 0 && (
-                    <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-ink-3">Henüz hammadde eklenmedi.</td></tr>
+                    <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-ink-3">Henüz malzeme eklenmedi.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -311,7 +311,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
             {canEdit && (
               <div className="flex flex-col sm:flex-row gap-2 p-4 border-t border-line bg-surface-2/60 rounded-b-[18px]">
                 <select className="tc-input flex-1" value={adding} onChange={(e) => setAdding(e.target.value)}>
-                  <option value="">Hammadde seç…</option>
+                  <option value="">Stok kartı seç…</option>
                   {available.map((i) => <option key={i.id} value={i.id}>{i.name} ({unitInfo(i.stock_unit).base})</option>)}
                 </select>
                 <Button icon={<Plus className="w-4 h-4" />} disabled={!adding}
@@ -341,7 +341,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
         <aside className="space-y-4 xl:sticky xl:top-6">
           <div className="tc-card overflow-hidden">
             <div className="bg-brand text-on-brand px-5 py-4">
-              <div className="text-xs font-semibold opacity-80">Porsiyon hammadde maliyeti</div>
+              <div className="text-xs font-semibold opacity-80">Porsiyon malzeme maliyeti</div>
               <div className="tc-num text-3xl font-bold mt-1">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total)}</div>
               <div className="text-xs opacity-80 mt-1">Son alış fiyatlarıyla · KDV hariç</div>
             </div>
@@ -395,7 +395,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
               ))}
             </ul>
             <div className={cx('flex justify-between pt-3 mt-1 border-t border-line text-sm', computed.length === 0 && 'hidden')}>
-              <span className="text-ink-3">Toplam hammadde</span>
+              <span className="text-ink-3">Toplam malzeme</span>
               <Money value={total * portionsN} className="font-bold text-ink" />
             </div>
           </Panel>

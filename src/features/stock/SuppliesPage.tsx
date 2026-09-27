@@ -89,7 +89,7 @@ export function SuppliesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
         <Panel pad={false} title="Gönderilenler">
           {moves.isLoading ? <Loading /> : list.length === 0 ? (
-            <EmptyState icon={<PackageOpen className="w-5 h-5" />} title="Bu ay gönderim yok">Önce Hammaddeler ekranına tuz, ketçap gibi sarf malzemelerini ekleyin; sonra buradan firmaya gönderin.</EmptyState>
+            <EmptyState icon={<PackageOpen className="w-5 h-5" />} title="Bu ay gönderim yok">Önce Stok kartları ekranına tuz, ketçap gibi sarf malzemelerini ekleyin; sonra buradan firmaya gönderin.</EmptyState>
           ) : (
             <ul className="divide-y divide-line">
               {list.map((m) => (

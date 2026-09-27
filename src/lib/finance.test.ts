@@ -46,8 +46,8 @@ describe('gider analizi', () => {
     expect(monthlyTotals(rows, 'gelir')['2026-09']).toBe(30000);
   });
   it('kişi başı maliyet ayrışımı', () => {
-    const b = perPersonBreakdown({ Hammadde: 80000, Personel: 40000, 'İşletme': 20000, Boş: 0 }, 1000);
-    expect(b.map((x) => x.group)).toEqual(['Hammadde', 'Personel', 'İşletme']);
+    const b = perPersonBreakdown({ 'Gıda malzemesi': 80000, Personel: 40000, 'İşletme': 20000, Boş: 0 }, 1000);
+    expect(b.map((x) => x.group)).toEqual(['Gıda malzemesi', 'Personel', 'İşletme']);
     expect(b[0].perPerson).toBe(80);
     expect(b.reduce((s, x) => s + x.share, 0)).toBeCloseTo(100);
     expect(perPersonBreakdown({ a: 1 }, 0)).toEqual([]);

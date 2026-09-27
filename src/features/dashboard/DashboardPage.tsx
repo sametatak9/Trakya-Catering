@@ -79,9 +79,9 @@ export function DashboardPage() {
   const costSpec = (): ReportSpec => {
     const list = prod.data ?? [];
     return {
-      title: 'Bugünkü Hammadde Maliyeti', subtitle: `${shortDay(today)} · kaynak: Günlük Hazırlık kayıtları`,
+      title: 'Bugünkü Malzeme Maliyeti', subtitle: `${shortDay(today)} · kaynak: Günlük Hazırlık kayıtları`,
       summary: list.map((b) => ({ label: b.dish_name ?? '', value: `${fmtMoney(b.total_cost)} (${fmtMoney(b.cost_per_portion)}/porsiyon)` })),
-      table: { filename: `hammadde-${today}`, header: ['Öğün', 'Yemek', 'Porsiyon', 'Toplam ₺', 'Porsiyon ₺'],
+      table: { filename: `malzeme-${today}`, header: ['Öğün', 'Yemek', 'Porsiyon', 'Toplam ₺', 'Porsiyon ₺'],
         rows: list.map((b) => [MEALS[b.meal ?? 'ogle'], b.dish_name, b.portions, b.total_cost, b.cost_per_portion]) },
       body: () => (
         <>
@@ -135,7 +135,7 @@ export function DashboardPage() {
     };
   };
   const steps = [
-    { done: ingredients.length > 0, label: 'Hammaddeleri ekle', hint: 'birim, fire, alış fiyatı', to: '/stok/hammaddeler' },
+    { done: ingredients.length > 0, label: 'Stok kartlarını ekle', hint: 'birim, fire, alış fiyatı', to: '/stok/kartlar' },
     { done: (rec.data ?? []).some((r) => (r.line_count ?? 0) > 0), label: 'Reçete gramajlarını gir', hint: '1 porsiyonun net gramajı', to: '/receteler' },
     { done: (menus.data ?? []).length > 0, label: 'Menüleri kur', hint: 'kaç çeşitse o kadar kap', to: '/menuler' },
     { done: (customers.data ?? []).length > 0, label: 'Müşterileri ekle', hint: 'kişi başı fiyat ve vade', to: '/cari/musteriler' },
@@ -155,7 +155,7 @@ export function DashboardPage() {
         title={`${greeting()}, ${member.fullName.split(' ')[0]}`}
         stats={[
           { label: 'Bugün kişi', value: fmtNum(peopleToday, 0), hint: `${todayOrders.length} sipariş`, source: () => ordersSpec('Bugünün Siparişleri', today, todayOrders) },
-          { label: 'Bugünkü hammadde', value: <Money value={costToday} />, hint: peopleToday ? <>kişi başı <Money value={costToday / peopleToday} /></> : 'hazırlık girilmedi', source: costSpec },
+          { label: 'Bugünkü malzeme', value: <Money value={costToday} />, hint: peopleToday ? <>kişi başı <Money value={costToday / peopleToday} /></> : 'hazırlık girilmedi', source: costSpec },
           { label: 'Yarın kişi', value: fmtNum(peopleTomorrow, 0), hint: cutoff > 0 ? `kesime ${Math.floor(cutoff / 60)} sa ${cutoff % 60} dk` : 'kesim saati geçti', source: () => ordersSpec('Yarının Siparişleri', tomorrow, tomorrowOrders) },
           isFinance
             ? { label: 'Kasa + banka', value: <Money value={balance} />, tone: balance < 0 ? 'warn' : 'default', hint: `${dueSoon.length} vadeli kalem (7 gün)`, source: cashSpec }
@@ -238,7 +238,7 @@ export function DashboardPage() {
             )}
           </Panel>
         ) : (
-          <Panel title="Fiyat bekleyen hammaddeler" action={<Link to="/stok/hammaddeler" className="text-xs font-semibold text-brand">Tümü →</Link>}>
+          <Panel title="Fiyat bekleyen stok kartları" action={<Link to="/stok/kartlar" className="text-xs font-semibold text-brand">Tümü →</Link>}>
             {priceIssues.length === 0 ? <p className="text-sm text-ink-3">Tüm fiyatlar güncel.</p> : (
               <ul className="divide-y divide-line -my-1.5">
                 {priceIssues.slice(0, 7).map((i) => (
@@ -252,7 +252,7 @@ export function DashboardPage() {
 
       {isFinance && priceIssues.length > 0 && (
         <p className="text-xs text-ink-3 mt-4">
-          {priceIssues.length} hammaddenin fiyatı yok veya {PRICE_STALE_DAYS} günden eski — maliyetler yanıltıcı olabilir. <Link to="/stok/hammaddeler" className="text-brand font-semibold">Güncelle →</Link>
+          {priceIssues.length} stok kartının fiyatı yok veya {PRICE_STALE_DAYS} günden eski — maliyetler yanıltıcı olabilir. <Link to="/stok/kartlar" className="text-brand font-semibold">Güncelle →</Link>
         </p>
       )}
 

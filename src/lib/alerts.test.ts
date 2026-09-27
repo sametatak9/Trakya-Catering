@@ -35,7 +35,7 @@ describe('asistan uyarıları', () => {
     expect(rise.tone).toBe('stop');
   });
   it('fiyatı olmayan ve eski fiyatlı malzemeleri bildirir', () => {
-    expect(find('fiyat').some((a) => a.title === '1 hammaddenin fiyatı yok')).toBe(true);
+    expect(find('fiyat').some((a) => a.title === '1 stok kartının fiyatı yok')).toBe(true);
     expect(find('fiyat').some((a) => a.body.includes('Bezelye'))).toBe(true);
   });
   it('vadesi geçen alacağı firma bazında toplar', () => {

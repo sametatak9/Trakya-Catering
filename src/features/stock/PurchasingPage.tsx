@@ -139,13 +139,13 @@ export function PurchasingPage() {
   const report = (): ReportSpec => ({
     title: 'Satınalma İhtiyaç Listesi', subtitle: `${shortDay(from)} – ${shortDay(to)} · menü planı × ${fmtNum(people, 0)} kişi-öğün`,
     summary: rows.filter((r) => r.toBuy > 0).slice(0, 30).map((r) => ({ label: r.i!.name, value: `${fmtNum(r.toBuy, 1)} ${r.i!.stock_unit}${r.supplier ? ` · ${supName(r.supplier)}` : ''}` })),
-    table: { filename: `satinalma-${month}`, header: ['Hammadde', 'İhtiyaç', 'Stokta', 'Alınacak', 'Birim', 'Birim fiyat ₺', 'Tutar ₺', 'En uygun tedarikçi'],
+    table: { filename: `satinalma-${month}`, header: ['Stok kartı', 'İhtiyaç', 'Stokta', 'Alınacak', 'Birim', 'Birim fiyat ₺', 'Tutar ₺', 'En uygun tedarikçi'],
       rows: rows.map((r) => [r.i!.name, Math.round(r.qty * 10) / 10, r.onHand, Math.round(r.toBuy * 10) / 10, r.i!.stock_unit, r.price, Math.round(r.toBuy * r.price), r.supplier ? supName(r.supplier) : '']) },
     body: () => (
       <>
         <ReportStats items={[{ label: 'Alınacak tutar', value: fmtMoney(buyTotal) }, { label: 'Kişi-öğün', value: fmtNum(people, 0) }, { label: 'Kalem', value: rows.filter((r) => r.toBuy > 0).length }, { label: 'En uygun seçimle tasarruf', value: fmtMoney(saving) }]} />
         <ReportSection title="Alınacaklar (menü planına göre)">
-          <table><thead><tr><th>Hammadde</th><th className="num">İhtiyaç</th><th className="num">Stokta</th><th className="num">Alınacak</th><th className="num">Tutar</th><th>Tedarikçi</th></tr></thead>
+          <table><thead><tr><th>Stok kartı</th><th className="num">İhtiyaç</th><th className="num">Stokta</th><th className="num">Alınacak</th><th className="num">Tutar</th><th>Tedarikçi</th></tr></thead>
             <tbody>{rows.map((r) => <tr key={r.id}><td>{r.i!.name}</td><td className="num">{fmtNum(r.qty, 1)} {r.i!.stock_unit}</td><td className="num">{fmtNum(r.onHand, 1)}</td>
               <td className="num"><b>{fmtNum(r.toBuy, 1)}</b></td><td className="num">{fmtMoney(r.toBuy * r.price)}</td><td>{r.supplier ? supName(r.supplier) : '—'}</td></tr>)}</tbody></table>
         </ReportSection>
@@ -177,14 +177,14 @@ export function PurchasingPage() {
 
       {tab === 'ihtiyac' && (
         <Panel pad={false}>
-          <ListToolbar search={q} onSearch={setQ} placeholder="Hammadde ara…" />
+          <ListToolbar search={q} onSearch={setQ} placeholder="Stok kartı ara…" />
           {loading ? <Loading /> : rows.length === 0 ? (
             <EmptyState icon={<ShoppingCart className="w-5 h-5" />} title="Hesaplanacak ihtiyaç yok">Menü Planı’na menüleri, menülere reçeteleri girin; müşteri siparişleri ya da geçmiş sayılar varsa ihtiyaç kendiliğinden çıkar.</EmptyState>
           ) : (
             <div className="overflow-x-auto tc-scroll">
               <table className="w-full text-sm min-w-[720px]">
                 <thead><tr className="text-left text-[11px] uppercase tracking-wider text-ink-3 border-b border-line">
-                  <th className="px-4 py-2.5">Hammadde</th><th className="px-2 text-right">İhtiyaç</th><th className="px-2 text-right">Stokta</th><th className="px-2 text-right">Alınacak</th><th className="px-2 text-right">Tutar</th><th className="px-4">En uygun</th>
+                  <th className="px-4 py-2.5">Stok kartı</th><th className="px-2 text-right">İhtiyaç</th><th className="px-2 text-right">Stokta</th><th className="px-2 text-right">Alınacak</th><th className="px-2 text-right">Tutar</th><th className="px-4">En uygun</th>
                 </tr></thead>
                 <tbody>
                   {rows.map((r) => (
@@ -261,7 +261,7 @@ export function PurchasingPage() {
         <FormDrawer open title="Tedarikçi fiyat kaydı" onClose={() => setAddingQuote(false)} saving={saveQuote.isPending}
           fields={[
             { key: 'supplier_id', label: 'Tedarikçi', type: 'select', required: true, span: 2, options: (suppliers.data ?? []).filter((s) => s.active).map((s) => ({ value: s.id, label: s.name })), hint: 'Listede yoksa Tedarikçiler ekranından ekleyin' },
-            { key: 'ingredient_id', label: 'Hammadde', type: 'select', required: true, span: 2, options: ings.map((i) => ({ value: i.id, label: `${i.name} (${i.stock_unit})` })) },
+            { key: 'ingredient_id', label: 'Stok kartı', type: 'select', required: true, span: 2, options: ings.map((i) => ({ value: i.id, label: `${i.name} (${i.stock_unit})` })) },
             { key: 'price', label: 'Fiyat ₺ (stok birimi başına, KDV hariç)', type: 'money', required: true },
             { key: 'quoted_at', label: 'Tarih', type: 'date', required: true },
             { key: 'source', label: 'Kaynak', type: 'select', required: true, options: [{ value: 'teklif', label: 'Yazılı teklif' }, { value: 'telefon', label: 'Telefon' }, { value: 'fatura', label: 'Fatura' }, { value: 'web', label: 'İnternet' }] },

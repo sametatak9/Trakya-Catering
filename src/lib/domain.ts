@@ -27,6 +27,10 @@ export const INGREDIENT_CATEGORIES: Record<string, string> = {
   icecek: 'İçecek',
   ekmek_unlu: 'Ekmek / Unlu',
   temizlik_sarf: 'Temizlik / Sarf',
+  temizlik_deterjan: 'Temizlik / Deterjan',
+  ambalaj: 'Ambalaj / Tek kullanımlık',
+  gaz_yakit: 'Gaz / Yakıt',
+  mutfak_sarf: 'Mutfak sarfı',
   diger: 'Diğer',
 };
 
@@ -63,7 +67,7 @@ export const MEALS: Record<string, string> = {
   gece: 'Gece / Sahur',
 };
 
-/** Stok birimleri (hammadde kartında seçilebilenler) */
+/** Stok birimleri (stok kartında seçilebilenler) */
 export const PREP_STATUS: Record<string, { label: string; tone: 'idle' | 'wait' | 'ok' }> = {
   taslak: { label: 'Hazırlanıyor', tone: 'wait' },
   pisti: { label: 'Pişti', tone: 'ok' },

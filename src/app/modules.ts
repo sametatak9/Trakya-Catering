@@ -51,11 +51,11 @@ export const MODULES: ModuleDef[] = [
     ] },
   { path: '/receteler', label: 'Reçeteler', hint: '1 kişilik gramaj ve maliyet', icon: BookOpenText, group: 'mutfak', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'satinalma', 'muhasebe'] },
 
-  { path: '/stok', label: 'Stok', hint: 'Eldeki miktar, sayım, hammadde kartları', icon: Boxes, group: 'depo', roles: ['yonetici', 'depo', 'satinalma', 'asci_basi', 'diyetisyen', 'sofor', 'muhasebe'],
+  { path: '/stok', label: 'Stok', hint: 'Eldeki miktar, sayım, stok kartları', icon: Boxes, group: 'depo', roles: ['yonetici', 'depo', 'satinalma', 'asci_basi', 'diyetisyen', 'sofor', 'muhasebe'],
     tabs: [
       { id: 'durum', label: 'Stok durumu', roles: ['yonetici', 'depo', 'satinalma', 'asci_basi'] },
       { id: 'sevk', label: 'Firmalara giden', roles: ['yonetici', 'depo', 'sofor', 'muhasebe'] },
-      { id: 'hammaddeler', label: 'Hammadde kartları', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'satinalma', 'depo', 'muhasebe'] },
+      { id: 'kartlar', label: 'Stok kartları', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'satinalma', 'depo', 'muhasebe'] },
     ] },
   { path: '/satinalma', label: 'Satınalma', hint: 'Menüye göre ihtiyaç, teklif, sipariş', icon: ShoppingCart, group: 'depo', roles: ['yonetici', 'satinalma', 'depo'] },
 
@@ -91,7 +91,8 @@ export const ALIASES: Record<string, string> = {
   '/kahvalti': '/uretim/gunluk/kahvalti',
   '/mutfak-ekrani': '/uretim/mutfak',
   '/menu-plani': '/menuler/plan',
-  '/hammaddeler': '/stok/hammaddeler',
+  '/hammaddeler': '/stok/kartlar',
+  '/stok/hammaddeler': '/stok/kartlar',
   '/sevk': '/stok/sevk',
   '/musteriler': '/cari/musteriler',
   '/tedarikciler': '/cari/tedarikciler',

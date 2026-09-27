@@ -175,7 +175,7 @@ export function ProductionOrderPage() {
         stats={[
           { label: 'Üretim durumu', value: currentStatus ? <Pill tone={currentStatus.tone}>{currentStatus.label}</Pill> : 'Başlamadı', hint: `${titleDate} · ${MEALS[meal]}` },
           { label: 'Toplam kişi', value: fmtNum(order.data?.total_people ?? people, 0), hint: `${mealOrders.length} geçerli sipariş` },
-          { label: 'Planlanan hammadde', value: order.data?.planned_cost == null ? '—' : fmtMoney(order.data.planned_cost), hint: 'Üretim emri tahmini' },
+          { label: 'Planlanan malzeme', value: order.data?.planned_cost == null ? '—' : fmtMoney(order.data.planned_cost), hint: 'Üretim emri tahmini' },
           { label: 'Uyarı', value: fmtNum(anomalies.length, 0), hint: anomalies.length ? 'Onay öncesi inceleyin' : 'Kontrolde çıkan kayıt', tone: anomalies.length ? 'warn' : 'good' },
         ]}
       />

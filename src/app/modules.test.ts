@@ -53,6 +53,9 @@ describe('eski adresler (yer imleri)', () => {
     expect(resolveAlias('/giderler/x')).toBe('/finans/giderler/x');
     expect(resolveAlias('/finans')).toBeNull();
     expect(resolveAlias('/receteler/yeni')).toBeNull();
+    // EK-1 / Not 2: Hammadde kartları → Stok kartları
+    expect(resolveAlias('/stok/hammaddeler')).toBe('/stok/kartlar');
+    expect(resolveRoute('/stok/kartlar', 'depo').tab?.label).toBe('Stok kartları');
   });
 });
 

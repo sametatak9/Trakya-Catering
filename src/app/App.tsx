@@ -44,7 +44,7 @@ function pageFor(mod: string, tab: string | undefined, rest: string[]) {
     case '/uretim': return tab === 'mutfak' ? <KitchenScreen /> : tab === 'emir' ? <ProductionOrderPage /> : tab === 'kalibrasyon' ? <CalibrationPage /> : <PrepPage initialMeal={rest[0]} />;
     case '/menuler': return tab === 'plan' ? <MenuPlanPage /> : <MenusPage />;
     case '/receteler': return rest[0] ? <RecipeEditor id={rest[0] === 'yeni' ? null : rest[0]} /> : <RecipesPage />;
-    case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'hammaddeler' ? <IngredientsPage /> : <StockPage />;
+    case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'kartlar' ? <IngredientsPage /> : <StockPage />;
     case '/satinalma': return <PurchasingPage />;
     case '/siparisler': return <OrdersPage />;
     case '/cari': return tab === 'tedarikciler' ? <SuppliersPage /> : <CustomersPage />;

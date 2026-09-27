@@ -113,7 +113,7 @@ export function PrepPage({ fixedMeal, initialMeal, title, kicker }: { fixedMeal?
     summary: [
       { label: 'Kişi', value: fmtNum(people, 0) },
       { label: 'Toplam hazırlık', value: fmtMoney(dayCost) },
-      { label: 'Kişi başı hammadde', value: perPerson === null ? '—' : fmtMoney(perPerson) },
+      { label: 'Kişi başı malzeme', value: perPerson === null ? '—' : fmtMoney(perPerson) },
       ...dayBatches.map((b) => ({ label: b.dish_name ?? '', value: b.cost_per_portion === null ? '—' : `${fmtMoney(b.cost_per_portion)} / porsiyon` })),
     ],
     table: {
@@ -126,7 +126,7 @@ export function PrepPage({ fixedMeal, initialMeal, title, kicker }: { fixedMeal?
         <ReportStats items={[
           { label: 'Kişi', value: fmtNum(people, 0) },
           { label: 'Toplam hazırlık', value: fmtMoney(dayCost) },
-          { label: 'Kişi başı hammadde', value: perPerson === null ? '—' : fmtMoney(perPerson) },
+          { label: 'Kişi başı malzeme', value: perPerson === null ? '—' : fmtMoney(perPerson) },
           { label: 'Yemek çeşidi', value: dayBatches.length },
         ]} />
         <ReportSection title="Yemekler">
@@ -290,7 +290,7 @@ export function PrepPage({ fixedMeal, initialMeal, title, kicker }: { fixedMeal?
         stats={[
           { label: `${MEALS[meal]} · kişi`, value: fmtNum(people, 0), hint: `${mealOrders.length} sipariş` },
           { label: 'Hazırlık maliyeti', value: <Money value={dayCost} />, hint: `${dayBatches.length} yemek` },
-          { label: 'Kişi başı hammadde', value: perPerson === null ? '—' : <Money value={perPerson} />,
+          { label: 'Kişi başı malzeme', value: perPerson === null ? '—' : <Money value={perPerson} />,
             hint: todayPP > 0 && prev ? <Delta pct={((todayPP - prev.pp) / prev.pp) * 100} delta={todayPP - prev.pp} goodWhen="down" /> : 'önceki günle kıyas' },
           isFinance
             ? { label: 'Kişi başı tam maliyet', value: perPerson === null || overheadPP === null ? '—' : <Money value={perPerson + overheadPP} />,
@@ -364,7 +364,7 @@ export function PrepPage({ fixedMeal, initialMeal, title, kicker }: { fixedMeal?
         </div>
 
         <aside className="space-y-4">
-          <Panel title="Kişi başı hammadde" subtitle={`Son ${TREND_DAYS} gün · ${MEALS[meal]}`}>
+          <Panel title="Kişi başı malzeme" subtitle={`Son ${TREND_DAYS} gün · ${MEALS[meal]}`}>
             <div className="flex items-end justify-between mb-2">
               <div>
                 <div className="tc-num text-2xl font-bold text-ink">{todayPP > 0 ? <Money value={todayPP} /> : '—'}</div>
@@ -392,7 +392,7 @@ export function PrepPage({ fixedMeal, initialMeal, title, kicker }: { fixedMeal?
           </Panel>
 
           {isFinance && overheadPP !== null && (
-            <Panel title="Genel gider payı" subtitle="Son 30 gün: hammadde dışı giderler ÷ kişi">
+            <Panel title="Genel gider payı" subtitle="Son 30 gün: gıda dışı giderler ÷ kişi">
               <div className="flex justify-between text-sm"><span className="text-ink-3">Kişi başı</span><Money value={overheadPP} className="font-semibold" /></div>
               <Link to="/finans" className="block text-xs font-semibold text-brand mt-3">Finans özetinde ayrıntı →</Link>
             </Panel>
@@ -619,7 +619,7 @@ function AddItemRow({ batchId }: { batchId: string }) {
     const q = parseNum(qty);
     if (!name.trim()) return toast.error('Malzeme adı yazın');
     if (q === null || q <= 0) return toast.error('Miktar girin');
-    if (mode === 'stok' && !ing) return toast.error('Listede yok — “Elle” seçip fiyatıyla girin veya Hammaddeler’e ekleyin');
+    if (mode === 'stok' && !ing) return toast.error('Listede yok — “Elle” seçip fiyatıyla girin veya Stok kartlarına ekleyin');
     const p = parseNum(price);
     if (mode === 'elle' && (p === null || p < 0)) return toast.error('Elle girilen malzemenin birim fiyatı zorunlu');
     try {

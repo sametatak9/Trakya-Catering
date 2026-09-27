@@ -163,7 +163,7 @@ const FCATS: Array<[string, string, string, string, string[], number]> = [
   ['tabldot_satis', 'Tabldot / sözleşmeli yemek', 'gelir', 'Satış', [], 10],
   ['organizasyon', 'Organizasyon & özel gün (mevlüt, düğün…)', 'gelir', 'Satış', [], 20],
   ['diger_gelir', 'Diğer gelir (atık yağ, hurda…)', 'gelir', 'Diğer', [], 90],
-  ['gida_hammadde', 'Gıda & hammadde', 'gider', 'Mutfak', ['kasap', 'et', 'tavuk', 'manav', 'sebze', 'bakliyat', 'toptan', 'gıda', 'süt'], 10],
+  ['gida_hammadde', 'Gıda malzemesi', 'gider', 'Mutfak', ['kasap', 'et', 'tavuk', 'manav', 'sebze', 'bakliyat', 'toptan', 'gıda', 'süt'], 10],
   ['mutfak_sarf', 'Ambalaj, sefer tası & hijyen', 'gider', 'Mutfak', ['ambalaj', 'sefer', 'folyo', 'eldiven', 'deterjan', 'hijyen'], 20],
   ['elektrik', 'Elektrik', 'gider', 'İşletme', ['elektrik', 'kwh', 'trakya elektrik'], 30],
   ['su', 'Su', 'gider', 'İşletme', ['su idaresi', 'm3'], 40],
