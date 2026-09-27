@@ -44,9 +44,10 @@ export const MODULES: ModuleDef[] = [
       { id: 'kalibrasyon', label: 'Gramaj kalibrasyonu', roles: ['yonetici', 'asci_basi', 'diyetisyen'] },
       { id: 'mutfak', label: 'Mutfak ekranı' },
     ] },
-  { path: '/menuler', label: 'Menüler', hint: 'Menü kartları ve menü planı', icon: UtensilsCrossed, group: 'mutfak', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'pazarlamaci', 'muhasebe', 'satinalma'],
+  { path: '/menuler', label: 'Menüler', hint: 'Menü kartları, aylık menü ve günlük plan', icon: UtensilsCrossed, group: 'mutfak', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'pazarlamaci', 'muhasebe', 'satinalma'],
     tabs: [
       { id: 'kartlar', label: 'Menü kartları', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'pazarlamaci', 'muhasebe'] },
+      { id: 'aylik', label: 'Aylık menü', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'satinalma', 'pazarlamaci'] },
       { id: 'plan', label: 'Menü planı', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'satinalma', 'pazarlamaci'] },
     ] },
   { path: '/receteler', label: 'Reçeteler', hint: '1 kişilik gramaj ve maliyet', icon: BookOpenText, group: 'mutfak', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'satinalma', 'muhasebe'] },

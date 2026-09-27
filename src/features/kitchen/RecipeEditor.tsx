@@ -6,6 +6,7 @@ import { useCan } from '@/app/session';
 import { ALLERGENS, CONTAINER_TYPES, CUT_STYLES, unitInfo, ROLES } from '@/lib/domain';
 import { useRows } from '@/lib/crud';
 import { RecipeSteps } from './RecipeSteps';
+import { RecipeTags } from './RecipeTags';
 import { lineCost } from '@/lib/cost';
 import { fmtDate, fmtMoney, fmtNum, fmtPct, fmtQty, parseNum } from '@/lib/format';
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
@@ -335,7 +336,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
             </fieldset>
           </Panel>
 
-          {id ? <RecipeSteps recipeId={id} canEdit={canEdit} /> : null}
+          {id ? <><RecipeTags recipeId={id} canEdit={canEdit} /><RecipeSteps recipeId={id} canEdit={canEdit} /></> : null}
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-6">

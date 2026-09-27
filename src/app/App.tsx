@@ -18,6 +18,7 @@ import { SuppliesPage } from '@/features/stock/SuppliesPage';
 import { KitchenScreen } from '@/features/production/KitchenScreen';
 import { CalibrationPage } from '@/features/production/CalibrationPage';
 import { MenuPlanPage } from '@/features/production/MenuPlanPage';
+import { MonthlyMenuPage } from '@/features/production/MonthlyMenuPage';
 import { PrepPage } from '@/features/production/PrepPage';
 import { ProductionOrderPage } from '@/features/production/ProductionOrderPage';
 import { CustomersPage } from '@/features/sales/CustomersPage';
@@ -42,7 +43,7 @@ function pageFor(mod: string, tab: string | undefined, rest: string[]) {
   switch (mod) {
     case '/': return <HomePage />;
     case '/uretim': return tab === 'mutfak' ? <KitchenScreen /> : tab === 'emir' ? <ProductionOrderPage /> : tab === 'kalibrasyon' ? <CalibrationPage /> : <PrepPage initialMeal={rest[0]} />;
-    case '/menuler': return tab === 'plan' ? <MenuPlanPage /> : <MenusPage />;
+    case '/menuler': return tab === 'plan' ? <MenuPlanPage /> : tab === 'aylik' ? <MonthlyMenuPage /> : <MenusPage />;
     case '/receteler': return rest[0] ? <RecipeEditor id={rest[0] === 'yeni' ? null : rest[0]} /> : <RecipesPage />;
     case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'kartlar' ? <IngredientsPage /> : <StockPage />;
     case '/satinalma': return <PurchasingPage />;
