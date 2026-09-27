@@ -3,7 +3,7 @@ import { Calculator, ChefHat, Clock3, Crown, KeyRound, LogOut, Megaphone, Salad,
 import { DEMO_USERS, demoEmail } from '@/demo/users';
 import { ROLE_LABELS, type AppRole } from '@/lib/domain';
 import { DEMO, supabase, supabaseConfigured } from '@/lib/supabase';
-import { Logo } from '@/ui/Logo';
+import { LogoFull } from '@/ui/Logo';
 import { Button, ErrorNote, Field } from '@/ui/primitives';
 import { signOut } from './session';
 
@@ -13,8 +13,7 @@ function AuthFrame({ children }: { children: ReactNode }) {
       {/* Marka paneli */}
       <div className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 bg-brand text-on-brand">
         <div className="flex items-center gap-3">
-          <Logo size={44} />
-          <div className="font-display font-extrabold text-xl tracking-tight">TRAKYA CATERING</div>
+          <div className="rounded-2xl bg-[#FBF8F2] px-4 py-2 shadow-sm"><LogoFull height={56} /></div>
         </div>
         <div className="relative z-10 max-w-md">
           <h1 className="font-display text-4xl font-bold leading-tight">Reçeteden faturaya,<br />her porsiyonun hesabı.</h1>
@@ -33,7 +32,7 @@ function AuthFrame({ children }: { children: ReactNode }) {
       </div>
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden flex items-center gap-2.5 mb-8"><Logo size={40} /><span className="font-display font-extrabold text-lg">TRAKYA CATERING</span></div>
+          <div className="lg:hidden flex items-center mb-8"><LogoFull height={52} /></div>
           {children}
         </div>
       </div>
