@@ -27,6 +27,8 @@ export const supabase = createClient<Database>(url || 'https://invalid.local', k
 export function describeError(err: unknown): string {
   const e = err as { code?: string; message?: string } | null;
   if (!e) return 'Bilinmeyen hata';
+  // Veritabanı kuralları kendi Türkçe açıklamasını gönderir (ör. "Kişi başı fiyat girilmemiş"); onu göster
+  if (e.message && /[çğıöşüÇĞİÖŞÜ]/.test(e.message) && !/^(new row|duplicate key|permission denied)/i.test(e.message)) return e.message;
   switch (e.code) {
     case '42501':
     case 'PGRST116': return 'Bu işlem için yetkiniz yok ya da kayıt bulunamadı.';
@@ -37,8 +39,19 @@ export function describeError(err: unknown): string {
   }
 }
 
+let onRequestError: ((err: unknown) => void) | null = null;
+/** Beklenmeyen istek hatalarını hata merkezine iletecek fonksiyonu kaydeder (errorReport.ts kurar). */
+export function setRequestErrorHandler(fn: (err: unknown) => void) { onRequestError = fn; }
+
 /** { data, error } sonucunu açar; hata varsa fırlatır (react-query onError'a düşer). */
 export function unwrap<R extends { data: unknown; error: unknown }>(res: R): NonNullable<R['data']> {
-  if (res.error) throw res.error;
+  if (res.error) {
+    // Yetki/kural reddi beklenen durumdur; yalnız beklenmeyen hatalar hata merkezine gider
+    const code = (res.error as { code?: string }).code ?? '';
+    if (!['42501', '23505', '23514', '23503', 'PGRST116'].includes(code)) {
+      onRequestError?.(res.error);
+    }
+    throw res.error;
+  }
   return res.data as NonNullable<R['data']>;
 }

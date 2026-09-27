@@ -61,6 +61,7 @@ export function useAlerts() {
       openItems: isFinance ? (open.data ?? []) : [],
       customers: customers.data ?? [],
       tomorrowOrders: (orders.data ?? []).filter((o) => o.service_date === tomorrow && o.meal === 'ogle'),
+      upcomingOrders: orders.data ?? [],
       todayBatches: batches.data ?? [],
       draftInvoices: seesInvoices ? (invoices.data ?? []).filter((i) => i.status === 'taslak').length : 0,
     }).filter((a) => isFinance || !['alacak', 'borc', 'maliyet'].includes(a.kind));

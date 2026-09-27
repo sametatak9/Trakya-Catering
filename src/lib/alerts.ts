@@ -26,6 +26,8 @@ export interface AlertInput {
   openItems: Array<{ id: string; kind: string; counterparty: string | null; due_date: string | null; total_amount: number | null }>;
   customers: Array<{ id: string; name: string; active: boolean }>;
   tomorrowOrders: Array<{ customer_id: string; meal: string; status: string }>;
+  /** Bugün/yarın siparişleri: kişi başı fiyatı 0 olanlar teslimde gelir yazamaz (veritabanı reddeder) */
+  upcomingOrders?: Array<{ customer_id: string; service_date: string; status: string; unit_price: number | null; ordered_qty: number }>;
   todayBatches: Array<{ batch_id: string | null; dish_name: string | null; item_count: number | null; missing_price_count: number | null; status: string | null }>;
   draftInvoices: number;
   staleDays: number;
@@ -106,6 +108,18 @@ export function buildAlerts(x: AlertInput): Alert[] {
     body: `${missingOrders.slice(0, 3).map((c) => c.name).join(', ')}${missingOrders.length > 3 ? '…' : ''}. ${x.minutesToCutoff > 0 ? `Kesime ${Math.floor(x.minutesToCutoff / 60)} sa ${x.minutesToCutoff % 60} dk var.` : 'Kesim saati geçti; operatör girebilir.'}`,
     to: '/siparisler', weight: 70,
   });
+
+  // 4b) Fiyatsız sipariş: teslim işaretlenemez, gelir oluşmaz
+  const unpriced = (x.upcomingOrders ?? []).filter((o) => o.status !== 'iptal' && o.ordered_qty > 0 && !(Number(o.unit_price) > 0));
+  if (unpriced.length) {
+    const names = [...new Set(unpriced.map((o) => x.customers.find((c) => c.id === o.customer_id)?.name ?? 'Firma'))];
+    out.push({
+      id: `fiyatsiz:${x.today}:${unpriced.length}`, kind: 'siparis', tone: 'stop',
+      title: `${unpriced.length} siparişte kişi başı fiyat yok`,
+      body: `${names.slice(0, 3).join(', ')}${names.length > 3 ? '…' : ''}. Fiyat girilmeden teslim edilemez; müşteri kartına veya siparişe fiyat yazın.`,
+      to: '/siparisler', weight: 78,
+    });
+  }
 
   // 5) Bugünün mutfağı
   const empty = x.todayBatches.filter((b) => (b.item_count ?? 0) === 0);

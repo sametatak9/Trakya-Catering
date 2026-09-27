@@ -67,6 +67,14 @@ begin
   select cost_last into v from public.v_recipe_costs where recipe_id = r;
   assert round(v, 2) = 72.05, format('türetilen reçete maliyeti hazırlıkla aynı (72,05) olmalı: %s', v);
 
+  -- Stoktan düş (hazırlık): aynı yemek iki kez düşülmez (tek kapı, Faz 3A)
+  insert into public.stock_movements (ingredient_id, kind, qty, source, source_id) values (i_et, 'cikis', -144, 'hazirlik', b);
+  begin
+    insert into public.stock_movements (ingredient_id, kind, qty, source, source_id) values (i_et, 'cikis', -144, 'hazirlik', b);
+    raise exception 'hazırlık iki kez stoktan düşüldü';
+  exception when unique_violation then null;
+  end;
+
   -- Reçetesi olmayan yeni yemek, çalışırken oluşur
   insert into public.prep_batches (prep_date, meal, dish_name, course, portions) values (d, 'ogle', 'P Mercimek Çorbası', 'corba', 1200) returning id into b;
   insert into public.prep_batch_items (batch_id, ingredient_id, qty, unit) values (b, i_tuz, 2400, 'g');

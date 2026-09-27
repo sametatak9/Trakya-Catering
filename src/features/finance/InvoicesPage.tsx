@@ -9,6 +9,8 @@ import { ROLES } from '@/lib/domain';
 import { fmtNum, parseNum } from '@/lib/format';
 import { supabase, unwrap } from '@/lib/supabase';
 import { UNIT_CODES, parseUbl, pricePerStockUnit, type UblInvoice, type UblLine } from '@/lib/ubl';
+import { useRows } from '@/lib/crud';
+import { mergeByIngredient } from '@/lib/stock';
 import { MonthNav } from '@/ui/bits';
 import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Money, Panel, Pill, Tabs, cx, type Tone } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
@@ -294,10 +296,17 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
   const auto = useMemo(() => Object.fromEntries(lines.map((l, i) => [i, matchIngredient(l, ings)?.id ?? ''])), [lines, ings]);
   const chosen = (i: number) => map[i] ?? auto[i] ?? '';
   const [busy, setBusy] = useState(false);
+  // Tek kapı: fatura bir satınalma siparişine bağlıysa ve o sipariş teslim alınırken stoğa girdiyse fatura yalnız fiyatı günceller
+  const suppliers = useRows('suppliers', { order: 'name' });
+  const supplier = (suppliers.data ?? []).find((x) => (invoice.supplier_tax_no && x.tax_no === invoice.supplier_tax_no)
+    || x.name.toLocaleLowerCase('tr') === invoice.supplier_name.toLocaleLowerCase('tr'));
+  const pos = useRows('purchase_orders', { key: ['fatura-bag', supplier?.id ?? '-'], order: 'order_date', ascending: false, enabled: Boolean(supplier),
+    filter: (q) => q.eq('supplier_id', supplier!.id).neq('status', 'iptal') });
+  const [poId, setPoId] = useState(invoice.purchase_order_id ?? '');
 
   const setStatus = async (status: string) => {
     try {
-      await save.mutateAsync({ id: invoice.id, draft: { status, category_code: category, due_date: due || null } });
+      await save.mutateAsync({ id: invoice.id, draft: { status, category_code: category, due_date: due || null, purchase_order_id: poId || null } });
       toast.ok(status === 'onaylandi' ? 'Onaylandı; giderlere işlendi' : status === 'reddedildi' ? 'Reddedildi' : 'Kaydedildi');
       onClose();
     } catch (e) { toast.error(e); }
@@ -320,14 +329,19 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
       const price = pricePerStockUnit(l, ing.stock_unit);
       return { ingredient_id: ing.id, move_date: invoice.invoice_date, kind: 'giris', qty: Math.round(l.quantity * a.toBase / b.toBase * 1000) / 1000,
         unit_cost: price === null ? null : Math.round(price * 10000) / 10000, source: 'fatura', source_id: invoice.id, note: `${invoice.supplier_name} · ${invoice.invoice_no}` };
-    }).filter(Boolean);
+    }).filter(Boolean) as Array<{ ingredient_id: string; qty: number; unit_cost: number | null }>;
     setBusy(true);
     try {
+      if ((invoice.purchase_order_id ?? '') !== poId) unwrap(await supabase.from('purchase_invoices').update({ purchase_order_id: poId || null }).eq('id', invoice.id).select('id'));
       unwrap(await supabase.from('ingredient_prices').insert(rows).select('id'));
-      const already = unwrap(await supabase.from('stock_movements').select('id').eq('source_id', invoice.id).limit(1));
-      if (already.length === 0 && stock.length) unwrap(await supabase.from('stock_movements').insert(stock as never).select('id'));
-      await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['recipe_costs'] }), qc.invalidateQueries({ queryKey: ['menu_costs'] }), qc.invalidateQueries({ queryKey: ['t', 'stock_movements'] })]);
-      toast.ok(`${rows.length} hammaddenin fiyatı güncellendi${already.length === 0 && stock.length ? `, ${stock.length} kalem stoğa girdi` : ''}; reçete maliyetleri yenilendi`);
+      const already = unwrap(await supabase.from('stock_movements').select('id').eq('source', 'fatura').eq('source_id', invoice.id).limit(1));
+      // Sipariş teslimiyle zaten stoğa girmiş mallar atlanır (çift giriş yok)
+      const viaPo = poId ? unwrap(await supabase.from('stock_movements').select('ingredient_id').eq('source', 'siparis').eq('source_id', poId)) : [];
+      const skip = new Set(viaPo.map((m) => m.ingredient_id));
+      const toStock = already.length === 0 ? mergeByIngredient(stock).filter((r) => !skip.has(r.ingredient_id)).map((r) => ({ ...r, supplier_id: supplier?.id ?? null })) : [];
+      if (toStock.length) unwrap(await supabase.from('stock_movements').insert(toStock as never).select('id'));
+      await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['recipe_costs'] }), qc.invalidateQueries({ queryKey: ['menu_costs'] }), qc.invalidateQueries({ queryKey: ['t', 'stock_movements'] }), qc.invalidateQueries({ queryKey: ['t', 'purchase_invoices'] })]);
+      toast.ok(`${rows.length} hammaddenin fiyatı güncellendi${toStock.length ? `, ${toStock.length} kalem stoğa girdi` : ''}${skip.size ? `; ${skip.size} kalem sipariş teslimiyle zaten stokta` : ''}; reçete maliyetleri yenilendi`);
     } catch (e) { toast.error(e); } finally { setBusy(false); }
   };
 
@@ -354,6 +368,14 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
       <fieldset disabled={!canEdit} className="grid grid-cols-2 gap-3 mb-5">
         <Field label="Gider kalemi"><CategorySelect kind="gider" value={category} onChange={setCategory} /></Field>
         <Field label="Vade"><input type="date" className="tc-input tc-num" value={due} onChange={(e) => setDue(e.target.value)} /></Field>
+        {supplier && (
+          <Field label="Bağlı satınalma siparişi" className="col-span-2" hint="Mal sipariş teslimiyle stoğa girdiyse fatura stoğu ikinci kez artırmaz; gider yalnız bu faturadan yazılır.">
+            <select className="tc-input" value={poId} onChange={(e) => setPoId(e.target.value)}>
+              <option value="">— bağlı sipariş yok —</option>
+              {(pos.data ?? []).map((p) => <option key={p.id} value={p.id}>{shortDay(p.order_date)} · {fmtMoney(Number(p.total))} · {p.status === 'teslim' ? 'teslim alındı' : p.status}</option>)}
+            </select>
+          </Field>
+        )}
       </fieldset>
       {invoice.note && <p className="text-xs text-ink-3 mb-4">{invoice.note}</p>}
 

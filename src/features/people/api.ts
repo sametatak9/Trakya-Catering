@@ -1,4 +1,6 @@
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useRows } from '@/lib/crud';
+import { supabase, unwrap } from '@/lib/supabase';
 import type { Row } from '@/lib/crud';
 
 export type Employee = Row<'employees'>;
@@ -26,9 +28,30 @@ export const LEDGER_KINDS: Record<string, { label: string; sign: 1 | -1; tone: '
 };
 export const REQUEST_KINDS: Record<string, string> = { izin: 'İzin', avans: 'Avans', mesai: 'Fazla mesai' };
 
-export function useEmployees() {
-  return useRows('employees', { order: 'full_name' });
+/**
+ * Personel listesi. Maaş/IBAN yetkisi olmayan roller tam kartı okuyamaz (RLS, Faz 3A S-1):
+ * onlar yalnız ad, unvan, bölüm, telefon içeren rehberi görür; ücret alanları boş gelir.
+ */
+export function useEmployees(full = true): UseQueryResult<Employee[]> {
+  const cards = useRows('employees', { order: 'full_name', enabled: full });
+  const dir = useQuery({
+    queryKey: ['t', 'employees', 'rehber'],
+    enabled: !full,
+    queryFn: async () => {
+      const rows = unwrap(await supabase.from('v_employee_directory').select('*').order('full_name'));
+      return rows.map((r) => ({
+        ...EMPTY_EMPLOYEE, id: r.id ?? '', full_name: r.full_name ?? '', title: r.title, department: r.department ?? 'diger', phone: r.phone, active: r.active ?? true,
+      })) as Employee[];
+    },
+  });
+  return (full ? cards : dir) as UseQueryResult<Employee[]>;
 }
+
+const EMPTY_EMPLOYEE: Omit<Employee, 'id' | 'full_name'> = {
+  title: null, department: 'diger', phone: null, email: null, pay_type: 'aylik', monthly_salary: 0, daily_wage: 0, daily_hours: 10,
+  overtime_rate: 1.5, device_user_id: null, iban: null, start_date: null, user_id: null, card_slug: null, card_public: false,
+  active: true, notes: null, created_at: '', updated_at: '',
+};
 export function useAttendance(from: string, to: string) {
   return useRows('attendance_days', { key: [from, to], filter: (q) => q.gte('work_date', from).lte('work_date', to) });
 }

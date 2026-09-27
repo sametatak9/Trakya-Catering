@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bestQuotes, daysOfCover, needsFromPlan, quotePrice, stockLevels } from './stock';
+import { bestQuotes, daysOfCover, mergeByIngredient, needsFromPlan, quotePrice, stockLevels } from './stock';
 
 describe('stok', () => {
   const moves = [
@@ -37,4 +37,26 @@ it('en uygun tedarikçi: son fiyatlar içinde en düşük', () => {
 it('teklif fiyatı: (maliyet) / (1 − marj), 0,50 ₺ yukarı', () => {
   expect(quotePrice(82, 18, 20)).toBe(125);
   expect(quotePrice(80.1, 0, 0)).toBe(80.5);
+});
+
+describe('tek kapı stok: belge × malzeme birleştirme', () => {
+  it('aynı malzemeyi tek harekete birleştirir (miktar toplamı, ağırlıklı maliyet)', () => {
+    const out = mergeByIngredient([
+      { ingredient_id: 'et', qty: 10, unit_cost: 400 },
+      { ingredient_id: 'tuz', qty: 2, unit_cost: 10 },
+      { ingredient_id: 'et', qty: 30, unit_cost: 440 },
+    ]);
+    expect(out).toHaveLength(2);
+    expect(out.find((r) => r.ingredient_id === 'et')).toMatchObject({ qty: 40, unit_cost: 430 });
+  });
+  it('çıkışta negatif miktarları toplar, maliyeti bilinmeyeni boş bırakır', () => {
+    const out = mergeByIngredient([
+      { ingredient_id: 'et', qty: -4, unit_cost: null },
+      { ingredient_id: 'et', qty: -6, unit_cost: null },
+    ]);
+    expect(out).toEqual([{ ingredient_id: 'et', qty: -10, unit_cost: null }]);
+  });
+  it('toplamı sıfır olan satır düşer', () => {
+    expect(mergeByIngredient([{ ingredient_id: 'a', qty: 1 }, { ingredient_id: 'a', qty: -1 }])).toEqual([]);
+  });
 });

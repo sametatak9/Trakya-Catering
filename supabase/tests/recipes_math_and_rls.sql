@@ -8,7 +8,7 @@ declare
   u_cook uuid := gen_random_uuid();
   u_cust uuid := gen_random_uuid();
   i_et uuid; i_havuc uuid; i_bezelye uuid; i_yag uuid; i_tuz uuid;
-  r_kebap uuid; m_menu uuid;
+  r_kebap uuid; m_menu uuid; cst uuid;
   v_cost numeric; v_net numeric; v_gross numeric; v_count int;
 begin
   -- İlk kullanıcı otomatik yönetici olmalı (tablo boşsa)
@@ -23,7 +23,8 @@ begin
   insert into auth.users (id, email) values (u_cook, 'cook-test@example.com'), (u_cust, 'cust-test@example.com');
   assert not exists (select 1 from public.team_members where user_id = u_cook), 'ikinci kullanıcı rolsüz beklemeli';
   insert into public.team_members (user_id, role) values (u_cook, 'asci_basi');
-  insert into public.team_members (user_id, role, customer_id) values (u_cust, 'musteri', gen_random_uuid());
+  insert into public.customers (name) values ('T Cari') returning id into cst;
+  insert into public.team_members (user_id, role, customer_id) values (u_cust, 'musteri', cst);
 
   -- Hammaddeler
   insert into public.ingredients (name, stock_unit, waste_pct) values ('T Dana Kuşbaşı', 'kg', 10) returning id into i_et;
@@ -50,7 +51,7 @@ begin
   assert round(v_gross, 3) = 160, format('brüt 160 kg olmalı, %s', v_gross);
 
   -- Menü: 1.2 porsiyon katsayısı ile
-  insert into public.menus (name, kind, target_price) values ('T Menü', '4_kap', 200) returning id into m_menu;
+  insert into public.menus (name, kind, target_price) values ('T Menü', 'standart', 200) returning id into m_menu;
   insert into public.menu_items (menu_id, recipe_id, portion_factor) values (m_menu, r_kebap, 1.2);
   assert round((select cost_last from public.v_menu_costs where menu_id = m_menu), 2) = round(83.9912 * 1.2, 2), 'menü maliyeti katsayılı olmalı';
 

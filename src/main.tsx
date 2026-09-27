@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { App } from './app/App';
 import { RouterProvider } from './app/router';
 import { SessionProvider } from './app/session';
@@ -9,11 +9,10 @@ import { ConfirmHost } from './ui/confirm';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import './index.css';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: 30_000, refetchOnWindowFocus: true, retry: 1 },
-  },
-});
+import { queryClient } from './lib/queryClient';
+import { installGlobalErrorHandlers } from './lib/errorReport';
+
+installGlobalErrorHandlers();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

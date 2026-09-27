@@ -21,7 +21,7 @@ begin
   assert n = 1, 'silinen satır kalmamalı';
   select cost_last into v from public.v_recipe_costs where recipe_id = r;
   assert round(v, 2) = 100, format('güncel maliyet 100 olmalı: %s', v);
-  m := public.save_menu(null, '{"name":"Z Menü","kind":"3_kap","target_price":"200"}', jsonb_build_array(jsonb_build_object('recipe_id', r, 'portion_factor', 1.2)));
+  m := public.save_menu(null, '{"name":"Z Menü","kind":"standart","target_price":"200"}', jsonb_build_array(jsonb_build_object('recipe_id', r, 'portion_factor', 1.2)));
   select cost_last into v from public.v_menu_costs where menu_id = m;
   assert round(v, 2) = 120, format('menü 120 olmalı: %s', v);
   select food_margin_pct into v from public.v_menu_costs where menu_id = m;

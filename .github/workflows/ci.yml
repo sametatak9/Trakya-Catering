@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+jobs:
+  web:
+    name: Tip, test, derleme
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Tip kontrolü (lint)
+        run: bun run lint
+      - name: Birim testleri
+        run: bun run test
+      - name: Derleme
+        run: bun run build
+        env:
+          VITE_ROUTER: hash
+      - name: Veritabanı tipleri güncel mi (migration eklendiyse types da değişmeli)
+        run: |
+          last_mig=$(git log -1 --format=%ct -- supabase/migrations)
+          last_types=$(git log -1 --format=%ct -- src/lib/database.types.ts)
+          if [ "$last_mig" -gt "$last_types" ]; then
+            echo "::error::supabase/migrations değişti ama src/lib/database.types.ts yenilenmedi (generate_typescript_types)"; exit 1
+          fi
+  # SQL senaryo testleri (supabase/tests/*.sql, begin … rollback) yerel Supabase ile koşar.
+  # Canlı projeye bağlanılmaz. Yerel Supabase kurulumu eklenene kadar bu testler Supabase MCP ile
+  # her fazda elle çalıştırılır ve sonuçları docs/raporlar/ altına yazılır.

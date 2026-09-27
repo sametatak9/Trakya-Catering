@@ -72,3 +72,23 @@ export function quotePrice(foodCost: number, overhead: number, marginPct: number
   const m = Math.min(Math.max(marginPct, 0), 90) / 100;
   return Math.ceil((cost / (1 - m)) * 2) / 2;   // 0,50 ₺'ye yuvarla
 }
+
+/**
+ * Aynı belgede aynı malzeme birden çok satırda geçerse tek hareket olur (veritabanı belge × malzeme başına tek giriş/çıkış kabul eder).
+ * Miktarlar toplanır; birim maliyet miktar ağırlıklı ortalamadır (biri bilinmiyorsa bilinenlerden hesaplanır).
+ */
+export function mergeByIngredient<T extends { ingredient_id: string; qty: number; unit_cost?: number | null }>(rows: T[]): T[] {
+  const map = new Map<string, { row: T; qty: number; costQty: number; cost: number }>();
+  for (const r of rows) {
+    const q = Number(r.qty);
+    const x = map.get(r.ingredient_id) ?? { row: { ...r }, qty: 0, costQty: 0, cost: 0 };
+    x.qty += q;
+    if (r.unit_cost != null) { x.costQty += Math.abs(q); x.cost += Math.abs(q) * Number(r.unit_cost); }
+    map.set(r.ingredient_id, x);
+  }
+  return [...map.values()].map(({ row, qty, costQty, cost }) => ({
+    ...row,
+    qty: Math.round(qty * 10000) / 10000,
+    ...('unit_cost' in row || costQty > 0 ? { unit_cost: costQty > 0 ? Math.round((cost / costQty) * 10000) / 10000 : null } : {}),
+  })).filter((r) => r.qty !== 0);
+}

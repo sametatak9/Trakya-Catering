@@ -5,7 +5,7 @@ import { useCan } from '@/app/session';
 import { useInsertRows, useRows, useSaveRow } from '@/lib/crud';
 import { addDays, monthKey, monthLabel, monthRange, shortDay, todayISO } from '@/lib/dates';
 import { fmtMoney, fmtNum } from '@/lib/format';
-import { bestQuotes, needsFromPlan, stockLevels, type PlanSlot } from '@/lib/stock';
+import { bestQuotes, mergeByIngredient, needsFromPlan, stockLevels, type PlanSlot } from '@/lib/stock';
 import { supabase, unwrap } from '@/lib/supabase';
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
 import { ReportSection, ReportStats } from '@/reports/ReportFrame';
@@ -123,9 +123,16 @@ export function PurchasingPage() {
     const lines = (po.lines as unknown as Line[]) ?? [];
     if (!(await askConfirm(`${supName(po.supplier_id)} siparişi teslim alındı mı? ${lines.length} kalem stoğa girer.`))) return;
     try {
-      await insertMoves.mutateAsync({ rows: lines.map((l) => ({ ingredient_id: l.ingredient_id, move_date: today, kind: 'giris', qty: l.qty, unit_cost: l.unit_price, source: 'siparis', source_id: po.id, note: supName(po.supplier_id) })) });
+      // Tek kapı: bu siparişe bağlı fatura malı zaten stoğa soktuysa o kalemler tekrar girmez
+      const invs = unwrap(await supabase.from('purchase_invoices').select('id').eq('purchase_order_id', po.id));
+      const viaInvoice = invs.length ? unwrap(await supabase.from('stock_movements').select('ingredient_id').eq('source', 'fatura').in('source_id', invs.map((x) => x.id))) : [];
+      const skip = new Set(viaInvoice.map((m) => m.ingredient_id));
+      const rows = mergeByIngredient(lines.map((l) => ({ ingredient_id: l.ingredient_id, qty: Number(l.qty), unit_cost: l.unit_price })))
+        .filter((l) => !skip.has(l.ingredient_id))
+        .map((l) => ({ ...l, move_date: today, kind: 'giris', source: 'siparis', source_id: po.id, supplier_id: po.supplier_id, note: supName(po.supplier_id) }));
+      if (rows.length) await insertMoves.mutateAsync({ rows });
       await savePo.mutateAsync({ id: po.id, row: { status: 'teslim', delivery_date: today } });
-      toast.ok('Stoğa girdi; fatura gelince Gelen Faturalar’dan onaylayın');
+      toast.ok(skip.size ? `Stoğa girdi (${skip.size} kalem faturayla zaten girmişti)` : 'Stoğa girdi; fatura gelince Gelen Faturalar’da bu siparişe bağlayın');
     } catch (e) { toast.error(e); }
   };
 

@@ -29,17 +29,39 @@ Foodsoft gibi eski sistemlerin yerine: az ekran, açıklayıcı sekme adları, h
 
 | Tümü | Raporlar | Her sekmede logolu, holografik mühürlü antetli rapor: Yazdır/PDF, Excel (CSV), WhatsApp ile gönder |
 
-## Sıradaki fazlar
-0. **Kurucu paneli** — rol × modül yetki matrisi (yok/okur/yazar), kişiye özel istisna, audit log, firma bilgileri.
-1. **Personel, puantaj & maaş** — Kibritçi deneyiminden tek kural: günlük = maaş/30, tam ay = 30 gün, 7,5 saatlik gün, mesai ×1,5; ücretli durumlar açıkça listelenir (Geldi, İzinli, Pazar, Tatil; Raporlu ayrı karar). Avans kesinti kaydı olarak bağlanır (isimle eşleştirme yok). Mobil yoklama (Geldi/Yok/Diğer + mesai ±0,5 sa). Maaş ödemesi → Kasa gideri.
-3. **Depo & stok + firmalara giden malzemeler** — hazırlıktan otomatik stok çıkışı; tuz/ketçap/mayonez/yağ gönderimleri stoktan ve maliyete. **Satınalma** — Üretime çıkış, sayım, SKT; eksik hammadde listesi; tedarikçi fiyat geçmişinden en uygun tedarikçi önerisi.
-4. **Müşteri portalı** — Firmalar ertesi günün sayısını 16:00’ya kadar kendisi girer (veritabanı kuralı hazır).
-5. **Filo, rota & şoför** — Haritada baş şoför rotası, şoför mobil ekranı (teslim, imza, malzeme, müşteri talebi), mazot/bakım/km, Arvento/Mobiliz bağlantısı, ekip sohbeti ve hatırlatmalar.
-6. **Satış e-faturası** — Ay sonu teslimlerden toplu fatura; özel entegratör (Paraşüt/Uyumsoft/Logo) adaptörü; gelen faturaların otomatik çekimi.
-7. **Teklifler** — Kurumsal teklif şablonu; menü maliyeti + genel gider payı + hedef marjla kişi başı fiyat hesaplayıcı.
-8. **Müşteri bulma & saha** — Bölgesel firma botu (yalnız izinli/resmi kaynaklar), pazarlamacı günlük rotası, ziyaret fotoğrafı ve dönüş notu, yönetici kontrolü.
-9. **Sosyal medya** — Embay yöntemi: içerik havuzu, aylık içerik takvimi, platform bazlı taslak, onay kuyruğu.
-10. **Gıda güvenliği** — Şahit numune (72 saat), lot/SKT, sevkiyat sıcaklığı.
+| Personel | Personel · Puantaj & Maaş · Bakiyeler | Kart, kartvizit, ZKTeco dosyasıyla yoklama (10 saat kuralı, mesai ×1,5), hakediş, canlı bakiye, toplu ödeme |
+| Depo | Stok · Firmalara Giden · Satınalma · Tedarikçiler | Eldeki miktar, sayım (fark), menüye göre aylık ihtiyaç, tedarikçi fiyat kaydı, satınalma siparişi |
+| Sistem | Kurucu paneli · Asistan · Sohbet | Rol × sekme görünürlüğü, hatırlatmalar, ekip sohbeti |
+
+## Fazlar (bağlayıcı sıra: `docs/claude/CLAUDE-ANA-PROMPT.md` §8)
+Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istemci → vitest → build → push (`main` + canlı dal) → faz raporu (`docs/raporlar/`).
+
+| Faz | Konu | Durum |
+|---|---|---|
+| 3A | Güvenlik, bütünlük, migration sürümleri, parseNum, çıkış önbelleği, hata kaydı, CI | ✅ (rapor: `raporlar/faz-3A.md`) |
+| 3B | Navigasyon 30 → 14 modül, sekmeler, eski yolların yönlendirmesi, rol çalışma alanı | ⏳ sıradaki |
+| 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ⏳ |
+| 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ⏳ |
+| 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ⏳ |
+| 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | ⏳ |
+| 3F | Finans › Maliyet (gün/ay/yıl, sürümlü), menüden sürümlü satınalma planı, teklif analizi | ⏳ |
+| 3H | Üretimden öğrenen reçete, öğün bazlı genel gider dağıtımı | ⏳ |
+| 3G | Kurucu paneli: kullanıcı sil/kısıtla, modül aç/kapat | ⏳ |
+| 4 | Cari & kasa: tahsilat tahsisi, çek-senet, kredi, ekstre, hatırlatma, belge merkezi, irsaliye → satış faturası (UBL-TR) | ⏳ |
+| 5 | Lojistik: rota & harita, araç uyarıları, şoför ekranı ve masrafı, canlı takip, filo kartviziti | ⏳ |
+| 6 | Personel: XLSX puantaj, bordro dönemi, izin bakiyesi, İK rolü | ⏳ |
+| 7 | Kârlılık, teklif & sunum, marka şablonu | ⏳ |
+| 8A · 8 · 8B | CRM + hedef kitle botu, Bugün kartları + sosyal medya, Hata Merkezi | ⏳ |
+| 9 · 10 | Rehber/turlar · uçtan uca doğrulama | ⏳ |
+
+## Varsayımlar (belge "soru sorma, makul varsayımla devam et" diyor)
+- **Test ortamı:** Ayrı Supabase projesi/branch ücretli olduğundan migration'lar önce canlı projede `begin … rollback` içinde (hiçbir şey kalıcı olmadan) test senaryosuyla denenir, geçince uygulanır. CI'da SQL testleri için yerel Supabase ileride eklenecek.
+- **Migration adları:** Dosya adı canlı sürüm numarasıdır (M-1). `apply_migration` sürümü uygulama anında verir; uygulamadan sonra dosya adı eşitlenir.
+- **Personel rehberi:** `v_employee_directory` tetikleyiciyle eşitlenen ayrı tablodan okunur (SECURITY DEFINER görünüm advisor'da hata verdiği için).
+- **Stok düzeltme:** Stok hareketi silinmez/değiştirilmez; yönetici dışındaki roller "ters kayıt" ile düzeltir. Sayım hareketi = fark (delta).
+- **Fiyatsız teslim:** Veritabanı reddeder (kişi başı fiyat 0 iken teslim → hata); asistan önceden uyarır.
+- **Mesai kuralı:** Günlük çalışma 10 saat (kartta değiştirilebilir), üstü ×1,5.
+- **Main dalı:** Belge gereği her faz testleri geçince `main`'e ve canlı dala aynı commit gönderilir.
 
 ## Açık notlar
 - E-fatura KDV oranı (%10) ve tevkifat (5/10) mali müşavirle teyit edilmeli; tabloda parametre.

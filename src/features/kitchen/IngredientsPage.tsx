@@ -175,6 +175,13 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
     if (canEdit && (wasteN === null || wasteN < 0 || wasteN >= 100)) return setErr('Fire oranı 0 ile 99,99 arasında olmalı.');
     const priceN = price.trim() ? parseNum(price) : null;
     if (price.trim() && (priceN === null || priceN < 0)) return setErr('Fiyat geçersiz.');
+    if (canEdit && ingredient && unit !== ingredient.stock_unit) {
+      const a = unitInfo(ingredient.stock_unit), b = unitInfo(unit);
+      const msg = a.base !== b.base
+        ? `Birim ${ingredient.stock_unit} → ${unit}: farklı ölçü türü. Fiyat veya stok geçmişi varsa kaydedilmez; yeni bir hammadde açın.`
+        : `Birim ${ingredient.stock_unit} → ${unit} değişecek. Son fiyat, ortalama maliyet, en az stok, fiyat geçmişi ve stok hareketleri otomatik çevrilir (1 ${ingredient.stock_unit} = ${a.toBase / b.toBase} ${unit}). Devam edilsin mi?`;
+      if (!(await askConfirm(msg))) return;
+    }
     try {
       await save.mutateAsync({
         id: ingredient?.id ?? null,

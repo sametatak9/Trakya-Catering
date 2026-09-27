@@ -1,10 +1,14 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { reportError } from '@/lib/errorReport';
 
 /** Bir ekranda hata olursa bütün uygulama boş kalmaz: anlaşılır bir mesaj ve "Yenile" gösterilir. */
 export class ErrorBoundary extends Component<{ children: ReactNode; compact?: boolean }, { error: Error | null }> {
   state = { error: null as Error | null };
   static getDerivedStateFromError(error: Error) { return { error }; }
-  componentDidCatch(error: Error, info: ErrorInfo) { console.error('[Trakya Catering] ekran hatası', error, info.componentStack); }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[Trakya Catering] ekran hatası', error, info.componentStack);
+    reportError('ekran', error, { bilesen: info.componentStack?.slice(0, 1500) });
+  }
   render() {
     const { error } = this.state;
     if (!error) return this.props.children;

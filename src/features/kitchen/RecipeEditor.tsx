@@ -9,6 +9,7 @@ import { fmtDate, fmtMoney, fmtNum, fmtPct, fmtQty, parseNum } from '@/lib/forma
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
 import { ReportSection, ReportStats } from '@/reports/ReportFrame';
 import { Delta } from '@/ui/bits';
+import { NumInput } from '@/ui/NumCell';
 import { Button, ErrorNote, Field, Loading, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
 import {
@@ -227,7 +228,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
                 <input className="tc-input" value={h.portion_label} onChange={(e) => upd({ portion_label: e.target.value })} />
               </Field>
               <Field label="Pişmiş porsiyon (g)" className="sm:col-span-2" hint={h.portion_served_g && netGrams ? `Çiğ net ${fmtNum(netGrams, 0)} g → verim ${fmtPct((h.portion_served_g / netGrams) * 100, 0)}` : 'Tabağa giden ağırlık'}>
-                <input className="tc-input tc-num" inputMode="decimal" value={fmtInput(h.portion_served_g)} onChange={(e) => upd({ portion_served_g: parseNum(e.target.value) })} />
+                <NumInput value={h.portion_served_g} onValue={(v) => upd({ portion_served_g: v })} aria-label="Pişmiş porsiyon (g)" />
               </Field>
               <label className="flex items-end gap-2 pb-2.5 text-sm text-ink-2">
                 <input type="checkbox" checked={h.active} onChange={(e) => upd({ active: e.target.checked })} className="accent-[var(--tc-brand)]" /> Aktif

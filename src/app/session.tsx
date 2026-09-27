@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { clearUserState } from '@/lib/queryClient';
 import type { AppRole } from '@/lib/domain';
 
 export interface Member { userId: string; email: string; fullName: string; role: AppRole; customerId: string | null }
@@ -43,6 +44,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       // Token yenilemede üyeliği tekrar okumaya gerek yok
       if (event === 'TOKEN_REFRESHED') return;
+      if (event === 'SIGNED_OUT') clearUserState();
       // onAuthStateChange içinde doğrudan await yapılmaz (supabase-js kilidi); bir sonraki tick'e bırak
       setTimeout(() => apply(session), 0);
     });
@@ -69,4 +71,5 @@ export function useCan(roles: AppRole[]): boolean {
 
 export async function signOut() {
   await supabase.auth.signOut();
+  clearUserState();
 }

@@ -50,6 +50,8 @@ begin
   -- Kartvizit herkese açık fonksiyonla okunur
   select count(*) into n from public.public_card('t-usta');
   assert n = 1, 'kartvizit okunmalı';
+  select count(*) into n from public.employee_directory where id = emp;
+  assert n = 1, 'personel rehberi eşitlenmeli';
   raise notice 'operations_flow OK';
 end $$;
 rollback;

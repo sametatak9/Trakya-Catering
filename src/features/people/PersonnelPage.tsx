@@ -40,7 +40,7 @@ export function PersonnelPage() {
   const toast = useToast();
   const canEdit = useCan(['yonetici', 'muhasebe']);
   const canSeePay = useCan(['yonetici', 'muhasebe']);
-  const employees = useEmployees();
+  const employees = useEmployees(canSeePay);
   const ledger = useLedger();
   const requests = useRows('employee_requests', { order: 'created_at', ascending: false });
   const save = useSaveRow('employees');

@@ -71,10 +71,13 @@ export type Database = {
           actor: string | null
           actor_kind: string
           at: string
+          chain_seq: number | null
           diff: Json
           entity_id: string | null
           entity_type: string
+          hash: string | null
           id: number
+          prev_hash: string | null
           summary: string | null
         }
         Insert: {
@@ -82,10 +85,13 @@ export type Database = {
           actor?: string | null
           actor_kind?: string
           at?: string
+          chain_seq?: number | null
           diff?: Json
           entity_id?: string | null
           entity_type: string
+          hash?: string | null
           id?: never
+          prev_hash?: string | null
           summary?: string | null
         }
         Update: {
@@ -93,10 +99,13 @@ export type Database = {
           actor?: string | null
           actor_kind?: string
           at?: string
+          chain_seq?: number | null
           diff?: Json
           entity_id?: string | null
           entity_type?: string
+          hash?: string | null
           id?: never
+          prev_hash?: string | null
           summary?: string | null
         }
         Relationships: []
@@ -270,7 +279,6 @@ export type Database = {
       }
       customers: {
         Row: {
-          order_token: string
           active: boolean
           address: string | null
           city: string | null
@@ -286,6 +294,7 @@ export type Database = {
           lng: number | null
           name: string
           notes: string | null
+          order_token: string
           payment_term_days: number
           phone: string | null
           tax_no: string | null
@@ -294,7 +303,6 @@ export type Database = {
           vat_rate: number
         }
         Insert: {
-          order_token?: string
           active?: boolean
           address?: string | null
           city?: string | null
@@ -310,6 +318,7 @@ export type Database = {
           lng?: number | null
           name: string
           notes?: string | null
+          order_token?: string
           payment_term_days?: number
           phone?: string | null
           tax_no?: string | null
@@ -318,7 +327,6 @@ export type Database = {
           vat_rate?: number
         }
         Update: {
-          order_token?: string
           active?: boolean
           address?: string | null
           city?: string | null
@@ -334,6 +342,7 @@ export type Database = {
           lng?: number | null
           name?: string
           notes?: string | null
+          order_token?: string
           payment_term_days?: number
           phone?: string | null
           tax_no?: string | null
@@ -402,6 +411,41 @@ export type Database = {
             columns: ["sales_invoice_id"]
             isOneToOne: false
             referencedRelation: "sales_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_directory: {
+        Row: {
+          active: boolean
+          department: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          title: string | null
+        }
+        Insert: {
+          active?: boolean
+          department?: string | null
+          full_name: string
+          id: string
+          phone?: string | null
+          title?: string | null
+        }
+        Update: {
+          active?: boolean
+          department?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_directory_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -596,6 +640,48 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      error_events: {
+        Row: {
+          at: string
+          context: Json
+          fingerprint: string | null
+          id: number
+          kind: string
+          message: string
+          resolved: boolean
+          route: string | null
+          stack: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          at?: string
+          context?: Json
+          fingerprint?: string | null
+          id?: never
+          kind?: string
+          message: string
+          resolved?: boolean
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          at?: string
+          context?: Json
+          fingerprint?: string | null
+          id?: never
+          kind?: string
+          message?: string
+          resolved?: boolean
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       field_visits: {
         Row: {
@@ -1455,6 +1541,7 @@ export type Database = {
           lines: Json
           net_amount: number
           note: string | null
+          purchase_order_id: string | null
           source: string
           status: string
           supplier_name: string
@@ -1476,6 +1563,7 @@ export type Database = {
           lines?: Json
           net_amount: number
           note?: string | null
+          purchase_order_id?: string | null
           source?: string
           status?: string
           supplier_name: string
@@ -1497,6 +1585,7 @@ export type Database = {
           lines?: Json
           net_amount?: number
           note?: string | null
+          purchase_order_id?: string | null
           source?: string
           status?: string
           supplier_name?: string
@@ -1512,6 +1601,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "finance_categories"
             referencedColumns: ["code", "kind"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2032,6 +2128,7 @@ export type Database = {
           qty: number
           source: string
           source_id: string | null
+          supplier_id: string | null
           unit_cost: number | null
         }
         Insert: {
@@ -2046,6 +2143,7 @@ export type Database = {
           qty: number
           source?: string
           source_id?: string | null
+          supplier_id?: string | null
           unit_cost?: number | null
         }
         Update: {
@@ -2060,6 +2158,7 @@ export type Database = {
           qty?: number
           source?: string
           source_id?: string | null
+          supplier_id?: string | null
           unit_cost?: number | null
         }
         Relationships: [
@@ -2075,6 +2174,13 @@ export type Database = {
             columns: ["ingredient_id"]
             isOneToOne: false
             referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -2416,6 +2522,41 @@ export type Database = {
         }
         Relationships: []
       }
+      v_employee_directory: {
+        Row: {
+          active: boolean | null
+          department: string | null
+          full_name: string | null
+          id: string | null
+          phone: string | null
+          title: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          department?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: string | null
+          title?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          department?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_directory_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_menu_costs: {
         Row: {
           active: boolean | null
@@ -2634,8 +2775,13 @@ export type Database = {
       }
     }
     Functions: {
-      portal_info: { Args: { p_token: string }; Returns: Json }
-      portal_set_order: { Args: { p_token: string; p_date: string; p_meal: string; p_qty: number; p_note?: string | null }; Returns: Json }
+      audit_row_hash: {
+        Args: {
+          p: Database["public"]["Tables"]["audit_log"]["Row"]
+          p_prev: string
+        }
+        Returns: string
+      }
       base_unit: { Args: { p_dimension: string }; Returns: string }
       current_app_role: { Args: never; Returns: string }
       current_customer_id: { Args: never; Returns: string }
@@ -2675,11 +2821,24 @@ export type Database = {
           user_id: string
         }[]
       }
+      log_client_error: { Args: { p: Json }; Returns: undefined }
+      mask_pii: { Args: { p: string }; Returns: string }
       needs_bootstrap: { Args: never; Returns: boolean }
       order_is_open: { Args: { p_service_date: string }; Returns: boolean }
       plan_prep_from_orders: {
         Args: { p_date: string; p_meal: string }
         Returns: number
+      }
+      portal_info: { Args: { p_token: string }; Returns: Json }
+      portal_set_order: {
+        Args: {
+          p_date: string
+          p_meal: string
+          p_note?: string
+          p_qty: number
+          p_token: string
+        }
+        Returns: Json
       }
       prep_fill_from_recipe: { Args: { p_batch_id: string }; Returns: number }
       public_card: {
@@ -2721,6 +2880,7 @@ export type Database = {
         Args: { p_header: Json; p_id: string | null; p_lines: Json }
         Returns: string
       }
+      verify_audit_chain: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

@@ -61,4 +61,14 @@ describe('asistan uyarıları', () => {
     expect(s).toMatch(/^Selin, Bugün 850 kişilik üretim var/);
     expect(s).toContain('Vadesi geçmiş alacak');
   });
+  it('fiyatsız siparişi durdurucu uyarı olarak bildirir, iptal ve fiyatlıyı saymaz', () => {
+    const a = buildAlerts({ ...base, upcomingOrders: [
+      { customer_id: 'c1', service_date: '2026-09-27', status: 'bekliyor', unit_price: 0, ordered_qty: 120 },
+      { customer_id: 'c2', service_date: '2026-09-27', status: 'iptal', unit_price: 0, ordered_qty: 50 },
+      { customer_id: 'c2', service_date: '2026-09-27', status: 'bekliyor', unit_price: 150, ordered_qty: 50 },
+    ] }).find((x) => x.id.startsWith('fiyatsiz'));
+    expect(a?.title).toBe('1 siparişte kişi başı fiyat yok');
+    expect(a?.tone).toBe('stop');
+    expect(a?.body).toContain('OSB');
+  });
 });

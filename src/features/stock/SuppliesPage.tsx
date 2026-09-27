@@ -18,9 +18,10 @@ import { useCustomers } from '../sales/api';
 export function SuppliesPage() {
   const toast = useToast();
   const canEdit = useCan(['yonetici', 'depo', 'sofor', 'asci_basi', 'satinalma']);
+  const canDelete = useCan(['yonetici']);
   const [month, setMonth] = useState(() => monthKey(todayISO()));
   const { from, to } = monthRange(month);
-  const moves = useRows('stock_movements', { key: ['sevk', from, to], order: 'move_date', ascending: false, filter: (q) => q.eq('kind', 'sevk').gte('move_date', from).lte('move_date', to) });
+  const moves = useRows('stock_movements', { key: ['sevk', from, to], order: 'move_date', ascending: false, filter: (q) => q.eq('source', 'sevk').gte('move_date', from).lte('move_date', to) });
   const ingredients = useIngredients();
   const customers = useCustomers();
   const save = useSaveRow('stock_movements', ['ingredients']);
@@ -31,7 +32,9 @@ export function SuppliesPage() {
   const ing = (id: string) => ings.find((i) => i.id === id);
   const custName = (id: string | null) => (customers.data ?? []).find((c) => c.id === id)?.name ?? '—';
   const list = moves.data ?? [];
-  const costOf = (m: (typeof list)[number]) => -Number(m.qty) * Number(m.unit_cost ?? ing(m.ingredient_id)?.avg_cost ?? ing(m.ingredient_id)?.last_price ?? 0);
+  // Ters kayıt, geri aldığı gönderimin birim maliyetiyle düşülür
+  const origOf = (m: (typeof list)[number]) => (m.note?.startsWith('Ters kayıt: ') ? list.find((x) => x.id === m.note!.slice(12)) : undefined);
+  const costOf = (m: (typeof list)[number]) => -Number(m.qty) * Number(m.unit_cost ?? origOf(m)?.unit_cost ?? ing(m.ingredient_id)?.avg_cost ?? ing(m.ingredient_id)?.last_price ?? 0);
   const total = list.reduce((s, m) => s + costOf(m), 0);
   const byCustomer = useMemo(() => {
     const map = new Map<string, number>();
@@ -95,10 +98,18 @@ export function SuppliesPage() {
                   <span className="flex-1 min-w-0"><span className="font-semibold text-ink">{ing(m.ingredient_id)?.name}</span><span className="block text-[11px] text-ink-3 truncate">{custName(m.customer_id)}{m.note ? ` · ${m.note}` : ''}</span></span>
                   <span className="tc-num text-sm">{fmtNum(-Number(m.qty), 2)} {ing(m.ingredient_id)?.stock_unit}</span>
                   <Money value={costOf(m)} className="font-semibold w-24 text-right" />
-                  {canEdit && <button type="button" className="text-xs text-ink-3 hover:text-stop" onClick={async () => {
-                    if (!(await askConfirm('Gönderim silinsin mi? Stok geri eklenir.'))) return;
-                    try { await del.mutateAsync({ id: m.id }); toast.ok('Silindi'); } catch (e) { toast.error(e); }
-                  }}>sil</button>}
+                  {m.kind !== 'sevk' ? <span className="text-[11px] text-ink-3">ters kayıt</span>
+                    : canDelete ? <button type="button" className="text-xs text-ink-3 hover:text-stop" onClick={async () => {
+                      if (!(await askConfirm('Gönderim silinsin mi? Stok geri eklenir.'))) return;
+                      try { await del.mutateAsync({ id: m.id }); toast.ok('Silindi'); } catch (e) { toast.error(e); }
+                    }}>sil</button>
+                    : canEdit && !list.some((x) => x.kind !== 'sevk' && x.note === `Ters kayıt: ${m.id}`) && <button type="button" className="text-xs text-ink-3 hover:text-ink" title="Hatalı gönderimi geri alır; kayıt silinmez" onClick={async () => {
+                      if (!(await askConfirm('Bu gönderim ters kayıtla geri alınsın mı? Stok geri eklenir, firmanın maliyetinden düşer.'))) return;
+                      try {
+                        await save.mutateAsync({ row: { ingredient_id: m.ingredient_id, customer_id: m.customer_id, move_date: todayISO(), kind: 'giris', qty: -Number(m.qty), unit_cost: null, source: 'sevk', note: `Ters kayıt: ${m.id}` } });
+                        toast.ok('Ters kayıt işlendi');
+                      } catch (e) { toast.error(e); }
+                    }}>geri al</button>}
                 </li>
               ))}
             </ul>

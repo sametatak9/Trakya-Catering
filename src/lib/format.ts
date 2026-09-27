@@ -39,10 +39,38 @@ export function daysSince(iso?: string | null): number | null {
 }
 
 /** Virgüllü Türkçe sayı girişini sayıya çevirir: "1.250,5" → 1250.5, "12,5" → 12.5 */
-export function parseNum(input: string): number | null {
-  const s = input.trim();
+/**
+ * Türkçe sayı girişini çözer. Kurallar:
+ * - Virgül ondalık ayracıdır, nokta binlik ayracıdır: `1.250,5` → 1250,5 · `12,5` → 12,5.
+ * - Yalnız nokta varsa ve 3'lü gruplar hâlindeyse binliktir: `1.250` → 1250, `12.500.000` → 12500000.
+ * - Yalnız bir nokta var ve ardından 3 hane yoksa ondalıktır (klavye alışkanlığı): `1.25` → 1,25, `0.5` → 0,5.
+ * - Belirsiz `1.250` için varsayılan binliktir; alan küsurat bekliyorsa `{ dotDecimal: true }` ile 1,25 okunur.
+ * - Boşluk, ₺, TL, % ve birim ekleri yok sayılır; iki virgül veya virgülden sonra nokta geçersizdir.
+ */
+export function parseNum(input: string, opts: { dotDecimal?: boolean } = {}): number | null {
+  let s = String(input ?? '').trim().replace(/\s|₺|tl$|%/gi, '');
   if (!s) return null;
-  const normalized = s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s;
+  if (/^[+-]?\d+(\.\d+)?e[+-]?\d+$/i.test(s)) return null;
+  const neg = s.startsWith('-');
+  s = s.replace(/^[+-]/, '');
+  if (!/^[\d.,]+$/.test(s)) return null;
+  const commas = (s.match(/,/g) ?? []).length;
+  let normalized: string;
+  if (commas > 1) return null;
+  if (commas === 1) {
+    const [int, dec] = s.split(',');
+    if (dec.includes('.') || (int.includes('.') && !/^\d{1,3}(\.\d{3})+$/.test(int))) return null;
+    normalized = `${int.replace(/\./g, '')}.${dec}`;
+  } else if (s.includes('.')) {
+    const dots = (s.match(/\./g) ?? []).length;
+    if (dots > 1) {
+      if (!/^\d{1,3}(\.\d{3})+$/.test(s)) return null;
+      normalized = s.replace(/\./g, '');
+    } else {
+      normalized = /^\d{1,3}\.\d{3}$/.test(s) && !opts.dotDecimal ? s.replace('.', '') : s;
+    }
+  } else normalized = s;
+  if (normalized.startsWith('.') || normalized.endsWith('.')) normalized = normalized.replace(/^\./, '0.').replace(/\.$/, '');
   const n = Number(normalized);
-  return Number.isFinite(n) ? n : null;
+  return Number.isFinite(n) ? (neg ? -n : n) : null;
 }

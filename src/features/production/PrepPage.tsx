@@ -14,6 +14,7 @@ import { DateNav, Delta, Hint, SparkBars } from '@/ui/bits';
 import { NumCell } from '@/ui/NumCell';
 import { Button, EmptyState, ErrorNote, Loading, ModuleHero, Money, Panel, Pill, Tabs, cx } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
+import { mergeByIngredient } from '@/lib/stock';
 import { useInsertRows, useRows } from '@/lib/crud';
 import { askConfirm as confirmStock } from '@/ui/confirm';
 import { useEntries } from '../finance/api';
@@ -211,13 +212,13 @@ export function PrepPage({ fixedMeal, title, kicker }: { fixedMeal?: string; tit
   const issueStock = async () => {
     const done = new Set((issued.data ?? []).map((m) => m.source_id));
     const ingsById = new Map((allIngredients.data ?? []).map((i) => [i.id, i]));
-    const rowsOut = dayBatches.filter((b) => !done.has(b.batch_id)).flatMap((b) => (itemsBy.get(b.batch_id!) ?? []).filter((it) => it.ingredient_id).map((it) => {
+    const rowsOut = dayBatches.filter((b) => !done.has(b.batch_id)).flatMap((b) => mergeByIngredient(((itemsBy.get(b.batch_id!) ?? []).filter((it) => it.ingredient_id).map((it) => {
       const ing = ingsById.get(it.ingredient_id!);
       if (!ing) return null;
       const qty = Number(it.qty) * unitInfo(it.unit!).toBase / unitInfo(ing.stock_unit).toBase;
       return { ingredient_id: ing.id, move_date: date, kind: 'cikis', qty: -Math.round(qty * 1000) / 1000, unit_cost: it.unit_price == null ? null : Number(it.unit_price) * unitInfo(ing.stock_unit).toBase / unitInfo(it.unit!).toBase,
         source: 'hazirlik', source_id: b.batch_id, note: b.dish_name };
-    })).filter((x) => x && x.qty < 0) as Record<string, unknown>[];
+    }).filter(Boolean) as Array<{ ingredient_id: string; qty: number; unit_cost: number | null }>))).filter((x) => x.qty < 0) as Record<string, unknown>[];
     if (rowsOut.length === 0) return toast.error('Düşülecek yeni stok malzemesi yok');
     if (!(await confirmStock(`${rowsOut.length} kalem malzeme depodan düşülsün mü?`))) return;
     try { await stockOut.mutateAsync({ rows: rowsOut }); await issued.refetch(); toast.ok('Malzemeler stoktan düşüldü'); } catch (e) { toast.error(e); }

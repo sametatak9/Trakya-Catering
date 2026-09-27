@@ -26,6 +26,14 @@ bun run dev            # http://localhost:3000
 
 SQL senaryo testleri: `supabase/tests/*.sql` (transaction içinde çalışır, `ROLLBACK` ile biter).
 
+## Veritabanı ve migration'lar
+
+- Migration'lar Supabase MCP `apply_migration` ile uygulanır. **Dosya adı = canlıdaki sürüm numarası** (`list_migrations` çıktısı); böylece `supabase db push` hiçbir dosyayı ikinci kez çalıştırmaz.
+- Yalnız eklemeli değişiklik: tablo/sütun silinmez, yeniden adlandırılmaz.
+- Her migration önce `begin … rollback` içinde test senaryosuyla denenir, sonra uygulanır; ardından `generate_typescript_types` → `src/lib/database.types.ts`, `get_advisors` (yeni WARN yok).
+- Yetki kuralları veritabanındadır (RLS + tetikleyiciler): maaş/IBAN yalnız yönetici-muhasebe, fiyat sütunları yalnız fiyat/stok kaydıyla değişir, stok hareketi değişmez (ters kayıt), denetim kaydı hash zinciriyle mühürlüdür.
+- Ayrıntılı iş planı: `docs/PLAN.md` · İş listesi: `docs/BACKLOG.md` · Faz raporları: `docs/raporlar/`.
+
 ## Maliyet matematiği
 
 - Reçete satırı **net** miktar tutar (temizlenmiş, tencereye giren; g / ml / adet).
