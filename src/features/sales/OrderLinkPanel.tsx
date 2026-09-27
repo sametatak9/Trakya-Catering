@@ -85,6 +85,31 @@ export function OrderLinkPanel({ customer }: { customer: Customer }) {
           {!canRotate && <div>Linki yalnız yönetici yenileyebilir.</div>}
         </div>
       </div>
+      {canRotate && <PortalPin customerId={customer.id} />}
+    </div>
+  );
+}
+
+/** Portal PIN'i (4–6 hane, bcrypt): bakiye yalnız PIN veya müşteri girişiyle görünür (Faz 4). Yalnız yönetici belirler. */
+function PortalPin({ customerId }: { customerId: string }) {
+  const toast = useToast();
+  const [pin, setPin] = useState('');
+  const setPortalPin = useMutation({
+    mutationFn: async (p: string | null) => unwrap(await supabase.rpc('set_portal_pin', { p_customer: customerId, p_pin: p as string })),
+  });
+  const submit = async (p: string | null) => {
+    if (p !== null && !/^\d{4,6}$/.test(p)) return toast.error('PIN 4–6 haneli rakam olmalı');
+    try { await setPortalPin.mutateAsync(p); setPin(''); toast.ok(p ? 'PIN kaydedildi; firmaya ayrı bir kanaldan iletin' : 'PIN kaldırıldı'); } catch (e) { toast.error(e); }
+  };
+  return (
+    <div className="rounded-2xl ring-1 ring-line bg-card p-3">
+      <div className="text-sm font-semibold text-ink">Portal PIN'i</div>
+      <p className="mt-0.5 text-xs text-ink-3">Linki bilen herkes sipariş girebilir; bakiye (Faz 4) ise yalnız PIN'le görünür. PIN saklanmaz, yalnız özeti tutulur; 5 hatalı denemede 15 dakika kilitlenir.</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <input className="tc-input tc-num !w-32" inputMode="numeric" autoComplete="off" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} placeholder="4–6 hane" aria-label="Portal PIN" />
+        <Button size="sm" variant="primary" onClick={() => submit(pin)} loading={setPortalPin.isPending}>PIN belirle</Button>
+        <Button size="sm" onClick={() => submit(null)} loading={setPortalPin.isPending}>PIN'i kaldır</Button>
+      </div>
     </div>
   );
 }

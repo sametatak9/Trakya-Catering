@@ -17,6 +17,8 @@ import { ReportStats } from '@/reports/ReportFrame';
 import { dayLabel } from '@/lib/dates';
 import { fmtMoney } from '@/lib/format';
 import { BulkBar, SelectBox, useSelection } from '@/ui/Selection';
+import { useRows } from '@/lib/crud';
+import { useLiveTables } from '@/lib/live';
 import { orderPeople, useBulkOrders, useCustomers, useDeleteOrder, useOrders, useSaveOrder, useUpdateOrders } from './api';
 
 export function OrdersPage() {
@@ -32,6 +34,13 @@ export function OrdersPage() {
   const bulk = useBulkOrders();
   const updateMany = useUpdateOrders();
   const del = useDeleteOrder();
+  const cms = useRows('customer_menus', { key: ['active'], filter: (q) => q.eq('active', true) });
+  const notes = useRows('customer_notes', { key: ['active'], filter: (q) => q.eq('active', true) });
+  const complaints = useRows('customer_feedback', { key: ['open-complaints'], filter: (q) => q.eq('kind', 'sikayet').neq('status', 'cozuldu').order('created_at', { ascending: false }).limit(200) });
+  useLiveTables(['customer_notes', 'customer_feedback']);
+  const cmFor = (cid: string) => (cms.data ?? []).filter((c) => c.customer_id === cid && c.meal === meal && c.valid_from <= date && (!c.valid_to || c.valid_to >= date));
+  const sensitivity = (cid: string) => (notes.data ?? []).filter((n) => n.customer_id === cid && (n.kind === 'alerji' || n.kind === 'hassasiyet'));
+  const lastComplaint = (cid: string) => (complaints.data ?? []).find((x) => x.customer_id === cid);
 
   const all = orders.data ?? [];
   const dayOrders = all.filter((o) => o.service_date === date);
@@ -67,10 +76,20 @@ export function OrdersPage() {
   const [nq, setNq] = useState('');
   const [np, setNp] = useState('');
   const [nk, setNk] = useState('sozlesmeli');
+  const [ncm, setNcm] = useState('');
   const pickCustomer = (id: string) => {
     setNc(id);
     const c = custById.get(id);
-    if (c?.default_meal_price != null) setNp(String(c.default_meal_price).replace('.', ','));
+    const def = cmFor(id).find((x) => x.is_default) ?? cmFor(id)[0];
+    setNcm(def?.id ?? '');
+    const price = def?.unit_price ?? c?.default_meal_price;
+    if (price != null) setNp(String(price).replace('.', ','));
+  };
+  const pickCm = (id: string) => {
+    setNcm(id);
+    const cm = (cms.data ?? []).find((x) => x.id === id);
+    const price = cm?.unit_price ?? custById.get(nc)?.default_meal_price;
+    if (price != null) setNp(String(price).replace('.', ','));
   };
   const add = async () => {
     const qty = parseNum(nq);
@@ -80,9 +99,9 @@ export function OrdersPage() {
     try {
       await save.mutateAsync({ id: null, draft: {
         service_date: date, meal, customer_id: nc, menu_id: nm || null, kind: nk, ordered_qty: qty, unit_price: price,
-        vat_rate: custById.get(nc)?.vat_rate ?? 10,
+        vat_rate: custById.get(nc)?.vat_rate ?? 10, customer_menu_id: ncm || null,
       } });
-      setNc(''); setNm(''); setNq(''); setNp(''); setNk('sozlesmeli');
+      setNc(''); setNm(''); setNq(''); setNp(''); setNk('sozlesmeli'); setNcm('');
       toast.ok('Sipariş eklendi');
     } catch (e) { toast.error(e); }
   };
@@ -208,10 +227,20 @@ export function OrdersPage() {
                     <tr key={o.id} className={cx('border-b border-line', o.status === 'iptal' && 'opacity-50', sel.has(o.id) && 'bg-brand-soft/40')}>
                       {canEdit && <td className="pl-4"><SelectBox label={`${c?.name ?? ''} seç`} checked={sel.has(o.id)} onChange={() => sel.toggle(o.id)} /></td>}
                       <td className="px-4 py-2">
-                        <div className="font-semibold text-ink">{c?.name ?? '—'}</div>
-                        <div className="text-[11px] text-ink-3">{ORDER_KINDS[o.kind]}{o.note ? ` · ${o.note}` : ''}</div>
+                        <div className="font-semibold text-ink flex items-center gap-1.5">{c?.name ?? '—'}
+                          {sensitivity(o.customer_id).length > 0 && <span className="rounded-md bg-stop-soft px-1.5 text-[11px] font-bold text-stop" title={sensitivity(o.customer_id).map((n) => n.text).join(' · ')}>⚠ {sensitivity(o.customer_id).length}</span>}
+                        </div>
+                        <div className="text-[11px] text-ink-3">{ORDER_KINDS[o.kind]}{o.source && o.source !== 'elle' ? ` · ${o.source === 'portal' ? 'portaldan' : o.source === 'aylik' ? 'aylık' : o.source}` : ''}{o.note ? ` · ${o.note}` : ''}</div>
+                        {lastComplaint(o.customer_id) && <div className="text-[11px] text-stop truncate max-w-[260px]" title={lastComplaint(o.customer_id)!.text ?? ''}>Son şikâyet: {lastComplaint(o.customer_id)!.text}</div>}
                       </td>
                       <td className="px-2 py-2">
+                        {cmFor(o.customer_id).length > 0 && (
+                          <select className="tc-input !py-1.5 mb-1" value={o.customer_menu_id ?? ''} disabled={locked} aria-label="Menü tanımı"
+                            onChange={(e) => patch(o.id, { customer_menu_id: e.target.value || null })}>
+                            <option value="">Menü tanımı yok (kart fiyatı)</option>
+                            {cmFor(o.customer_id).map((cm) => <option key={cm.id} value={cm.id}>{cm.name ?? cm.menu_type_code ?? 'Menü'}{cm.unit_price != null ? ` · ${fmtMoney(cm.unit_price)}` : ''}</option>)}
+                          </select>
+                        )}
                         <select className="tc-input !py-1.5" value={o.menu_id ?? ''} disabled={locked}
                           onChange={(e) => patch(o.id, { menu_id: e.target.value || null })} aria-label="Menü">
                           <option value="">{(() => { const pm = effectiveMenu(plans.data ?? [], date, meal, o.customer_id, null); return pm ? `↳ plandan: ${(menus.data ?? []).find((m) => m.menu_id === pm)?.name ?? ''}` : '— menü seçilmedi —'; })()}</option>
@@ -259,10 +288,17 @@ export function OrdersPage() {
               <option value="">Müşteri seç…</option>
               {(customers.data ?? []).filter((c) => c.active).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+            {nc && cmFor(nc).length > 0 ? (
+              <select className="tc-input col-span-2 md:col-span-1" value={ncm} onChange={(e) => pickCm(e.target.value)} aria-label="Menü tanımı">
+                <option value="">Menü tanımı yok</option>
+                {cmFor(nc).map((cm) => <option key={cm.id} value={cm.id}>{cm.name ?? cm.menu_type_code ?? 'Menü'}</option>)}
+              </select>
+            ) : (
             <select className="tc-input col-span-2 md:col-span-1" value={nm} onChange={(e) => setNm(e.target.value)} aria-label="Menü">
               <option value="">Menü (ops.)</option>
               {(menus.data ?? []).filter((m) => m.active).map((m) => <option key={m.menu_id} value={m.menu_id!}>{m.name}</option>)}
             </select>
+            )}
             <select className="tc-input" value={nk} onChange={(e) => setNk(e.target.value)} aria-label="Tür">
               {Object.entries(ORDER_KINDS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>

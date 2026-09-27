@@ -19,6 +19,8 @@ import { KitchenScreen } from '@/features/production/KitchenScreen';
 import { CalibrationPage } from '@/features/production/CalibrationPage';
 import { MenuPlanPage } from '@/features/production/MenuPlanPage';
 import { MonthlyMenuPage } from '@/features/production/MonthlyMenuPage';
+import { MonthlyOrdersPage } from '@/features/sales/MonthlyOrdersPage';
+import { OrderReportPage } from '@/features/sales/OrderReportPage';
 import { PrepPage } from '@/features/production/PrepPage';
 import { ProductionOrderPage } from '@/features/production/ProductionOrderPage';
 import { CustomersPage } from '@/features/sales/CustomersPage';
@@ -47,7 +49,7 @@ function pageFor(mod: string, tab: string | undefined, rest: string[]) {
     case '/receteler': return rest[0] ? <RecipeEditor id={rest[0] === 'yeni' ? null : rest[0]} /> : <RecipesPage />;
     case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'kartlar' ? <IngredientsPage /> : <StockPage />;
     case '/satinalma': return <PurchasingPage />;
-    case '/siparisler': return <OrdersPage />;
+    case '/siparisler': return tab === 'aylik' ? <MonthlyOrdersPage /> : tab === 'rapor' ? <OrderReportPage /> : <OrdersPage />;
     case '/cari': return tab === 'tedarikciler' ? <SuppliersPage /> : <CustomersPage />;
     case '/personel': return tab === 'puantaj' ? <AttendancePage /> : tab === 'bakiye' ? <BalancesPage /> : <PersonnelPage />;
     case '/finans': return tab === 'giderler' ? <ExpensesPage /> : tab === 'faturalar' ? <InvoicesPage /> : <FinanceSummaryPage />;

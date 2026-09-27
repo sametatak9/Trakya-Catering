@@ -5,7 +5,8 @@ import { todayISO } from '@/lib/dates';
 import { fmtMoney } from '@/lib/format';
 import { useLiveTables } from '@/lib/live';
 import { askConfirm } from '@/ui/confirm';
-import { Button, ErrorNote, Loading, Pill, cx } from '@/ui/primitives';
+import { Button, Drawer, ErrorNote, Loading, Pill, cx } from '@/ui/primitives';
+import { CustomerCarePanel } from '../../sales/CustomerCarePanel';
 import { useToast } from '@/ui/toast';
 import { useRecipeCosts } from '../../kitchen/api';
 import { useCustomers } from '../../sales/api';
@@ -176,6 +177,7 @@ export function MonthMenuCalendar({ mode = 'menu', readOnly = false, initialPeri
     } catch (e) { toast.error(e); }
   };
 
+  const [careOpen, setCareOpen] = useState(false);
   const [suggestion, setSuggestion] = useState<Plan | null>(null);
   const makeSuggestion = () => {
     const avgCost = stats.avg;
@@ -314,8 +316,14 @@ export function MonthMenuCalendar({ mode = 'menu', readOnly = false, initialPeri
         </div>
       </div>
 
-      {customerId && rules.length > 0 && <div className="mc-note">⛔ <span><b>{custName}</b> istemiyor: {ruleText.join(' · ')} — takvimde kırmızı işaretlenir, eklerken uyarı çıkar.</span></div>}
-      {customerId && rules.length === 0 && <div className="mb-3 text-xs text-ink-3">Bu müşteri için yemek kuralı yok. Cari › müşteri › Hassasiyet sekmesinden “patlıcan yok”, “cuma balık yok” gibi kurallar eklenebilir.</div>}
+      {customerId && rules.length > 0 && <div className="mc-note">⛔ <span className="flex-1"><b>{custName}</b> istemiyor: {ruleText.join(' · ')} — takvimde kırmızı işaretlenir, eklerken uyarı çıkar.</span>
+        <button type="button" className="shrink-0 font-semibold underline" onClick={() => setCareOpen(true)}>Kuralları düzenle</button></div>}
+      {customerId && rules.length === 0 && <div className="mb-3 text-xs text-ink-3">Bu müşteri için yemek kuralı yok. <button type="button" className="font-semibold text-brand underline" onClick={() => setCareOpen(true)}>Kural ve hassasiyet ekle</button> (ör. “patlıcan yok”, “cuma balık yok”).</div>}
+      {careOpen && customerId && (customers.data ?? []).find((c) => c.id === customerId) && (
+        <Drawer open onClose={() => setCareOpen(false)} title={custName} subtitle="Hassasiyet, yemek kuralları ve şikâyetler">
+          <CustomerCarePanel customer={(customers.data ?? []).find((c) => c.id === customerId)!} />
+        </Drawer>
+      )}
 
       {suggestion && (
         <div className="mc-ai">

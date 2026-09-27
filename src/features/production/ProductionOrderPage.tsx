@@ -1,10 +1,11 @@
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import {
   AlertTriangle, ArrowRight, Check, CheckCheck, ClipboardCheck, ClipboardList, CookingPot, FileDown,
   PackageCheck, Printer, RefreshCw, ShieldCheck,
 } from 'lucide-react';
 import { useCan } from '@/app/session';
-import { supabase } from '@/lib/supabase';
+import { supabase, unwrap } from '@/lib/supabase';
 import { todayISO, dayLabel } from '@/lib/dates';
 import { MEALS, type AppRole } from '@/lib/domain';
 import { fmtMoney, fmtNum } from '@/lib/format';
@@ -239,6 +240,8 @@ export function ProductionOrderPage() {
                     )}
               </Panel>
 
+              <BreakdownPanel date={date} meal={meal} />
+
               <Panel title="Planlanan yemekler ve malzemeler" subtitle="Kayıtlı günlük hazırlık miktarları; sahte/otomatik tahmin eklenmez." action={<Pill tone="info">{dayBatches.length} yemek</Pill>}>
                 {prepBatches.isLoading || prepItems.isLoading ? <Loading label="Hazırlık miktarları yükleniyor…" />
                   : prepBatches.error || prepItems.error ? <ErrorNote>Planlanan yemekler okunamadı.</ErrorNote>
@@ -383,5 +386,41 @@ function PrintWorkOrder({ workOrder, date, meal, company }: {
         <footer className="mt-8 flex justify-between border-t border-neutral-300 pt-3 text-xs text-neutral-600"><span>{company?.report_footer ?? 'Trakya Catering ERP'}</span><span>İş emri {workOrder.id.slice(0, 8)} · Rev. {workOrder.revision}</span></footer>
       </article>
     </>
+  );
+}
+
+/** Faz 3D: hangi firma, hangi menü tanımı, hangi sunum, kaç kişi, kaç küvet (v_production_breakdown); ⚠ = alerji/hassasiyet kaydı */
+function BreakdownPanel({ date, meal }: { date: string; meal: string }) {
+  const q = useQuery({
+    queryKey: ['production', 'breakdown', date, meal],
+    queryFn: async () => unwrap(await supabase.from('v_production_breakdown').select('*').eq('service_date', date).eq('meal', meal).order('customer_name')),
+  });
+  const rows = q.data ?? [];
+  if (q.isLoading || rows.length === 0) return null;
+  const byStyle = new Map<string, { people: number; containers: number }>();
+  for (const r of rows) {
+    const k = r.service_style_name ?? r.service_style ?? '—';
+    const cur = byStyle.get(k) ?? { people: 0, containers: 0 };
+    cur.people += r.people ?? 0; cur.containers += r.containers ?? 0;
+    byStyle.set(k, cur);
+  }
+  return (
+    <Panel title="Sunum ve kap dağılımı" subtitle="Firma × menü tanımı × sunum şekli; küvette kap sayısı kaptaki kişiye göre yukarı yuvarlanır"
+      action={<span className="flex flex-wrap gap-1">{[...byStyle].map(([k, v]) => <Pill key={k} tone="info">{k}: {fmtNum(v.people, 0)}{v.containers ? ` · ${v.containers} kap` : ''}</Pill>)}</span>}>
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
+        <table className="w-full min-w-[520px] text-sm">
+          <thead><tr className="border-b border-line text-[11px] text-ink-3"><th className="px-2 py-2 text-left font-semibold">Firma</th><th className="px-2 py-2 text-left font-semibold">Menü</th><th className="px-2 py-2 text-left font-semibold">Sunum</th><th className="px-2 py-2 text-right font-semibold">Kişi</th><th className="px-2 py-2 text-right font-semibold">Kap</th></tr></thead>
+          <tbody>{rows.map((r, i) => (
+            <tr key={`${r.customer_id}-${r.customer_menu_id ?? i}-${r.service_style}`} className="border-b border-line last:border-0">
+              <td className="px-2 py-2.5 font-medium text-ink">{r.customer_name}{r.has_sensitivity && <span className="ml-1.5 rounded-md bg-stop-soft px-1.5 text-[11px] font-bold text-stop" title="Alerji / hassasiyet kaydı var — müşteri kartına bakın">⚠</span>}</td>
+              <td className="px-2 py-2.5 text-ink-2">{r.menu_label ?? <span className="text-ink-3">plandan</span>}</td>
+              <td className="px-2 py-2.5 text-ink-2">{r.service_style_name ?? r.service_style}</td>
+              <td className="tc-num px-2 py-2.5 text-right font-semibold">{fmtNum(r.people ?? 0, 0)}</td>
+              <td className="tc-num px-2 py-2.5 text-right">{r.containers ?? '—'}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </Panel>
   );
 }

@@ -12,6 +12,9 @@ import { ListToolbar, matches } from '@/ui/ListToolbar';
 import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Money, Panel, Pill, cx, type Tone } from '@/ui/primitives';
 import { useToast } from '@/ui/toast';
 import { useCustomers } from '../sales/api';
+import { ServiceStylesPanel, useStyleCosts, type StyleCost } from './ServiceStyles';
+import { useRows } from '@/lib/crud';
+import { supabase } from '@/lib/supabase';
 import { useDeleteMenu, useMenu, useMenuCosts, useRecipeCosts, useSaveMenu, type MenuCost, type MenuHeaderDraft } from './api';
 
 /** Toplu yemekte hammadde maliyeti satışın ~%35–45'i civarında hedeflenir */
@@ -39,6 +42,7 @@ function courseFromCategory(cat: string | null | undefined): Course {
 export function MenusPage() {
   const menus = useMenuCosts();
   const customers = useCustomers();
+  const styleCosts = useStyleCosts();
   const canEdit = useCan(ROLES.kitchenWrite);
   const [editing, setEditing] = useState<string | 'new' | null>(null);
   const [q, setQ] = useState('');
@@ -117,19 +121,20 @@ export function MenusPage() {
               </EmptyState>
             ) : (
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {shown.map((m) => <MenuCard key={m.menu_id} m={m} customer={custName(m.customer_id ?? null)} onOpen={() => setEditing(m.menu_id!)} />)}
+                {shown.map((m) => <MenuCard key={m.menu_id} m={m} customer={custName(m.customer_id ?? null)} styles={styleCosts.data ?? []} onOpen={() => setEditing(m.menu_id!)} />)}
                 {shown.length === 0 && <p className="text-sm text-ink-3 col-span-full py-6 text-center">Filtreye uyan menü yok.</p>}
               </div>
             )}
         </div>
       </Panel>
 
+      <ServiceStylesPanel />
       {editing && <MenuDrawer id={editing === 'new' ? null : editing} onClose={() => setEditing(null)} canEdit={canEdit} />}
     </>
   );
 }
 
-function MenuCard({ m, customer, onOpen }: { m: MenuCost; customer: string | null; onOpen: () => void }) {
+function MenuCard({ m, customer, styles, onOpen }: { m: MenuCost; customer: string | null; styles: StyleCost[]; onOpen: () => void }) {
   const fc = foodCostPct(Number(m.cost_last), m.target_price === null ? null : Number(m.target_price));
   return (
     <button type="button" onClick={onOpen} className={cx('tc-card p-4 text-left hover:ring-2 hover:ring-brand-soft transition', !m.active && 'opacity-60')}>
@@ -147,6 +152,9 @@ function MenuCard({ m, customer, onOpen }: { m: MenuCost; customer: string | nul
         <div className="rounded-xl bg-surface-2 py-2"><div className="text-[10px] text-ink-3">Brüt kâr</div>
           <Money value={m.target_price ? Number(m.target_price) - Number(m.cost_last) : null} className="text-sm font-bold text-ok" /></div>
       </div>
+      {styles.some((s) => Number(s.pack_cost_per_person) > 0) && (
+        <div className="mt-3 text-[11px] text-ink-3">Gıda + ambalaj: {styles.filter((s) => Number(s.pack_cost_per_person) > 0).map((s) => `${s.name} ${fmtMoney(Number(m.cost_last) + Number(s.pack_cost_per_person))}`).join(' · ')}</div>
+      )}
       {(m.missing_price_count ?? 0) > 0 && <div className="text-[11px] text-wait mt-3">{m.missing_price_count} kalemin fiyatı eksik</div>}
     </button>
   );
@@ -161,7 +169,7 @@ function MenuDrawer({ id, onClose, canEdit }: { id: string | null; onClose: () =
     return <Drawer open onClose={onClose} title="Menü"><Loading /></Drawer>;
   }
   return (
-    <MenuForm key={id ?? 'new'} id={id} onClose={onClose} canEdit={canEdit}
+    <MenuForm key={id ?? 'new'} id={id} onClose={onClose} canEdit={canEdit} initialType={m?.menu_type_code ?? ''}
       initial={m ? {
         code: m.code ?? '', name: m.name, kind: m.kind, meal: m.meal, target_price: m.target_price, notes: m.notes ?? '', active: m.active, customer_id: m.customer_id,
       } : { code: '', name: '', kind: 'standart', meal: 'ogle', target_price: null, notes: '', active: true, customer_id: null }}
@@ -173,8 +181,8 @@ function MenuDrawer({ id, onClose, canEdit }: { id: string | null; onClose: () =
 
 interface ItemDraft { recipeId: string; factor: string; course: Course }
 
-function MenuForm({ id, onClose, canEdit, initial, initialItems, recipes }: {
-  id: string | null; onClose: () => void; canEdit: boolean; initial: MenuHeaderDraft;
+function MenuForm({ id, onClose, canEdit, initial, initialItems, recipes, initialType }: {
+  id: string | null; onClose: () => void; canEdit: boolean; initial: MenuHeaderDraft; initialType: string;
   initialItems: ItemDraft[]; recipes: NonNullable<ReturnType<typeof useRecipeCosts>['data']>;
 }) {
   const toast = useToast();
@@ -186,6 +194,9 @@ function MenuForm({ id, onClose, canEdit, initial, initialItems, recipes }: {
   const [adding, setAdding] = useState('');
   const [price, setPrice] = useState(initial.target_price === null ? '' : String(initial.target_price).replace('.', ','));
   const [err, setErr] = useState<string | null>(null);
+  const [typeCode, setTypeCode] = useState(initialType);
+  const types = useRows('menu_types', { order: 'sort' });
+  const styleCosts = useStyleCosts();
 
   const byId = useMemo(() => new Map(recipes.map((r) => [r.recipe_id!, r])), [recipes]);
   const rows = items.map((it, idx) => {
@@ -205,10 +216,15 @@ function MenuForm({ id, onClose, canEdit, initial, initialItems, recipes }: {
     if (price.trim() && (priceN === null || priceN < 0)) return setErr('Satış fiyatı geçersiz.');
     if (rows.some((x) => x.f <= 0)) return setErr('Porsiyon katsayısı 0’dan büyük olmalı.');
     try {
-      await save.mutateAsync({
+      const savedId = await save.mutateAsync({
         id, header: { ...h, name: h.name.trim(), target_price: priceN },
         items: rows.map((x) => ({ recipe_id: x.it.recipeId, portion_factor: x.f, course: x.it.course })),
       });
+      const menuId = (typeof savedId === 'string' ? savedId : null) ?? id;
+      if (menuId && typeCode !== initialType) {
+        const { error } = await supabase.from('menus').update({ menu_type_code: typeCode || null }).eq('id', menuId);
+        if (error) throw error;
+      }
       toast.ok('Menü kaydedildi');
       onClose();
     } catch (e) { toast.error(e); }
@@ -266,6 +282,12 @@ function MenuForm({ id, onClose, canEdit, initial, initialItems, recipes }: {
           <Field label="Tür">
             <select className="tc-input" value={h.kind} onChange={(e) => setH({ ...h, kind: e.target.value, meal: e.target.value === 'kahvalti' ? 'kahvalti' : h.meal })}>
               {Object.entries(MENU_KINDS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </Field>
+          <Field label="Menü tipi">
+            <select className="tc-input" value={typeCode} onChange={(e) => setTypeCode(e.target.value)}>
+              <option value="">—</option>
+              {(types.data ?? []).filter((t) => t.active).map((t) => <option key={t.code} value={t.code}>{t.name}</option>)}
             </select>
           </Field>
           <Field label="Öğün">
@@ -336,6 +358,17 @@ function MenuForm({ id, onClose, canEdit, initial, initialItems, recipes }: {
           <div className={cx('tc-num text-base font-bold', fc === null ? 'text-ink-3' : fc <= 40 ? 'text-ok' : fc <= 50 ? 'text-wait' : 'text-stop')}>{fc === null ? '—' : fmtPct(fc)}</div></div>
         <div className="tc-card px-3 py-2.5"><div className="text-[10px] text-ink-3">Brüt kâr / kişi</div><Money value={priceN === null ? null : priceN - total} className="text-base font-bold text-ok" /></div>
       </div>
+      {(styleCosts.data ?? []).length > 0 && (
+        <div className="mt-2 overflow-hidden rounded-2xl ring-1 ring-line">
+          <table className="w-full text-sm">
+            <thead><tr className="bg-surface-2 text-left text-[11px] uppercase tracking-wider text-ink-3"><th className="px-3 py-2">Sunum</th><th className="px-3 py-2 text-right">Gıda</th><th className="px-3 py-2 text-right">Gıda + ambalaj</th></tr></thead>
+            <tbody>{(styleCosts.data ?? []).map((sc) => (
+              <tr key={sc.code} className="border-t border-line"><td className="px-3 py-1.5">{sc.name}</td><td className="px-3 py-1.5 text-right"><Money value={total} /></td>
+                <td className="px-3 py-1.5 text-right font-semibold"><Money value={total + Number(sc.pack_cost_per_person ?? 0)} />{!Number(sc.pack_cost_per_person) && <span className="ml-1 text-[11px] font-normal text-ink-3">(ambalaj tanımsız)</span>}</td></tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
       <p className="text-[11px] text-ink-3 mt-2">Maliyet reçetelerden (son alış fiyatı). Günün gerçekleşen maliyeti “Günlük Hazırlık” ekranında görünür.</p>
       {err && <div className="mt-4"><ErrorNote>{err}</ErrorNote></div>}
     </Drawer>

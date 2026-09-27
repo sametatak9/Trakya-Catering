@@ -60,7 +60,12 @@ export const MODULES: ModuleDef[] = [
     ] },
   { path: '/satinalma', label: 'Satınalma', hint: 'Menüye göre ihtiyaç, teklif, sipariş', icon: ShoppingCart, group: 'depo', roles: ['yonetici', 'satinalma', 'depo'] },
 
-  { path: '/siparisler', label: 'Siparişler', hint: 'Günlük yemek sayıları', icon: ClipboardList, group: 'satis', roles: ['yonetici', 'muhasebe', 'asci_basi', 'pazarlamaci', 'diyetisyen'] },
+  { path: '/siparisler', label: 'Siparişler', hint: 'Günlük ve aylık yemek sayıları', icon: ClipboardList, group: 'satis', roles: ['yonetici', 'muhasebe', 'asci_basi', 'pazarlamaci', 'diyetisyen'],
+    tabs: [
+      { id: 'gunluk', label: 'Günlük' },
+      { id: 'aylik', label: 'Aylık sipariş', roles: ['yonetici', 'muhasebe', 'asci_basi', 'pazarlamaci'] },
+      { id: 'rapor', label: 'Müşteri × öğün raporu' },
+    ] },
   { path: '/cari', label: 'Cari Hesaplar', hint: 'Müşteriler ve tedarikçiler', icon: Building2, group: 'satis', roles: ['yonetici', 'muhasebe', 'pazarlamaci', 'satinalma'],
     tabs: [
       { id: 'musteriler', label: 'Müşteriler', roles: ['yonetici', 'muhasebe', 'pazarlamaci'] },
