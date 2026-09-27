@@ -1,0 +1,108 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kartvizit kartları — personel ve araç (maket, demo veri)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--surface:#FBF8F2;--surface-2:#F4EFE5;--line:#EAE3D6;--ink:#221F1B;--ink-2:#4A443C;--ink-3:#857B6D;--brand:#B4432A;--brand-strong:#963520;--brand-soft:#F7E4DE;--accent:#E9A822;--accent-soft:#FBEFCF;--ok:#0F766E;--ok-soft:#DDF0EC;--wait:#B45309;--wait-soft:#FCEBD5;--stop:#C2261F;--stop-soft:#FBE1DE}
+*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:28px}
+h1,h2,h3{font-family:Outfit,Inter,sans-serif;margin:0}
+.num{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+.note{max-width:1000px;margin:0 auto 18px;color:var(--ink-3);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:24px;justify-content:center}
+.card{width:470px;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:26px;overflow:hidden;box-shadow:0 1px 2px rgba(34,31,27,.05),0 14px 36px rgba(34,31,27,.08)}
+.band{position:relative;height:118px;background:radial-gradient(120% 140% at 100% 0%,rgba(233,168,34,.55),transparent 55%),linear-gradient(135deg,#B4432A,#8F3320);color:#fff;padding:16px 18px}
+.band .brand{display:flex;align-items:center;gap:9px;font:800 13px Outfit;letter-spacing:.16em}
+.band .brand svg{width:30px;height:30px}
+.band .live{position:absolute;right:16px;top:16px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:4px 9px;border-radius:999px;font:600 11.5px Outfit;letter-spacing:.04em}
+.band .live i{width:7px;height:7px;border-radius:50%;background:#7CF0B5;box-shadow:0 0 0 3px rgba(124,240,181,.3)}
+.band .wheat{position:absolute;right:-14px;bottom:-30px;width:150px;opacity:.14}
+.id{display:flex;gap:14px;align-items:flex-end;margin-top:-44px;padding:0 18px;position:relative}
+.ph{width:88px;height:88px;border-radius:24px;border:4px solid #fff;background:linear-gradient(135deg,#F7E4DE,#FBEFCF);display:grid;place-items:center;font:800 30px Outfit;color:var(--brand);box-shadow:0 6px 16px rgba(34,31,27,.12);flex:none}
+.ph.v{background:linear-gradient(135deg,#EFE9DD,#FBF8F2)}
+.ph.v svg{width:52px;height:52px;color:var(--brand)}
+.who{padding-bottom:4px}
+.who h2{font-size:21px;font-weight:700}
+.who .r{color:var(--ink-3);font-size:13px}
+.plate{display:inline-flex;align-items:center;border:2px solid var(--ink);border-radius:7px;overflow:hidden;font:700 16px "JetBrains Mono";letter-spacing:.06em;margin-bottom:3px}
+.plate b{background:#1F4AA8;color:#fff;font:700 9px Inter;padding:5px 4px;letter-spacing:0;align-self:stretch;display:grid;place-items:center}
+.plate span{padding:1px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:12px 18px 0}
+.chip{padding:4px 9px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--ink-2)}
+.chip.ok{background:var(--ok-soft);border-color:#B7E0D8;color:var(--ok)}.chip.wait{background:var(--wait-soft);border-color:#F3C58F;color:var(--wait)}.chip.stop{background:var(--stop-soft);border-color:#F2A9A2;color:var(--stop)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 18px 0}
+.k{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:9px 10px}
+.k small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.k b{font:700 17px Outfit}.k b.big{color:var(--brand)}
+.k em{display:block;font-style:normal;font-size:11px;color:var(--ink-3)}
+.sec{padding:14px 18px 0}
+.sec h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-bottom:6px;display:flex;align-items:center}
+.sec h3 span{margin-left:auto;font:500 11px Inter;letter-spacing:0;text-transform:none}
+.att{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
+.att i{height:18px;border-radius:4px;background:var(--ok-soft);border:1px solid #B7E0D8}
+.att i.o{background:#FFE8A8;border-color:#F1D48C}.att i.a{background:var(--stop-soft);border-color:#F2A9A2}.att i.w{background:var(--surface-2);border-color:var(--line)}.att i.i{background:#E0E9FC;border-color:#BCD0F7}
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed var(--line);font-size:13px}
+.feed li:first-child{border-top:0}
+.feed .t{color:var(--ink-3);font-size:11.5px;width:74px;flex:none}
+.feed .a{margin-left:auto;font:600 12.5px "JetBrains Mono"}
+.plus{color:var(--ok)}.minus{color:var(--brand)}
+.lock{display:flex;align-items:center;gap:6px;margin:12px 18px 0;padding:7px 10px;border-radius:10px;background:var(--surface-2);color:var(--ink-3);font-size:11.5px}
+.foot{display:flex;gap:8px;padding:14px 18px 18px}
+.btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:13px}
+.btn.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.docs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.doc{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--surface)}
+.doc b{display:block;font-size:12.5px}.doc small{font-size:11px;color:var(--ink-3)}
+.doc.wait{background:var(--wait-soft);border-color:#F3C58F}.doc.wait small{color:var(--wait);font-weight:600}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:5px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--brand))}
+</style></head><body>
+<p class="note"><b>Maket · demo veri.</b> Personel ve araç “kartvizit” kartları (uygulama içi, giriş gerekli). Rakamlar elle yazılmaz: kayıt defterinden (employee_ledger, attendance_days, vehicle_logs, driver_expenses) türetilir ve Realtime ile anında güncellenir. Maaş/IBAN/bakiye yalnız yetkili rollere görünür.</p>
+<div class="row">
+ <!-- PERSONEL -->
+ <article class="card">
+  <div class="band"><div class="brand"><svg viewBox="0 0 100 100"><rect x="8" y="74" width="84" height="8" rx="4" fill="#FBF8F2"/><path d="M15 70 A35 35 0 0 1 85 70 Z" fill="#FBF8F2"/><path d="M27 58 A24 24 0 0 1 41 41" stroke="#F2C9BC" stroke-width="4.2" stroke-linecap="round" fill="none"/><path d="M50 36 C50 27.36 50 16.12 50 9.64" stroke="#E9A822" stroke-width="2.592" stroke-linecap="round" fill="none"/><path d="M0 -6.21 Q4.97 0 0 6.21 Q-4.97 0 0 -6.21 Z" transform="translate(45.36 28.44) rotate(-30)" fill="#E9A822"/><path d="M0 -6.21 Q4.97 0 0 6.21 Q-4.97 0 0 -6.21 Z" transform="translate(54.64 28.44) rotate(30)" fill="#E9A822"/><path d="M0 -5.84 Q4.97 0 0 5.84 Q-4.97 0 0 -5.84 Z" transform="translate(45.36 20.34) rotate(-30)" fill="#E9A822"/><path d="M0 -5.84 Q4.97 0 0 5.84 Q-4.97 0 0 -5.84 Z" transform="translate(54.64 20.34) rotate(30)" fill="#E9A822"/><path d="M0 -5.46 Q4.97 0 0 5.46 Q-4.97 0 0 -5.46 Z" transform="translate(45.36 12.24) rotate(-30)" fill="#E9A822"/><path d="M0 -5.46 Q4.97 0 0 5.46 Q-4.97 0 0 -5.46 Z" transform="translate(54.64 12.24) rotate(30)" fill="#E9A822"/><path d="M0 -5.90 Q4.72 0 0 5.90 Q-4.72 0 0 -5.90 Z" transform="translate(50.00 7.48) rotate(0)" fill="#E9A822"/></svg>TRAKYA CATERING</div><div class="live"><i></i>CANLI</div><svg class="wheat" viewBox="0 0 40 60"><path d="M20 58 C20 46.0 20 23.0 20 14.0" stroke="#fff" stroke-width="3.5999999999999996" stroke-linecap="round" fill="none"/><path d="M0 -8.62 Q6.90 0 0 8.62 Q-6.90 0 0 -8.62 Z" transform="translate(13.55 47.50) rotate(-30)" fill="#fff"/><path d="M0 -8.62 Q6.90 0 0 8.62 Q-6.90 0 0 -8.62 Z" transform="translate(26.45 47.50) rotate(30)" fill="#fff"/><path d="M0 -8.11 Q6.90 0 0 8.11 Q-6.90 0 0 -8.11 Z" transform="translate(13.55 36.25) rotate(-30)" fill="#fff"/><path d="M0 -8.11 Q6.90 0 0 8.11 Q-6.90 0 0 -8.11 Z" transform="translate(26.45 36.25) rotate(30)" fill="#fff"/><path d="M0 -7.59 Q6.90 0 0 7.59 Q-6.90 0 0 -7.59 Z" transform="translate(13.55 25.00) rotate(-30)" fill="#fff"/><path d="M0 -7.59 Q6.90 0 0 7.59 Q-6.90 0 0 -7.59 Z" transform="translate(26.45 25.00) rotate(30)" fill="#fff"/><path d="M0 -8.19 Q6.55 0 0 8.19 Q-6.55 0 0 -8.19 Z" transform="translate(20.00 11.00) rotate(0)" fill="#fff"/></svg></div>
+  <div class="id"><div class="ph">AY</div><div class="who"><h2>Ayşe Yılmaz</h2><div class="r">Aşçı yardımcısı · Mutfak · Sicil P-024</div></div></div>
+  <div class="chips"><span class="chip">Yevmiyeli · 1.450 ₺/gün</span><span class="chip ok">Bugün geldi · 07:52</span><span class="chip">Mesai ×1,5 · 10 sa kuralı</span></div>
+  <div class="kpis">
+   <div class="k"><small>Hak ediş (Eylül)</small><b class="num">31.900 ₺</b><em>22 gün · 6 sa mesai</em></div>
+   <div class="k"><small>Ödenen</small><b class="num">18.000 ₺</b><em>avans 8.000 · ödeme 10.000</em></div>
+   <div class="k"><small>Kalan</small><b class="num big">13.900 ₺</b><em>ödenecek</em></div>
+  </div>
+  <div class="sec"><h3>Eylül devam <span>22 geldi · 1 izin · 1 gelmedi · 4 hafta sonu</span></h3>
+   <div class="att"><i></i><i></i><i></i><i class="o"></i><i></i><i class="w"></i><i class="w"></i><i></i><i></i><i class="a"></i><i></i><i></i><i class="w"></i><i class="w"></i><i class="i"></i><i></i><i></i><i class="o"></i><i></i><i></i><i class="w"></i><i class="w"></i><i></i><i></i><i></i><i></i><i></i><i class="w"></i><i class="w"></i><i></i></div></div>
+  <div class="sec"><h3>Son hareketler <span>kasa/bankaya bağlı</span></h3>
+   <ul class="feed">
+    <li><span class="t">Bugün 09:14</span>Yevmiye (26.09) · puantajdan<span class="a plus">+1.450,00</span></li>
+    <li><span class="t">24.09</span>Avans · Nakit Kasa<span class="a minus">−3.000,00</span></li>
+    <li><span class="t">20.09</span>Ödeme · Banka (EFT)<span class="a minus">−10.000,00</span></li>
+   </ul></div>
+  <div class="lock">🔒 Yevmiye, bakiye ve IBAN yalnız yönetici · muhasebe · kendisi için görünür (RLS).</div>
+  <div class="foot"><button class="btn p">Ödeme / avans ver</button><button class="btn">Puantaj</button><button class="btn">Kartviziti paylaş</button></div>
+ </article>
+ <!-- ARAÇ -->
+ <article class="card">
+  <div class="band"><div class="brand"><svg viewBox="0 0 100 100"><rect x="8" y="74" width="84" height="8" rx="4" fill="#FBF8F2"/><path d="M15 70 A35 35 0 0 1 85 70 Z" fill="#FBF8F2"/><path d="M27 58 A24 24 0 0 1 41 41" stroke="#F2C9BC" stroke-width="4.2" stroke-linecap="round" fill="none"/><path d="M50 36 C50 27.36 50 16.12 50 9.64" stroke="#E9A822" stroke-width="2.592" stroke-linecap="round" fill="none"/><path d="M0 -6.21 Q4.97 0 0 6.21 Q-4.97 0 0 -6.21 Z" transform="translate(45.36 28.44) rotate(-30)" fill="#E9A822"/><path d="M0 -6.21 Q4.97 0 0 6.21 Q-4.97 0 0 -6.21 Z" transform="translate(54.64 28.44) rotate(30)" fill="#E9A822"/><path d="M0 -5.84 Q4.97 0 0 5.84 Q-4.97 0 0 -5.84 Z" transform="translate(45.36 20.34) rotate(-30)" fill="#E9A822"/><path d="M0 -5.84 Q4.97 0 0 5.84 Q-4.97 0 0 -5.84 Z" transform="translate(54.64 20.34) rotate(30)" fill="#E9A822"/><path d="M0 -5.46 Q4.97 0 0 5.46 Q-4.97 0 0 -5.46 Z" transform="translate(45.36 12.24) rotate(-30)" fill="#E9A822"/><path d="M0 -5.46 Q4.97 0 0 5.46 Q-4.97 0 0 -5.46 Z" transform="translate(54.64 12.24) rotate(30)" fill="#E9A822"/><path d="M0 -5.90 Q4.72 0 0 5.90 Q-4.72 0 0 -5.90 Z" transform="translate(50.00 7.48) rotate(0)" fill="#E9A822"/></svg>TRAKYA CATERING · FİLO</div><div class="live"><i></i>CANLI</div><svg class="wheat" viewBox="0 0 40 60"><path d="M20 58 C20 46.0 20 23.0 20 14.0" stroke="#fff" stroke-width="3.5999999999999996" stroke-linecap="round" fill="none"/><path d="M0 -8.62 Q6.90 0 0 8.62 Q-6.90 0 0 -8.62 Z" transform="translate(13.55 47.50) rotate(-30)" fill="#fff"/><path d="M0 -8.62 Q6.90 0 0 8.62 Q-6.90 0 0 -8.62 Z" transform="translate(26.45 47.50) rotate(30)" fill="#fff"/><path d="M0 -8.11 Q6.90 0 0 8.11 Q-6.90 0 0 -8.11 Z" transform="translate(13.55 36.25) rotate(-30)" fill="#fff"/><path d="M0 -8.11 Q6.90 0 0 8.11 Q-6.90 0 0 -8.11 Z" transform="translate(26.45 36.25) rotate(30)" fill="#fff"/><path d="M0 -7.59 Q6.90 0 0 7.59 Q-6.90 0 0 -7.59 Z" transform="translate(13.55 25.00) rotate(-30)" fill="#fff"/><path d="M0 -7.59 Q6.90 0 0 7.59 Q-6.90 0 0 -7.59 Z" transform="translate(26.45 25.00) rotate(30)" fill="#fff"/><path d="M0 -8.19 Q6.55 0 0 8.19 Q-6.55 0 0 -8.19 Z" transform="translate(20.00 11.00) rotate(0)" fill="#fff"/></svg></div>
+  <div class="id"><div class="ph v"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 42V18a3 3 0 0 1 3-3h30v27"/><path d="M37 24h11l8 10v8H37"/><circle cx="16" cy="45" r="5" fill="#fff"/><circle cx="46" cy="45" r="5" fill="#fff"/><path d="M12 22h6M12 28h12" opacity=".6"/></svg></div>
+   <div class="who"><div class="plate"><b>TR</b><span>34 ABC 123</span></div><h2>Frigorifik kamyonet</h2><div class="r">Şoför: Mehmet K. · Rota: Çatalca → Çerkezköy</div></div></div>
+  <div class="chips"><span class="chip">Km 148.320</span><span class="chip wait">Muayene 18 gün kaldı</span><span class="chip ok">Sigorta 04.03.2027</span><span class="chip stop">Bakıma 420 km</span></div>
+  <div class="kpis">
+   <div class="k"><small>Eylül km</small><b class="num">3.940</b><em>22 sefer · 179 km/gün</em></div>
+   <div class="k"><small>Eylül gider</small><b class="num big">41.260 ₺</b><em>yakıt · HGS · bakım</em></div>
+   <div class="k"><small>Km başı</small><b class="num">10,47 ₺</b><em>tüketim 13,8 L/100</em></div>
+  </div>
+  <div class="sec"><h3>Gider dağılımı <span>Eylül</span></h3>
+   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+    <div>Yakıt <b class="num">32.180 ₺</b><div class="bar"><i style="width:78%"></i></div></div>
+    <div>HGS/köprü <b class="num">3.580 ₺</b><div class="bar"><i style="width:9%"></i></div></div>
+    <div>Bakım/onarım <b class="num">5.500 ₺</b><div class="bar"><i style="width:13%"></i></div></div>
+   </div></div>
+  <div class="sec"><h3>Belgeler <span>Supabase Storage · özel</span></h3>
+   <div class="docs"><div class="doc"><b>Ruhsat</b><small>PDF · yüklendi</small></div><div class="doc"><b>Trafik sigortası</b><small>04.03.2027</small></div><div class="doc wait"><b>Muayene</b><small>15.10.2026 · hatırlatma</small></div></div></div>
+  <div class="sec"><h3>Son kayıtlar</h3>
+   <ul class="feed">
+    <li><span class="t">Bugün 08:40</span>Yakıt 62 L · Opet Çatalca · fiş foto<span class="a minus">−2.790,00</span></li>
+    <li><span class="t">25.09</span>HGS · Kuzey Marmara Otoyolu<span class="a minus">−165,00</span></li>
+   </ul></div>
+  <div class="foot"><button class="btn p">Gider / yakıt gir</button><button class="btn">Km gir</button><button class="btn">Belge yükle</button></div>
+ </article>
+</div>
+</body></html>

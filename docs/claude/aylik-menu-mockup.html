@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aylık Menü Takvimi — tasarım hedefi (Hasat 2.0)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- Maket: statik HTML, demo veri. Bileşen adı önerisi: <MonthMenuCalendar mode="menu|satinalma" />. Menüler ve Satınalma ekranlarında aynı bileşen kullanılır. -->
+<style>
+:root{--surface:#FBF8F2;--surface-2:#F4EFE5;--card:#fff;--line:#EAE3D6;--line-strong:#D8CDBA;--ink:#221F1B;--ink-2:#4A443C;--ink-3:#857B6D;
+--brand:#B4432A;--brand-strong:#963520;--brand-soft:#F7E4DE;--accent:#E9A822;--accent-strong:#B97F0A;--accent-soft:#FBEFCF;
+--ok:#0F766E;--ok-soft:#DDF0EC;--wait:#B45309;--wait-soft:#FCEBD5;--stop:#C2261F;--stop-soft:#FBE1DE;--info:#2563EB;--info-soft:#E0E9FC}
+*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Outfit,Inter,sans-serif;margin:0;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+.num{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.top{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:20}
+.top .crumb{color:var(--ink-3);font-size:13px}.top .crumb b{color:var(--ink);font-weight:600}
+.tabs{display:flex;gap:4px;margin-left:18px;background:var(--surface-2);padding:4px;border-radius:12px}
+.tabs button{border:0;background:transparent;padding:7px 12px;border-radius:9px;font-weight:600;color:var(--ink-3);cursor:pointer}
+.tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(34,31,27,.08)}
+.page{padding:18px 22px 40px}
+.hero{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;justify-content:space-between;margin-bottom:14px}
+.hero h1{font-size:26px;font-weight:700;display:flex;align-items:center;gap:10px}
+.hero .sub{color:var(--ink-3);margin-top:2px}
+.monthnav{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:3px}
+.monthnav button{border:0;background:transparent;width:32px;height:32px;border-radius:9px;cursor:pointer;color:var(--ink-2)}
+.monthnav button:hover{background:var(--surface-2)}
+.monthnav span{font:700 15px Outfit;padding:0 10px;min-width:118px;text-align:center}
+.btn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 13px;border-radius:11px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--line-strong)}.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.primary:hover{background:var(--brand-strong)}
+.btn.ai{background:linear-gradient(135deg,#FFF6E0,#FBEFCF);border-color:#F1D48C;color:#6B4A05}
+.btn:disabled{opacity:.45;cursor:default}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:3px}.field label{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;padding-left:2px}
+.select{height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 30px 0 10px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23857B6D' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;font-weight:500}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;height:30px;padding:0 10px;border-radius:8px;font-weight:600;font-size:13px;color:var(--ink-3);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(34,31,27,.08)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.m-kahvalti{--m:#B97F0A;--ms:#FBEFCF}.m-ogle{--m:#B4432A;--ms:#F7E4DE}.m-aksam{--m:#5B4B8A;--ms:#ECE8F6}
+.sp{flex:1}
+.cust-note{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:var(--stop-soft);color:#8E1B15;font-size:13px;margin-bottom:12px}
+.cust-note b{font-weight:700}
+.grid-wrap{display:grid;grid-template-columns:1fr;gap:16px;align-items:start}
+.body.buy .grid-wrap{grid-template-columns:1fr 330px}
+.body.buy .chip .nm{white-space:normal}
+.fbtn{display:none}
+.cal{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.dow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) minmax(0,.5fr);background:var(--surface);border-bottom:1px solid var(--line)}
+.dow div{padding:8px 10px;font:600 12px Outfit;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
+.weeks{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) minmax(0,.5fr)}
+.day{min-height:150px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 7px 9px;position:relative;background:#fff}
+.day:nth-child(7n){border-right:0}
+.day.out{background:repeating-linear-gradient(135deg,#FBF8F2 0 6px,#F7F2E8 6px 12px)}
+.day.we .dnum{color:var(--ink-3)}
+.day.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.day.drop{background:#FFF8E6}
+.dhead{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.dnum{font:700 15px Outfit}.day.today .dnum{background:var(--accent);color:#fff;border-radius:8px;padding:0 6px}
+.dcost{margin-left:auto;font-size:11px;color:var(--ink-3)}
+.dmenu{margin-left:auto;opacity:0;border:0;background:transparent;cursor:pointer;color:var(--ink-3);width:22px;height:22px;border-radius:6px}
+.day:hover .dmenu{opacity:1}.dmenu:hover{background:var(--surface-2)}
+.meal{border-radius:10px;background:var(--ms);padding:5px 6px 4px;margin-top:5px;border:1px solid transparent}
+.meal.drop{border-color:var(--m);border-style:dashed}
+.mh{display:flex;align-items:center;gap:5px;font:700 10.5px Outfit;letter-spacing:.07em;text-transform:uppercase;color:var(--m);margin-bottom:2px}
+.mh .mc{margin-left:auto;font:600 10.5px 'JetBrains Mono';letter-spacing:0;color:var(--ink-3);text-transform:none}.mh .add{margin-left:6px;border:0;background:#fff;color:var(--m);width:18px;height:18px;border-radius:6px;cursor:pointer;font-weight:700;line-height:1;opacity:.0}
+.meal:hover .add{opacity:1}
+.chip{display:flex;align-items:center;gap:5px;background:#fff;border-radius:7px;padding:3px 6px;margin-top:3px;font-size:12px;line-height:1.25;cursor:grab;border:1px solid rgba(34,31,27,.06);position:relative}
+.chip:hover{border-color:var(--line-strong)}
+.chip .k{width:6px;height:6px;border-radius:2px;flex:none}
+.chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.chip .x{border:0;background:transparent;color:var(--ink-3);cursor:pointer;opacity:0;padding:0 2px;font-size:13px;line-height:1}
+.chip:hover .x{opacity:1}
+.chip.rep{background:var(--wait-soft);border-color:#F3C58F}.chip.rep .nm::after{content:" ↻";color:var(--wait);font-weight:700}
+.chip.ban{background:var(--stop-soft);border-color:#F2A9A2}.chip.ban .nm{color:#8E1B15;text-decoration:line-through;text-decoration-color:rgba(194,38,31,.5)}
+.chip.dragging{opacity:.4}
+.chip.new{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(.9);background:var(--accent-soft)}100%{transform:none}}
+.k-corba{background:#C98A12}.k-ana{background:#B4432A}.k-yard{background:#8C7A5B}.k-salata{background:#3F8F5A}.k-tatli{background:#C0508A}.k-kah{background:#B97F0A}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:10px 14px;border-top:1px solid var(--line);color:var(--ink-3);font-size:12px;background:var(--surface)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.lg-rep{width:14px;height:10px;border-radius:3px;background:var(--wait-soft);border:1px solid #F3C58F}
+.lg-ban{width:14px;height:10px;border-radius:3px;background:var(--stop-soft);border:1px solid #F2A9A2}
+/* satınalma paneli */
+.buyp{display:none;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;position:sticky;top:78px}
+.body.buy .buyp{display:block}
+.buyp .hd{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.buyp .hd h2{font-size:17px}.buyp .hd p{margin:2px 0 0;color:var(--ink-3);font-size:12.5px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.kpi small{display:block;color:var(--ink-3);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.kpi b{font:700 17px Outfit}
+.grp{padding:8px 12px 4px}
+.grp h3{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:6px;margin:6px 4px}
+.grp h3 .s{margin-left:auto;font:600 12px "JetBrains Mono";color:var(--ink-2);letter-spacing:0}
+.li{display:grid;grid-template-columns:1fr 78px 20px;align-items:center;gap:6px;padding:5px 4px;border-radius:9px}
+.li:hover{background:var(--surface)}
+.li .n{font-size:13px;font-weight:500;line-height:1.2}.li .n small{display:block;color:var(--ink-3);font-size:11px;font-weight:400}
+.li input{width:100%;height:30px;border:1px solid var(--line);border-radius:8px;text-align:right;padding:0 7px;font:600 12.5px "JetBrains Mono";background:#fff}
+.li input:focus{outline:2px solid rgba(233,168,34,.6);border-color:var(--accent)}
+.li.edit input{background:var(--accent-soft);border-color:#F1D48C}
+.li .rm{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:15px}
+.addrow{margin:6px 12px 12px;display:flex;gap:6px}
+.addrow input{flex:1;height:34px;border:1px dashed var(--line-strong);border-radius:10px;padding:0 10px;background:var(--surface)}
+.buyf{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:var(--surface)}
+.buyf .btn{flex:1;justify-content:center}
+/* popover */
+.pop{position:fixed;z-index:50;width:290px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 16px 40px rgba(34,31,27,.16);padding:8px;display:none}
+.pop input{width:100%;height:38px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:var(--surface)}
+.pop ul{list-style:none;margin:6px 0 0;padding:0;max-height:240px;overflow:auto}
+.pop li{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:13px}
+.pop li:hover,.pop li.hl{background:var(--surface-2)}
+.pop li small{margin-left:auto;color:var(--ink-3);font-size:11px}
+.pop li.warn small{color:var(--stop);font-weight:600}
+.toast{visibility:hidden;opacity:0;position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fff;border-radius:12px;padding:10px 14px;display:flex;gap:12px;align-items:center;transition:transform .2s;z-index:60;font-size:13.5px}
+.toast.on{transform:translateX(-50%);visibility:visible;opacity:1}
+.toast button{border:0;background:transparent;color:var(--accent);font-weight:700;cursor:pointer}
+/* AI modal */
+.ai-card{display:none;margin-bottom:14px;border:1px solid #F1D48C;background:linear-gradient(180deg,#FFFBF0,#fff);border-radius:16px;padding:14px 16px}
+.ai-card.on{display:block}
+.ai-card h3{font-size:15px;display:flex;align-items:center;gap:8px}
+.ai-card ul{margin:8px 0 10px;padding-left:18px;color:var(--ink-2);font-size:13px}
+.ai-card .acts{display:flex;gap:8px;flex-wrap:wrap}
+/* mobil: ajanda */
+.agenda{display:none}
+@media (max-width:760px){
+  .top{padding:10px 14px}.tabs{display:none}.page{padding:12px 12px 90px}
+  .hero h1{font-size:21px}.hero .acts .btn span.l{display:none}
+  .bar{padding:8px;gap:8px}.bar .field{flex:1 1 100%}
+  .bar .field.opt{display:none}.bar.open .field.opt{display:flex}
+  .fbtn{display:inline-flex;height:36px;align-self:flex-end}
+  .hero .acts .btn.primary{display:none}
+  .cust-note{font-size:12.5px}
+  .cal .dow,.cal .weeks,.cal .legend{display:none}
+  .agenda{display:block}
+  .wkstrip{display:flex;gap:6px;overflow-x:auto;padding:10px;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .wkstrip button{flex:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:6px 10px;font-weight:600;font-size:12.5px}
+  .wkstrip button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .aday{padding:10px 12px;border-bottom:1px solid var(--line)}
+  .aday .dhead{margin-bottom:2px}.aday .dnum{font-size:16px}
+  .aday .meal .chip{font-size:13.5px;padding:6px 8px}
+  .aday .chip .x{opacity:1}
+  .aday .mh .add{opacity:1;width:26px;height:26px;font-size:15px}
+  .body.buy .grid-wrap{grid-template-columns:1fr}
+  .fab{position:fixed;right:14px;bottom:16px;z-index:30;display:flex;gap:8px}
+}
+.fab{display:none}@media (max-width:760px){.fab{display:flex}}
+</style>
+</head>
+<body>
+<div class="top">
+ <span style="width:30px;height:30px;display:block"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="30" height="30" role="img" aria-label="Trakya Catering"><rect width="100" height="100" rx="22" fill="#B4432A"/><g transform="translate(14.00 20.12) scale(0.72)"><rect x="8" y="74" width="84" height="8" rx="4" fill="#FBF8F2"/><path d="M15 70 A35 35 0 0 1 85 70 Z" fill="#FBF8F2"/><path d="M27 58 A24 24 0 0 1 41 41" stroke="#F2C9BC" stroke-width="4.2" stroke-linecap="round" fill="none"/><path d="M50 36 C50 27.36 50 16.12 50 9.64" stroke="#E9A822" stroke-width="2.592" stroke-linecap="round" fill="none"/><path d="M0 -6.21 Q4.97 0 0 6.21 Q-4.97 0 0 -6.21 Z" transform="translate(45.36 28.44) rotate(-30)" fill="#E9A822"/><path d="M0 -6.21 Q4.97 0 0 6.21 Q-4.97 0 0 -6.21 Z" transform="translate(54.64 28.44) rotate(30)" fill="#E9A822"/><path d="M0 -5.84 Q4.97 0 0 5.84 Q-4.97 0 0 -5.84 Z" transform="translate(45.36 20.34) rotate(-30)" fill="#E9A822"/><path d="M0 -5.84 Q4.97 0 0 5.84 Q-4.97 0 0 -5.84 Z" transform="translate(54.64 20.34) rotate(30)" fill="#E9A822"/><path d="M0 -5.46 Q4.97 0 0 5.46 Q-4.97 0 0 -5.46 Z" transform="translate(45.36 12.24) rotate(-30)" fill="#E9A822"/><path d="M0 -5.46 Q4.97 0 0 5.46 Q-4.97 0 0 -5.46 Z" transform="translate(54.64 12.24) rotate(30)" fill="#E9A822"/><path d="M0 -5.90 Q4.72 0 0 5.90 Q-4.72 0 0 -5.90 Z" transform="translate(50.00 7.48) rotate(0)" fill="#E9A822"/></g></svg></span>
+ <span class="crumb">Mutfak › <b id="crumb">Menüler</b></span>
+ <div class="tabs" role="tablist" aria-label="Mod">
+  <button id="t-menu" class="on" onclick="setMode('menu')">Menüler · Aylık takvim</button>
+  <button id="t-buy" onclick="setMode('buy')">Satınalma · Aylık menü + ihtiyaç</button>
+ </div>
+</div>
+<div class="page body" id="body">
+ <div class="hero">
+  <div>
+   <h1><span id="title">Aylık menü takvimi</span></h1>
+   <div class="sub" id="subtitle">Menüler aylıktır. Her gün × öğün için yemekler buradan seçilir; satınalma ihtiyacı aynı takvimden türetilir.</div>
+  </div>
+  <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+   <div class="monthnav"><button aria-label="Önceki ay">‹</button><span>Ekim 2026</span><button aria-label="Sonraki ay">›</button></div>
+   <button class="btn" id="undo" onclick="undo()" disabled title="Geri al (Ctrl+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span class="l">Geri al</span></button>
+   <button class="btn" onclick="copyWeek()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="8" y="8" width="13" height="13" rx="3"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span class="l">1. haftayı 2. haftaya kopyala</span></button>
+   <button class="btn ai" onclick="toggleAI()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg><span class="l">AI ile menü oluştur</span></button>
+   <button class="btn primary"><span>Onaya gönder</span></button>
+  </div>
+ </div>
+
+ <div class="bar">
+  <div class="field opt"><label>Menü</label><select class="select"><option>Ekim 2026 · Genel öğle + akşam (sürüm 3)</option><option>Ekim 2026 · Diyet</option><option>Ekim 2026 · Kahvaltı</option></select></div>
+  <div class="field"><label>Müşteri</label><select class="select" id="cust" onchange="render()"><option value="abc">Anadolu Otomotiv A.Ş. · 420 kişi</option><option value="">Genel (tüm müşteriler)</option></select></div>
+  <div class="field opt"><label>Kap türü</label><div class="seg" id="kap"><button class="on" onclick="seg(this)">3 bölmeli tabla</button><button onclick="seg(this)">Küvet</button><button onclick="seg(this)">Karma</button></div></div>
+  <div class="field opt"><label>Öğünler</label><div class="seg" id="meals">
+   <button data-m="kahvalti" onclick="toggleMeal(this)"><i class="dot" style="background:#B97F0A"></i>Kahvaltı</button>
+   <button data-m="ogle" class="on" onclick="toggleMeal(this)"><i class="dot" style="background:#B4432A"></i>Öğle</button>
+   <button data-m="aksam" class="on" onclick="toggleMeal(this)"><i class="dot" style="background:#5B4B8A"></i>Akşam</button></div></div>
+  <div class="sp"></div><button class="btn fbtn" onclick="this.parentElement.classList.toggle('open')">Filtreler · 3 ▾</button>
+  <div class="field opt"><label>Ay özeti</label><div style="display:flex;gap:14px;font-size:13px;height:36px;align-items:center"><span>Öğün başı gıda ort. <b class="num" id="ppc">—</b></span><span style="color:var(--wait)">↻ <b id="nrep">0</b> tekrar</span><span style="color:var(--stop)">⛔ <b id="nban">0</b> istenmeyen</span></div></div>
+ </div>
+
+ <div class="cust-note" id="custnote">⛔ <span><b>Anadolu Otomotiv</b> istemiyor: <b>patlıcanlı yemekler</b>, <b>sakatat</b>. Not: “Cuma balık olmasın.” — takvimde kırmızı işaretlenir, eklerken uyarı çıkar.</span></div>
+
+ <div class="ai-card" id="aicard">
+  <h3>✨ AI menü önerisi — Kasım 2026 (öğle + akşam)</h3>
+  <ul>
+   <li>Mevsim: sonbahar/kış — pırasa, lahana, kereviz, ıspanak, kabak tatlısı öne çıkarıldı.</li>
+   <li>Son 3 ayın menüleri tarandı: aynı yemek <b>14 gün</b> içinde tekrarlanmıyor; aynı gün öğle ve akşamda ana malzeme çakışmıyor.</li>
+   <li>Müşteri notları uygulandı: patlıcan ve sakatat yok, cuma balık yok. Hedef kişi başı maliyet ≤ 92 ₺ (tahmini 88,40 ₺).</li>
+  </ul>
+  <div class="acts"><button class="btn primary">Öneriyi taslak menü olarak aç</button><button class="btn">Başka alternatif üret</button><button class="btn" onclick="toggleAI()">Kapat</button></div>
+ </div>
+
+ <div class="grid-wrap">
+  <div class="cal">
+   <div class="dow"><div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div></div>
+   <div class="weeks" id="weeks"></div>
+   <div class="agenda" id="agenda"></div>
+   <div class="legend">
+    <span><i class="k k-corba" style="width:8px;height:8px;border-radius:2px;display:inline-block"></i>Çorba</span>
+    <span><i class="k k-ana" style="width:8px;height:8px;border-radius:2px;display:inline-block"></i>Ana yemek</span>
+    <span><i class="k k-yard" style="width:8px;height:8px;border-radius:2px;display:inline-block"></i>Yardımcı</span>
+    <span><i class="k k-salata" style="width:8px;height:8px;border-radius:2px;display:inline-block"></i>Salata/meze</span>
+    <span><i class="k k-tatli" style="width:8px;height:8px;border-radius:2px;display:inline-block"></i>Tatlı/meyve</span>
+    <span><i class="lg-rep"></i>7 gün içinde tekrar</span><span><i class="lg-ban"></i>Müşteri istemiyor</span>
+    <span style="margin-left:auto">Sürükle = taşı · <b>Alt/⌥ + sürükle</b> = kopyala · <b>+</b> = hızlı ekle · Ctrl+Z = geri al</span>
+   </div>
+  </div>
+
+  <aside class="buyp" aria-label="Satınalma ihtiyacı">
+   <div class="hd">
+    <h2>Ekim ihtiyacı (menüden)</h2>
+    <p>Takvimdeki yemekler × kişi sayısı × 1 kişilik reçete − depo stoku. Elle düzeltilen satır sarı görünür; kayıt = yeni sürüm.</p>
+    <div class="kpis"><div class="kpi"><small>Tahmini tutar</small><b class="num" id="ktot">—</b></div><div class="kpi"><small>Kalem</small><b class="num" id="kcnt">—</b></div></div>
+   </div>
+   <div id="buylist"></div>
+   <div class="addrow"><input placeholder="+ Kalem ekle (ör. Peçete, LPG tüp)" onkeydown="if(event.key==='Enter'){addItem(this.value);this.value=''}"></div>
+   <div class="buyf"><button class="btn">Sürüm geçmişi</button><button class="btn primary">Tedarikçilere teklif linki gönder</button></div>
+  </aside>
+ </div>
+</div>
+
+<div class="pop" id="pop"><input id="q" placeholder="Yemek ara… (ör. mercimek)" autocomplete="off"><ul id="res"></ul></div>
+<div class="toast" id="toast"><span id="tmsg"></span><button onclick="undo()">Geri al</button></div>
+<div class="fab"><button class="btn ai" onclick="toggleAI()">✨ AI</button><button class="btn primary" onclick="setMode(mode==='menu'?'buy':'menu')">İhtiyaç</button></div>
+
+<script>
+// ---------- demo veri ----------
+const DISHES = {
+ 'Mercimek çorbası':['corba',{'Kırmızı mercimek':35,'Soğan':10,'Tereyağı':4}],
+ 'Ezogelin çorbası':['corba',{'Kırmızı mercimek':25,'Bulgur':10,'Soğan':8}],
+ 'Tarhana çorbası':['corba',{'Tarhana':25,'Tereyağı':4}],
+ 'Yayla çorbası':['corba',{'Yoğurt':80,'Pirinç':10}],
+ 'Domates çorbası':['corba',{'Domates':90,'Un':6}],
+ 'Tavuk suyu çorbası':['corba',{'Tavuk göğüs':25,'Şehriye':12}],
+ 'Şehriye çorbası':['corba',{'Şehriye':15,'Domates salçası':4}],
+ 'Sebze çorbası':['corba',{'Patates':40,'Kabak':30,'Soğan':10}],
+ 'Düğün çorbası':['corba',{'Dana kuşbaşı':15,'Yoğurt':40,'Un':5}],
+ 'Mantar çorbası':['corba',{'Mantar':50,'Süt':60}],
+ 'Brokoli çorbası':['corba',{'Brokoli':60,'Süt':50}],
+ 'Kremalı tavuk çorbası':['corba',{'Tavuk göğüs':20,'Süt':60}],
+ 'İşkembe çorbası':['corba',{'İşkembe':60},['sakatat']],
+ 'Etli kuru fasulye':['ana',{'Kuru fasulye':70,'Dana kuşbaşı':25,'Soğan':15}],
+ 'Tavuk sote':['ana',{'Tavuk göğüs':140,'Biber':30,'Domates':30}],
+ 'Karnıyarık':['ana',{'Patlıcan':220,'Kıyma':45,'Soğan':20},['patlican']],
+ 'İzmir köfte':['ana',{'Kıyma':110,'Patates':90,'Domates':40}],
+ 'Etli nohut':['ana',{'Nohut':70,'Dana kuşbaşı':25}],
+ 'Fırın tavuk baget':['ana',{'Tavuk baget':220,'Patates':60}],
+ 'Orman kebabı':['ana',{'Dana kuşbaşı':110,'Bezelye':30,'Patates':50}],
+ 'Hünkâr beğendi':['ana',{'Dana kuşbaşı':100,'Patlıcan':150},['patlican']],
+ 'Etli türlü':['ana',{'Dana kuşbaşı':60,'Kabak':60,'Patlıcan':50},['patlican']],
+ 'Pırasa (zeytinyağlı)':['ana',{'Pırasa':200,'Pirinç':10}],
+ 'Tavuk döner':['ana',{'Tavuk but':150}],
+ 'Balık (hamsi tava)':['ana',{'Hamsi':180,'Mısır unu':15},['balik']],
+ 'Kuru köfte':['ana',{'Kıyma':100,'Soğan':10}],
+ 'Tas kebabı':['ana',{'Dana kuşbaşı':110,'Patates':50}],
+ 'Etli bezelye':['ana',{'Bezelye':120,'Dana kuşbaşı':25}],
+ 'Tavuk şiş':['ana',{'Tavuk göğüs':150,'Biber':20}],
+ 'Etli taze fasulye':['ana',{'Taze fasulye':180,'Dana kuşbaşı':20}],
+ 'Ispanaklı yumurta':['ana',{'Ispanak':200,'Yumurta':1}],
+ 'Kıymalı kabak':['ana',{'Kabak':200,'Kıyma':30}],
+ 'Hasan paşa köfte':['ana',{'Kıyma':95,'Patates':80,'Kaşar':10}],
+ 'Mantı':['ana',{'Un':70,'Kıyma':30,'Yoğurt':60}],
+ 'Pirinç pilavı':['yard',{'Pirinç':75,'Tereyağı':6}],
+ 'Bulgur pilavı':['yard',{'Bulgur':75,'Domates salçası':6}],
+ 'Fırın makarna':['yard',{'Makarna':80,'Kaşar':15}],
+ 'Şehriyeli pilav':['yard',{'Pirinç':65,'Şehriye':10}],
+ 'Cacık':['salata',{'Yoğurt':100,'Salatalık':30}],
+ 'Mevsim salata':['salata',{'Marul':50,'Domates':30,'Salatalık':30}],
+ 'Çoban salata':['salata',{'Domates':60,'Salatalık':40,'Biber':15}],
+ 'Sütlaç':['tatli',{'Süt':150,'Pirinç':12,'Şeker':18}],
+ 'Revani':['tatli',{'İrmik':30,'Şeker':30,'Yumurta':0.3}],
+ 'Mevsim meyvesi':['tatli',{'Elma':150}],
+ 'Kabak tatlısı':['tatli',{'Bal kabağı':150,'Şeker':25}],
+};
+const CAT = {'Dana kuşbaşı':['et',640],'Kıyma':['et',560],'İşkembe':['et',300],'Tavuk göğüs':['tavuk',185],'Tavuk but':['tavuk',160],'Tavuk baget':['tavuk',120],'Hamsi':['et',240],
+ 'Kırmızı mercimek':['kuru',62],'Bulgur':['kuru',38],'Tarhana':['kuru',140],'Pirinç':['kuru',72],'Kuru fasulye':['kuru',95],'Nohut':['kuru',70],'Makarna':['kuru',42],'Şehriye':['kuru',48],'Un':['kuru',22],'Şeker':['kuru',40],'İrmik':['kuru',35],'Mısır unu':['kuru',30],'Domates salçası':['kuru',110],
+ 'Soğan':['sebze',16],'Domates':['sebze',28],'Biber':['sebze',45],'Patlıcan':['sebze',30],'Patates':['sebze',18],'Kabak':['sebze',25],'Pırasa':['sebze',22],'Marul':['sebze',30],'Salatalık':['sebze',26],'Bezelye':['sebze',60],'Elma':['sebze',35],'Bal kabağı':['sebze',20],'Mantar':['sebze',90],'Brokoli':['sebze',70],'Taze fasulye':['sebze',55],'Ispanak':['sebze',35],
+ 'Yoğurt':['sut',55],'Süt':['sut',38],'Tereyağı':['sut',420],'Kaşar':['sut',380],'Yumurta':['sut',4.5]};
+const WH = {et:'Et deposu',tavuk:'Tavuk deposu',sebze:'Sebze · soğuk oda',kuru:'Kuru gıda',sut:'Süt ürünleri'};
+const STOCK = {'Pirinç':180,'Kırmızı mercimek':120,'Bulgur':90,'Soğan':150,'Domates salçası':40,'Şeker':60,'Makarna':70};
+const PEOPLE = {ogle:420, aksam:180, kahvalti:0};
+const Y=2026, M=9; // Ekim (0 tabanlı)
+const MEALNAME={kahvalti:'Kahvaltı',ogle:'Öğle',aksam:'Akşam'};
+let mode='menu', visible={kahvalti:false,ogle:true,aksam:true};
+let plan={}; // 'YYYY-MM-DD|meal' -> [dish]
+function key(d,m){return d+'|'+m}
+function iso(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+(function seed(){
+  const ok=n=>!((DISHES[n][2]||[]).length);
+  const pool=c=>Object.keys(DISHES).filter(n=>DISHES[n][0]===c&&ok(n));
+  const P={corba:pool('corba'),ana:pool('ana'),yard:pool('yard'),son:[...pool('salata'),...pool('tatli')]};
+  const used={};const ptr={corba:0,ana:3,yard:0,son:0};
+  const take=(c,t)=>{const L=P[c];for(let j=0;j<L.length;j++){const n=L[(ptr[c]+j)%L.length];if(c==='yard'||c==='son'||used[n]===undefined||t-used[n]>=8*864e5){ptr[c]=(ptr[c]+j+1)%L.length;used[n]=t;return n}}return L[ptr[c]++%L.length]};
+  for(let d=1;d<=31;d++){const dt=new Date(Y,M,d);const wd=dt.getDay();if(wd===0)continue;const t=dt.getTime();
+    plan[key(iso(dt),'ogle')]=[take('corba',t),take('ana',t),take('yard',t),take('son',t)];
+    if(wd!==6)plan[key(iso(dt),'aksam')]=[take('corba',t),take('ana',t),take('yard',t),take('son',t)];}
+  // demo: 1 cuma balık (müşteri notu), 2 istenmeyen, 1 tekrar
+  plan[key('2026-10-09','ogle')][1]='Balık (hamsi tava)';
+  plan[key('2026-10-14','ogle')][1]='Hünkâr beğendi';
+  plan[key('2026-10-21','aksam')][1]='Karnıyarık';
+  plan[key('2026-10-16','aksam')][1]=plan[key('2026-10-13','ogle')][1];
+})();
+// ---------- kurallar ----------
+const REPEAT_DAYS=7;
+function flags(){const cust=document.getElementById('cust').value;const last={};const out={};let rep=0,ban=0;
+  Object.keys(plan).sort().forEach(k=>{const [d,m]=k.split('|');const t=new Date(d).getTime();
+    plan[k].forEach((n,i)=>{const f=[];const tags=(DISHES[n]||[])[2]||[];
+      const rc=(DISHES[n]||[])[0];if((rc==='corba'||rc==='ana')&&last[n]!==undefined && (t-last[n])/864e5<REPEAT_DAYS && (t-last[n])>0){f.push('rep');rep++;}
+      last[n]=t;
+      if(cust==='abc' && (tags.includes('patlican')||tags.includes('sakatat')||(tags.includes('balik')&&new Date(d).getDay()===5))){f.push('ban');ban++;}
+      out[k+'|'+i]=f;});});
+  return {out,rep,ban};}
+function dayCost(d){let c=0;['ogle','aksam'].forEach(m=>{(plan[key(d,m)]||[]).forEach(n=>{const r=(DISHES[n]||[])[1]||{};for(const ing in r){c+=r[ing]/1000*(CAT[ing]?CAT[ing][1]:0)*(ing==='Yumurta'?1000:1)}})});return c}
+// ---------- çizim ----------
+function chipHTML(n,k,i,f){const c=(DISHES[n]||['ana'])[0];const why=f.includes('ban')?'Müşteri istemiyor':f.includes('rep')?'Son 7 gün içinde tekrar':'';
+ return `<div class="chip ${f.join(' ')}" draggable="true" data-k="${k}" data-i="${i}" title="${n}${why?' — '+why:''}"><i class="k k-${c==='corba'?'corba':c==='ana'?'ana':c==='yard'?'yard':c==='salata'?'salata':'tatli'}"></i><span class="nm">${n}</span><button class="x" aria-label="Kaldır" onclick="rm('${k}',${i})">×</button></div>`}
+function mealHTML(d,m,F){const k=key(d,m);const arr=plan[k]||[];if(!visible[m])return '';
+ if(!arr.length && new Date(d).getDay()===0) return '';
+ const mc=arr.reduce((s,n)=>{const r=(DISHES[n]||[])[1]||{};for(const g in r)s+=r[g]/1000*(CAT[g]?CAT[g][1]:0)*(g==='Yumurta'?1000:1);return s},0);
+ return `<div class="meal m-${m}" data-k="${k}"><div class="mh">${MEALNAME[m]}${arr.length?`<span class="mc num">${mc.toFixed(0)} ₺</span>`:''}<button class="add" aria-label="Yemek ekle" onclick="openPop(event,'${k}')">+</button></div>${arr.map((n,i)=>chipHTML(n,k,i,F[k+'|'+i]||[])).join('')}</div>`}
+function render(){const F=flags();const first=new Date(Y,M,1);const off=(first.getDay()+6)%7;let h='';let a='';
+ const today='2026-10-07';
+ for(let c=0;c<35;c++){const dt=new Date(Y,M,1-off+c);const d=iso(dt);const inM=dt.getMonth()===M;const we=dt.getDay()===0||dt.getDay()===6;
+  const cost=inM?dayCost(d):0;
+  const meals=inM?['kahvalti','ogle','aksam'].map(m=>mealHTML(d,m,F)).join(''):'';
+  h+=`<div class="day ${inM?'':'out'} ${we?'we':''} ${d===today?'today':''}"><div class="dhead"><span class="dnum">${dt.getDate()}</span>${inM?'<button class="dmenu" title="Günü kopyala / temizle">⋯</button>':''}</div>${meals}</div>`;
+  if(inM && dt.getDay()!==0) a+=`<div class="aday"><div class="dhead"><span class="dnum">${dt.getDate()} ${dt.toLocaleDateString('tr-TR',{month:'long',weekday:'long'})}</span></div>${meals}</div>`;}
+ document.getElementById('weeks').innerHTML=h;
+ document.getElementById('agenda').innerHTML='<div class="wkstrip"><button class="on">1–4 Eki</button><button>5–11 Eki</button><button>12–18 Eki</button><button>19–25 Eki</button><button>26–31 Eki</button></div>'+a;
+ document.getElementById('nrep').textContent=F.rep;document.getElementById('nban').textContent=F.ban;
+ document.getElementById('custnote').style.display=document.getElementById('cust').value?'flex':'none';
+ let tot=0,n=0;for(let d=1;d<=31;d++){const c=dayCost(iso(new Date(Y,M,d)));if(c){tot+=c;n++}}
+ document.getElementById('ppc').textContent=(n?(tot/n/2):0).toFixed(2).replace('.',',')+' ₺';
+ bindDnD();renderBuy();}
+// ---------- sürükle-bırak ----------
+let drag=null;
+function bindDnD(){document.querySelectorAll('.chip').forEach(c=>{c.addEventListener('dragstart',e=>{drag={k:c.dataset.k,i:+c.dataset.i};c.classList.add('dragging');e.dataTransfer.effectAllowed='copyMove'});c.addEventListener('dragend',()=>c.classList.remove('dragging'))});
+ document.querySelectorAll('.meal').forEach(m=>{m.addEventListener('dragover',e=>{e.preventDefault();m.classList.add('drop')});m.addEventListener('dragleave',()=>m.classList.remove('drop'));
+  m.addEventListener('drop',e=>{e.preventDefault();m.classList.remove('drop');if(!drag)return;const copy=e.altKey||e.ctrlKey;snap();const n=plan[drag.k][drag.i];if(!copy)plan[drag.k].splice(drag.i,1);(plan[m.dataset.k]=plan[m.dataset.k]||[]).push(n);toast(copy?`“${n}” kopyalandı`:`“${n}” taşındı`);drag=null;render();})});}
+// ---------- geri al ----------
+const hist=[];function snap(){hist.push(JSON.stringify(plan));document.getElementById('undo').disabled=false}
+function undo(){if(!hist.length)return;plan=JSON.parse(hist.pop());document.getElementById('undo').disabled=!hist.length;document.getElementById('toast').classList.remove('on');render()}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo()}if(e.key==='Escape')closePop()});
+function rm(k,i){snap();const n=plan[k].splice(i,1)[0];toast(`“${n}” kaldırıldı`);render()}
+let tt;function toast(m){document.getElementById('tmsg').textContent=m;const t=document.getElementById('toast');t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),4000)}
+function copyWeek(){snap();for(let d=0;d<7;d++){const s=new Date(Y,M,5+d),t=new Date(Y,M,12+d);['ogle','aksam'].forEach(m=>{if(plan[key(iso(s),m)])plan[key(iso(t),m)]=[...plan[key(iso(s),m)]]})}toast('5–11 Ekim, 12–18 Ekim haftasına kopyalandı');render()}
+// ---------- hızlı seçici ----------
+let popK=null;
+function openPop(e,k){popK=k;const p=document.getElementById('pop');const r=e.target.getBoundingClientRect();p.style.display='block';p.style.left=Math.min(r.left,innerWidth-300)+'px';p.style.top=(r.bottom+6)+'px';const q=document.getElementById('q');q.value='';fill('');q.focus()}
+function closePop(){document.getElementById('pop').style.display='none'}
+document.addEventListener('mousedown',e=>{if(!e.target.closest('.pop')&&!e.target.closest('.add'))closePop()});
+function fill(q){const cust=document.getElementById('cust').value;const nq=q.toLocaleLowerCase('tr');
+ document.getElementById('res').innerHTML=Object.keys(DISHES).filter(n=>n.toLocaleLowerCase('tr').includes(nq)).slice(0,8).map(n=>{const tags=DISHES[n][2]||[];const w=cust&&(tags.includes('patlican')||tags.includes('sakatat'));return `<li class="${w?'warn':''}" onclick="pick('${n.replace(/'/g,"\\'")}')"><i class="k k-${DISHES[n][0]==='salata'?'salata':DISHES[n][0]}" style="width:8px;height:8px;border-radius:2px"></i>${n}<small>${w?'müşteri istemiyor':({corba:'çorba',ana:'ana',yard:'yardımcı',salata:'salata',tatli:'tatlı'})[DISHES[n][0]]}</small></li>`}).join('')}
+document.getElementById('q').addEventListener('input',e=>fill(e.target.value));
+document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'){const f=document.querySelector('#res li');if(f)f.click()}});
+function pick(n){snap();(plan[popK]=plan[popK]||[]).push(n);closePop();toast(`“${n}” eklendi`);render()}
+// ---------- satınalma paneli ----------
+const edits={};const extra={};const removed={};
+function need(){const r={};Object.keys(plan).forEach(k=>{const m=k.split('|')[1];const p=PEOPLE[m]||0;plan[k].forEach(n=>{const rc=(DISHES[n]||[])[1]||{};for(const ing in rc){r[ing]=(r[ing]||0)+rc[ing]*p/(ing==='Yumurta'?1:1000)}})});return r}
+function renderBuy(){const r=need();const g={};let tot=0,cnt=0;
+ Object.assign(r,extra);
+ for(const ing in r){if(removed[ing])continue;const cat=CAT[ing]?CAT[ing][0]:'kuru';const auto=Math.max(0,r[ing]-(STOCK[ing]||0));const q=edits[ing]!==undefined?edits[ing]:auto;(g[cat]=g[cat]||[]).push([ing,q,auto,STOCK[ing]||0]);tot+=q*(CAT[ing]?CAT[ing][1]:0);cnt++}
+ const order=['et','tavuk','sebze','kuru','sut'];let h='';
+ order.forEach(c=>{if(!g[c])return;const s=g[c].reduce((a,x)=>a+x[1]*(CAT[x[0]]?CAT[x[0]][1]:0),0);
+  h+=`<div class="grp"><h3>${WH[c]}<span class="s">${Math.round(s).toLocaleString('tr-TR')} ₺</span></h3>`+g[c].sort((a,b)=>b[1]-a[1]).slice(0,c==='sebze'||c==='kuru'?6:5).map(([ing,q,auto,st])=>`<div class="li ${edits[ing]!==undefined?'edit':''}"><div class="n">${ing}<small>${ing==='Yumurta'?'adet':'kg'} · otomatik ${fmt(auto)}${st?` · depoda ${st}`:''}</small></div><input value="${fmt(q)}" onchange="edits['${ing}']=parseFloat(this.value.replace(/\\./g,'').replace(',','.'))||0;renderBuy()"><button class="rm" onclick="removed['${ing}']=1;renderBuy()" aria-label="Kaldır">×</button></div>`).join('')+'</div>'});
+ document.getElementById('buylist').innerHTML=h;document.getElementById('ktot').textContent=Math.round(tot).toLocaleString('tr-TR')+' ₺';document.getElementById('kcnt').textContent=cnt;}
+function fmt(x){return (Math.round(x*10)/10).toLocaleString('tr-TR')}
+function addItem(v){if(!v)return;extra[v]=0;edits[v]=1;renderBuy()}
+// ---------- mod ----------
+function setMode(m){mode=m;document.getElementById('body').classList.toggle('buy',m==='buy');document.getElementById('t-menu').classList.toggle('on',m==='menu');document.getElementById('t-buy').classList.toggle('on',m==='buy');
+ document.getElementById('crumb').textContent=m==='menu'?'Menüler':'Satınalma';
+ document.getElementById('title').textContent=m==='menu'?'Aylık menü takvimi':'Satınalma · Ekim menüsü ve ihtiyaç';
+ document.getElementById('subtitle').textContent=m==='menu'?'Menüler aylıktır. Her gün × öğün için yemekler buradan seçilir; satınalma ihtiyacı aynı takvimden türetilir.':'Aynı takvim bileşeni: menüde yapılan her değişiklik sağdaki ihtiyaç listesini anında günceller.'}
+function toggleMeal(b){b.classList.toggle('on');visible[b.dataset.m]=b.classList.contains('on');render()}
+function seg(b){b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+function toggleAI(){document.getElementById('aicard').classList.toggle('on')}
+const qs=new URLSearchParams(location.search);if(qs.get('mod')==='satinalma')setMode('buy');if(qs.get('ai'))toggleAI();
+render();
+</script>
+</body>
+</html>
