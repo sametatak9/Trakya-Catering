@@ -54,6 +54,34 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 | 8A · 8 · 8B | CRM + hedef kitle botu, Bugün kartları + sosyal medya, Hata Merkezi | ⏳ |
 | 9 · 10 | Rehber/turlar · uçtan uca doğrulama | ⏳ |
 
+## EK-1 notları (kaynak: `docs/claude/CLAUDE-EK-NOTLAR-1.md`; çakışmada §17 tablosu)
+Her not ilgili fazın **içinde** uygulanır; ayrı faz açılmaz. Durum: ✅ bitti · 🗄️ veritabanı hazır, ekran bekliyor · ⏳ sırada.
+
+| Faz | EK-1 / Not | İş | Durum |
+|---|---|---|---|
+| Hemen | EK-1 / Not 12 | Logo seçenek 1: favicon, PWA manifest, `Logo.tsx`, giriş ve kenar çubuğu | ⏳ |
+| Hemen | EK-1 / Not 13 | Girişsiz iletişim sayfası `public/iletisim.html` + uygulama içi link | ⏳ |
+| Hemen | EK-1 / Not 8 | Cari › müşteri › "Sipariş linki" sekmesi (kopyala, WhatsApp, QR, yenile) | ⏳ |
+| Hemen | EK-1 / Not 2 | "Hammadde" → **Stok kartı**; `/stok/kartlar` (eski adres yönlenir); sarf kategorileri | ⏳ |
+| 3D | EK-1 / Not 1 · 3 | Aylık menü (sürümlü), müşteri yasak/tercih kuralları, yemek etiketleri, `publish_monthly_menu` | 🗄️ (canlıda, `external_tables.sql` ✅) |
+| 3D | EK-1 / Not 14 | `<MonthMenuCalendar mode="menu">`, maket birebir (sürükle/kopyala, undo, mobil ajanda) | ⏳ |
+| 3D | EK-1 / Not 1 | AI menü önerisi (`menu-suggest` 🔌 + kural motoru yedeği), `ai_budget`/`ai_usage` freni | 🗄️ (tablolar canlıda) |
+| 3D | EK-1 / Not 7 · 8 | Portal v2: Sipariş, Aylık menü, Geri bildirim (`customer_feedback`), PIN; portal yetkilisi TC+telefon | 🗄️ (tablolar canlıda; Vault anahtarı kullanıcıda) |
+| 3D | Kullanıcı notu D · E · H | Müşteriye menü atama (`customer_menus`), kap tipi/maliyeti, tepsi/küvet, Bugün öğün geçiş saatleri | 🗄️ |
+| 3E | EK-1 / Not 4 | Depolar, açılış sayımı, 15 günde bir kör sayım, fark = zayiat | ⏳ |
+| 3E | EK-1 / Not 5 | FEFO (Ç-2), haftalık SKT bildirimi, onaylı imha | ⏳ |
+| 3E | Kullanıcı notu B · C | Elle stok nedeni zorunlu, faturasız pazar alımı → tedarikçiye borç | 🗄️ (canlıda, test ✅) |
+| 3F | EK-1 / Not 14 | Takvim `mode="satinalma"` + ihtiyaç paneli | ⏳ |
+| 3F | EK-1 / Not 6 | Tedarikçi teklif isteme (RFQ, tokenlı link) — **MUST** (Ç-3) | ⏳ |
+| 3F | Kullanıcı notu G | Toptan referans fiyatı botu (`market_reference_prices`) | 🗄️ (tablo canlıda) |
+| 4 | EK-1 / Not 9 · 10 · 11 | Portal bakiye (giriş/PIN), bekleyen KDV, banka/kasa/kart mutabakatı, canlı bakiyeler (G-1) | ⏳ |
+| 5 | EK-1 / Not 15b · 16 | Filo (km, belge, hatırlatma, kartvizit), `route_stops` (Ç-5), müşteri sarf, `<OpsMap>` | ⏳ |
+| 6 | EK-1 / Not 15a | Personel ödemeleri, belgeler, personel kartviziti (maket) | ⏳ |
+| 7 | EK-1 / Not 12 | Logolar marka kitinde ve antette | ⏳ |
+| 8A | EK-1 / Not 16 | Harita pazarlama katmanı, kement → aday | ⏳ |
+| 8 | EK-1 / Not 17 | Sosyal medya: Embay modülünün uyarlanması (§15; Ç-4, Ç-6, Ç-7, Ç-11) | ⏳ |
+| Her faz | EK-1 / G-1 | Canlı ekranlar: bakiye yalnız defterden, Realtime + önbellek yenileme | sürekli |
+
 ## Varsayımlar (belge "soru sorma, makul varsayımla devam et" diyor)
 - **Test ortamı:** Ayrı Supabase projesi/branch ücretli olduğundan migration'lar önce canlı projede `begin … rollback` içinde (hiçbir şey kalıcı olmadan) test senaryosuyla denenir, geçince uygulanır. CI'da SQL testleri için yerel Supabase ileride eklenecek.
 - **Migration adları:** Dosya adı canlı sürüm numarasıdır (M-1). `apply_migration` sürümü uygulama anında verir; uygulamadan sonra dosya adı eşitlenir.
