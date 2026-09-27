@@ -71,4 +71,14 @@ describe('asistan uyarıları', () => {
     expect(a?.tone).toBe('stop');
     expect(a?.body).toContain('OSB');
   });
+  it('portaldan gelen yeni şikâyeti kırmızı, beğeniyi yeşil bildirir', () => {
+    const a = buildAlerts({ ...base, feedback: [
+      { id: 'f1', customer_id: 'c1', kind: 'sikayet', rating: 2, text: 'Pilav soğuktu', menu_date: '2026-09-25', source: 'portal' },
+      { id: 'f2', customer_id: 'c2', kind: 'begeni', rating: 5, text: null, menu_date: '2026-09-25', source: 'portal' },
+    ] });
+    const f1 = a.find((x) => x.id === 'geri:f1')!;
+    expect(f1.tone).toBe('stop');
+    expect(f1.title).toBe('OSB: şikâyet');
+    expect(a.find((x) => x.id === 'geri:f2')!.tone).toBe('ok');
+  });
 });

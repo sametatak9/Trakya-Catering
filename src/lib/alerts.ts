@@ -30,6 +30,8 @@ export interface AlertInput {
   upcomingOrders?: Array<{ customer_id: string; service_date: string; status: string; unit_price: number | null; ordered_qty: number }>;
   todayBatches: Array<{ batch_id: string | null; dish_name: string | null; item_count: number | null; missing_price_count: number | null; status: string | null }>;
   draftInvoices: number;
+  /** Müşteri geri bildirimleri (durumu 'yeni'); yalnız yönetici ve aşçıbaşı için doldurulur */
+  feedback?: Array<{ id: string; customer_id: string; kind: string; rating: number | null; text: string | null; menu_date: string; source: string }>;
   staleDays: number;
 }
 
@@ -143,6 +145,19 @@ export function buildAlerts(x: AlertInput): Alert[] {
       id: `maliyet:${m.menu_id}:${Math.round(ratio)}`, kind: 'maliyet', tone: ratio >= 60 ? 'stop' : 'wait',
       title: `${m.name}: yemek maliyeti fiyatın ${pct(ratio)}'i`,
       body: `Kişi başı ${money(m.cost_last)} / satış ${money(m.target_price)}. Gramaj veya fiyatı gözden geçirin.`, to: '/menuler', weight: 45 + ratio / 10,
+    });
+  }
+
+  // Müşteri geri bildirimi (portal veya personel): yeni şikâyet kırmızı, diğerleri bilgi
+  const custNameOf = new Map(x.customers.map((c) => [c.id, c.name]));
+  for (const f of x.feedback ?? []) {
+    const who = custNameOf.get(f.customer_id) ?? 'Müşteri';
+    const complaint = f.kind === 'sikayet' || (f.rating != null && f.rating <= 2);
+    out.push({
+      id: `geri:${f.id}`, kind: 'mutfak', tone: complaint ? 'stop' : f.kind === 'begeni' ? 'ok' : 'info',
+      title: complaint ? `${who}: şikâyet` : f.kind === 'begeni' ? `${who}: beğeni${f.rating ? ` ${'★'.repeat(f.rating)}` : ''}` : `${who}: ${f.kind === 'oneri' ? 'öneri' : 'değişiklik isteği'}`,
+      body: `${f.text ? `“${f.text.slice(0, 120)}”` : 'Açıklama yok'} · ${f.menu_date}${f.source === 'portal' ? ' · portaldan' : ''}`,
+      to: '/siparisler', weight: complaint ? 85 : 30,
     });
   }
 

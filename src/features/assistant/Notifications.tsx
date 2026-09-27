@@ -1,3 +1,4 @@
+import { useLiveTables } from '@/lib/live';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -48,6 +49,13 @@ export function useAlerts() {
   const orders = useOrders(today, tomorrow);
   const batches = usePrepBatches(today, today);
   const invoices = useInvoices(addDays(today, -60), today);
+  const seesFeedback = useCan(['yonetici', 'asci_basi']);
+  const feedback = useQuery({
+    queryKey: ['t', 'customer_feedback', 'yeni'],
+    enabled: seesFeedback,
+    queryFn: async () => unwrap(await supabase.from('customer_feedback').select('id, customer_id, kind, rating, text, menu_date, source').eq('status', 'yeni').gte('created_at', addDays(today, -14)).order('created_at', { ascending: false }).limit(30)),
+  });
+  useLiveTables(seesFeedback ? ['customer_feedback'] : []);
 
   return useMemo(() => {
     const todayOrders = (orders.data ?? []).filter((o) => o.service_date === today && o.status !== 'iptal');
@@ -64,11 +72,12 @@ export function useAlerts() {
       upcomingOrders: orders.data ?? [],
       todayBatches: batches.data ?? [],
       draftInvoices: seesInvoices ? (invoices.data ?? []).filter((i) => i.status === 'taslak').length : 0,
+      feedback: seesFeedback ? (feedback.data ?? []) : [],
     }).filter((a) => isFinance || !['alacak', 'borc', 'maliyet'].includes(a.kind));
     const first = member.fullName.split(' ')[0];
     const summary = assistantSummary(alerts, { people, perPerson: people > 0 && lunchCost > 0 ? lunchCost / people : null, name: first });
     return { alerts, summary };
-  }, [ingredients.data, prices.data, menus.data, open.data, customers.data, orders.data, batches.data, invoices.data, isFinance, seesInvoices, today, tomorrow, member.fullName]);
+  }, [ingredients.data, prices.data, menus.data, open.data, customers.data, orders.data, batches.data, invoices.data, feedback.data, seesFeedback, isFinance, seesInvoices, today, tomorrow, member.fullName]);
 }
 
 export function NotificationBell() {

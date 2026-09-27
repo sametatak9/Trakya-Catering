@@ -4621,6 +4621,7 @@ export type Database = {
         Args: { p_contact: string; p_user: string }
         Returns: string
       }
+      portal_my_token: { Args: never; Returns: string }
       portal_set_order: {
         Args: {
           p_date: string

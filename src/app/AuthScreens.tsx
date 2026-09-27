@@ -4,7 +4,8 @@ import { DEMO_USERS, demoEmail } from '@/demo/users';
 import { ROLE_LABELS, type AppRole } from '@/lib/domain';
 import { DEMO, supabase, supabaseConfigured } from '@/lib/supabase';
 import { LogoFull } from '@/ui/Logo';
-import { Button, ErrorNote, Field } from '@/ui/primitives';
+import { Button, ErrorNote, Field, Loading } from '@/ui/primitives';
+import { OrderPortalPage } from '@/features/public/PublicPages';
 import { signOut } from './session';
 
 function AuthFrame({ children }: { children: ReactNode }) {
@@ -196,15 +197,24 @@ export function PendingAccess({ email }: { email: string }) {
   );
 }
 
+/** Müşteri hesabı (musteri rolü): kendi firmasının portalını (v2) açar; jeton sunucudan, yalnız kendi firması için gelir. */
 export function PortalComingSoon() {
-  return (
+  const [token, setToken] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    supabase.rpc('portal_my_token').then(({ data, error }) => setToken(error ? null : ((data as unknown as string | null) ?? null)));
+  }, []);
+  if (token === undefined) return <div className="min-h-dvh grid place-items-center"><Loading label="Portal açılıyor…" /></div>;
+  if (!token) return (
     <AuthFrame>
       <h2 className="text-2xl font-bold text-ink">Müşteri portalı</h2>
-      <p className="text-sm text-ink-3 mt-2">
-        Günlük yemek sayısı girişi (D-1, saat 16:00'ya kadar), teslim irsaliyeleri ve faturalarınız bu ekranda olacak.
-        Portal, sipariş modülüyle birlikte açılıyor.
-      </p>
+      <p className="text-sm text-ink-3 mt-2">Hesabınız henüz bir firmaya bağlanmamış. Trakya Catering ile iletişime geçin.</p>
       <Button className="mt-6" onClick={() => void signOut()} icon={<LogOut className="w-4 h-4" />}>Çıkış</Button>
     </AuthFrame>
+  );
+  return (
+    <>
+      <OrderPortalPage token={token} />
+      <div className="fixed right-3 top-3"><Button size="sm" onClick={() => void signOut()} icon={<LogOut className="w-4 h-4" />}>Çıkış</Button></div>
+    </>
   );
 }
