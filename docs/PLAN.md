@@ -42,7 +42,7 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 | 3B | Navigasyon 30 → 14 modül, sekmeler, eski yolların yönlendirmesi, rol çalışma alanı | ✅ (rapor: `raporlar/faz-3B.md`) |
 | 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ✅ (rapor: `raporlar/faz-3C0.md`) |
 | 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ✅ (rapor: `raporlar/faz-3C.md`; Grok UI denetlendi) |
-| 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ⏳ |
+| 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ⏳ sıradaki (veritabanının yarısı canlıda hazır) |
 | 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | ⏳ |
 | 3F | Finans › Maliyet (gün/ay/yıl, sürümlü), menüden sürümlü satınalma planı, teklif analizi | ⏳ |
 | 3H | Üretimden öğrenen reçete, öğün bazlı genel gider dağıtımı | ⏳ |
@@ -59,10 +59,10 @@ Her not ilgili fazın **içinde** uygulanır; ayrı faz açılmaz. Durum: ✅ bi
 
 | Faz | EK-1 / Not | İş | Durum |
 |---|---|---|---|
-| Hemen | EK-1 / Not 12 | Logo seçenek 1: favicon, PWA manifest, `Logo.tsx`, giriş ve kenar çubuğu | ⏳ |
-| Hemen | EK-1 / Not 13 | Girişsiz iletişim sayfası `public/iletisim.html` + uygulama içi link | ⏳ |
-| Hemen | EK-1 / Not 8 | Cari › müşteri › "Sipariş linki" sekmesi (kopyala, WhatsApp, QR, yenile) | ⏳ |
-| Hemen | EK-1 / Not 2 | "Hammadde" → **Stok kartı**; `/stok/kartlar` (eski adres yönlenir); sarf kategorileri | ⏳ |
+| Hemen | EK-1 / Not 12 | Logo seçenek 1: favicon, PWA manifest, `Logo.tsx`, giriş ve kenar çubuğu |✅ |
+| Hemen | EK-1 / Not 13 | Girişsiz iletişim sayfası `public/iletisim.html` + uygulama içi link |✅ |
+| Hemen | EK-1 / Not 8 | Cari › müşteri › "Sipariş linki" sekmesi (kopyala, WhatsApp, QR, yenile) |✅ |
+| Hemen | EK-1 / Not 2 | "Hammadde" → **Stok kartı**; `/stok/kartlar` (eski adres yönlenir); sarf kategorileri |✅ |
 | 3D | EK-1 / Not 1 · 3 | Aylık menü (sürümlü), müşteri yasak/tercih kuralları, yemek etiketleri, `publish_monthly_menu` | 🗄️ (canlıda, `external_tables.sql` ✅) |
 | 3D | EK-1 / Not 14 | `<MonthMenuCalendar mode="menu">`, maket birebir (sürükle/kopyala, undo, mobil ajanda) | ⏳ |
 | 3D | EK-1 / Not 1 | AI menü önerisi (`menu-suggest` 🔌 + kural motoru yedeği), `ai_budget`/`ai_usage` freni | 🗄️ (tablolar canlıda) |
