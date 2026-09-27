@@ -615,6 +615,13 @@ export type Database = {
             foreignKeyName: "customer_dish_rules_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "customer_dish_rules_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
@@ -622,6 +629,7 @@ export type Database = {
       }
       customer_feedback: {
         Row: {
+          category: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -634,10 +642,14 @@ export type Database = {
           photo_path: string | null
           rating: number | null
           recipe_id: string | null
+          resolution: string | null
+          severity: string | null
+          source: string
           status: string
           text: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
@@ -650,10 +662,14 @@ export type Database = {
           photo_path?: string | null
           rating?: number | null
           recipe_id?: string | null
+          resolution?: string | null
+          severity?: string | null
+          source?: string
           status?: string
           text?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
@@ -666,6 +682,9 @@ export type Database = {
           photo_path?: string | null
           rating?: number | null
           recipe_id?: string | null
+          resolution?: string | null
+          severity?: string | null
+          source?: string
           status?: string
           text?: string | null
         }
@@ -688,6 +707,13 @@ export type Database = {
             foreignKeyName: "customer_feedback_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "customer_feedback_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
@@ -702,11 +728,16 @@ export type Database = {
           id: string
           is_default: boolean
           meal: string
-          menu_id: string
+          menu_id: string | null
+          menu_type_code: string | null
+          name: string | null
           note: string | null
+          service_style: string
+          unit_price: number | null
           updated_at: string
           valid_from: string
           valid_to: string | null
+          vat_rate: number | null
         }
         Insert: {
           active?: boolean
@@ -716,11 +747,16 @@ export type Database = {
           id?: string
           is_default?: boolean
           meal?: string
-          menu_id: string
+          menu_id?: string | null
+          menu_type_code?: string | null
+          name?: string | null
           note?: string | null
+          service_style?: string
+          unit_price?: number | null
           updated_at?: string
           valid_from?: string
           valid_to?: string | null
+          vat_rate?: number | null
         }
         Update: {
           active?: boolean
@@ -730,11 +766,16 @@ export type Database = {
           id?: string
           is_default?: boolean
           meal?: string
-          menu_id?: string
+          menu_id?: string | null
+          menu_type_code?: string | null
+          name?: string | null
           note?: string | null
+          service_style?: string
+          unit_price?: number | null
           updated_at?: string
           valid_from?: string
           valid_to?: string | null
+          vat_rate?: number | null
         }
         Relationships: [
           {
@@ -757,6 +798,124 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_menu_costs"
             referencedColumns: ["menu_id"]
+          },
+          {
+            foreignKeyName: "customer_menus_menu_type_code_fkey"
+            columns: ["menu_type_code"]
+            isOneToOne: false
+            referencedRelation: "menu_types"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "customer_menus_service_style_fkey"
+            columns: ["service_style"]
+            isOneToOne: false
+            referencedRelation: "service_styles"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "customer_menus_service_style_fkey"
+            columns: ["service_style"]
+            isOneToOne: false
+            referencedRelation: "v_service_style_costs"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      customer_notes: {
+        Row: {
+          active: boolean
+          allergen: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          kind: string
+          people: number | null
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allergen?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          kind: string
+          people?: number | null
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allergen?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          kind?: string
+          people?: number | null
+          text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_portal_tokens: {
+        Row: {
+          created_at: string
+          customer_id: string
+          expires_at: string | null
+          id: string
+          last_used_at: string | null
+          pin_failed: number
+          pin_hash: string | null
+          pin_locked_until: string | null
+          revoked_at: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          expires_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          pin_failed?: number
+          pin_hash?: string | null
+          pin_locked_until?: string | null
+          revoked_at?: string | null
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          expires_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          pin_failed?: number
+          pin_hash?: string | null
+          pin_locked_until?: string | null
+          revoked_at?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_portal_tokens_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: true
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1460,6 +1619,8 @@ export type Database = {
           code: string | null
           created_at: string
           id: string
+          kcal_100: number | null
+          kcal_unit: number | null
           last_price: number | null
           min_stock: number
           name: string
@@ -1478,6 +1639,8 @@ export type Database = {
           code?: string | null
           created_at?: string
           id?: string
+          kcal_100?: number | null
+          kcal_unit?: number | null
           last_price?: number | null
           min_stock?: number
           name: string
@@ -1496,6 +1659,8 @@ export type Database = {
           code?: string | null
           created_at?: string
           id?: string
+          kcal_100?: number | null
+          kcal_unit?: number | null
           last_price?: number | null
           min_stock?: number
           name?: string
@@ -1645,6 +1810,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_id: string
+          customer_menu_id: string | null
           delivered_qty: number | null
           id: string
           kind: string
@@ -1653,6 +1819,8 @@ export type Database = {
           note: string | null
           ordered_qty: number
           service_date: string
+          service_style: string
+          source: string
           status: string
           unit_price: number
           updated_at: string
@@ -1662,6 +1830,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id: string
+          customer_menu_id?: string | null
           delivered_qty?: number | null
           id?: string
           kind?: string
@@ -1670,6 +1839,8 @@ export type Database = {
           note?: string | null
           ordered_qty: number
           service_date: string
+          service_style?: string
+          source?: string
           status?: string
           unit_price?: number
           updated_at?: string
@@ -1679,6 +1850,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string
+          customer_menu_id?: string | null
           delivered_qty?: number | null
           id?: string
           kind?: string
@@ -1687,6 +1859,8 @@ export type Database = {
           note?: string | null
           ordered_qty?: number
           service_date?: string
+          service_style?: string
+          source?: string
           status?: string
           unit_price?: number
           updated_at?: string
@@ -1698,6 +1872,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_orders_customer_menu_id_fkey"
+            columns: ["customer_menu_id"]
+            isOneToOne: false
+            referencedRelation: "customer_menus"
             referencedColumns: ["id"]
           },
           {
@@ -1713,6 +1894,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_menu_costs"
             referencedColumns: ["menu_id"]
+          },
+          {
+            foreignKeyName: "meal_orders_service_style_fkey"
+            columns: ["service_style"]
+            isOneToOne: false
+            referencedRelation: "service_styles"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "meal_orders_service_style_fkey"
+            columns: ["service_style"]
+            isOneToOne: false
+            referencedRelation: "v_service_style_costs"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -1799,6 +1994,13 @@ export type Database = {
             foreignKeyName: "menu_items_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "menu_items_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
@@ -1862,6 +2064,30 @@ export type Database = {
           },
         ]
       }
+      menu_types: {
+        Row: {
+          active: boolean
+          code: string
+          course_count: number | null
+          name: string
+          sort: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          course_count?: number | null
+          name: string
+          sort?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          course_count?: number | null
+          name?: string
+          sort?: number
+        }
+        Relationships: []
+      }
       menus: {
         Row: {
           active: boolean
@@ -1872,6 +2098,7 @@ export type Database = {
           id: string
           kind: string
           meal: string
+          menu_type_code: string | null
           name: string
           notes: string | null
           target_price: number | null
@@ -1886,6 +2113,7 @@ export type Database = {
           id?: string
           kind?: string
           meal?: string
+          menu_type_code?: string | null
           name: string
           notes?: string | null
           target_price?: number | null
@@ -1900,6 +2128,7 @@ export type Database = {
           id?: string
           kind?: string
           meal?: string
+          menu_type_code?: string | null
           name?: string
           notes?: string | null
           target_price?: number | null
@@ -1919,6 +2148,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "customers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menus_menu_type_code_fkey"
+            columns: ["menu_type_code"]
+            isOneToOne: false
+            referencedRelation: "menu_types"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -1973,6 +2209,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "recipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_menu_days_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
           },
           {
             foreignKeyName: "monthly_menu_days_recipe_id_fkey"
@@ -2344,11 +2587,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "prep_batches_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "v_production_breakdown"
+            referencedColumns: ["production_order_id"]
+          },
+          {
             foreignKeyName: "prep_batches_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
             referencedRelation: "recipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prep_batches_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
           },
           {
             foreignKeyName: "prep_batches_recipe_id_fkey"
@@ -2739,6 +2996,13 @@ export type Database = {
             foreignKeyName: "recipe_calibrations_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "recipe_calibrations_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
@@ -2794,6 +3058,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "recipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_cost_snapshots_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
           },
           {
             foreignKeyName: "recipe_cost_snapshots_recipe_id_fkey"
@@ -2878,6 +3149,13 @@ export type Database = {
             foreignKeyName: "recipe_ingredients_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
@@ -2932,6 +3210,13 @@ export type Database = {
             foreignKeyName: "recipe_steps_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "recipe_steps_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
@@ -2957,6 +3242,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "recipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_tags_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
           },
           {
             foreignKeyName: "recipe_tags_recipe_id_fkey"
@@ -3163,6 +3455,79 @@ export type Database = {
           },
         ]
       }
+      service_style_items: {
+        Row: {
+          id: string
+          ingredient_id: string
+          qty_per_container: number | null
+          qty_per_person: number | null
+          style_code: string
+        }
+        Insert: {
+          id?: string
+          ingredient_id: string
+          qty_per_container?: number | null
+          qty_per_person?: number | null
+          style_code: string
+        }
+        Update: {
+          id?: string
+          ingredient_id?: string
+          qty_per_container?: number | null
+          qty_per_person?: number | null
+          style_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_style_items_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_style_items_style_code_fkey"
+            columns: ["style_code"]
+            isOneToOne: false
+            referencedRelation: "service_styles"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "service_style_items_style_code_fkey"
+            columns: ["style_code"]
+            isOneToOne: false
+            referencedRelation: "v_service_style_costs"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      service_styles: {
+        Row: {
+          active: boolean
+          code: string
+          name: string
+          pack_mode: string
+          people_per_container: number
+          sort: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          name: string
+          pack_mode: string
+          people_per_container?: number
+          sort?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          name?: string
+          pack_mode?: string
+          people_per_container?: number
+          sort?: number
+        }
+        Relationships: []
+      }
       social_posts: {
         Row: {
           body: string
@@ -3207,6 +3572,75 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      standing_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          customer_menu_id: string | null
+          default_qty: number
+          generated_at: string | null
+          generated_count: number | null
+          id: string
+          meal: string
+          note: string | null
+          period: string
+          skip_dates: string[]
+          status: string
+          updated_at: string
+          weekday_qty: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          customer_menu_id?: string | null
+          default_qty?: number
+          generated_at?: string | null
+          generated_count?: number | null
+          id?: string
+          meal?: string
+          note?: string | null
+          period: string
+          skip_dates?: string[]
+          status?: string
+          updated_at?: string
+          weekday_qty?: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          customer_menu_id?: string | null
+          default_qty?: number
+          generated_at?: string | null
+          generated_count?: number | null
+          id?: string
+          meal?: string
+          note?: string | null
+          period?: string
+          skip_dates?: string[]
+          status?: string
+          updated_at?: string
+          weekday_qty?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standing_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "standing_orders_customer_menu_id_fkey"
+            columns: ["customer_menu_id"]
+            isOneToOne: false
+            referencedRelation: "customer_menus"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stock_movements: {
         Row: {
@@ -3651,6 +4085,13 @@ export type Database = {
             referencedRelation: "production_orders"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "work_orders_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "v_production_breakdown"
+            referencedColumns: ["production_order_id"]
+          },
         ]
       }
     }
@@ -3696,6 +4137,29 @@ export type Database = {
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_menu_allergen_conflicts: {
+        Row: {
+          allergen: string | null
+          customer_id: string | null
+          customer_name: string | null
+          meal: string | null
+          note: string | null
+          order_id: string | null
+          people: number | null
+          recipe_id: string | null
+          recipe_name: string | null
+          service_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -3781,6 +4245,13 @@ export type Database = {
             foreignKeyName: "prep_batches_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "prep_batches_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
@@ -3840,6 +4311,55 @@ export type Database = {
           },
         ]
       }
+      v_production_breakdown: {
+        Row: {
+          containers: number | null
+          customer_id: string | null
+          customer_menu_id: string | null
+          customer_name: string | null
+          has_sensitivity: boolean | null
+          meal: string | null
+          menu_label: string | null
+          menu_type_name: string | null
+          pack_mode: string | null
+          people: number | null
+          people_per_container: number | null
+          production_order_id: string | null
+          service_date: string | null
+          service_style: string | null
+          service_style_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_orders_customer_menu_id_fkey"
+            columns: ["customer_menu_id"]
+            isOneToOne: false
+            referencedRelation: "customer_menus"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_orders_service_style_fkey"
+            columns: ["service_style"]
+            isOneToOne: false
+            referencedRelation: "service_styles"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "meal_orders_service_style_fkey"
+            columns: ["service_style"]
+            isOneToOne: false
+            referencedRelation: "v_service_style_costs"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       v_recipe_costs: {
         Row: {
           active: boolean | null
@@ -3861,6 +4381,37 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "recipe_categories"
             referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_recipe_kcal: {
+        Row: {
+          kcal_per_portion: number | null
+          line_count: number | null
+          missing_kcal: number | null
+          recipe_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_recipe_costs"
+            referencedColumns: ["recipe_id"]
           },
         ]
       }
@@ -3911,10 +4462,29 @@ export type Database = {
             foreignKeyName: "recipe_ingredients_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
+            referencedRelation: "v_menu_allergen_conflicts"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
             referencedRelation: "v_recipe_costs"
             referencedColumns: ["recipe_id"]
           },
         ]
+      }
+      v_service_style_costs: {
+        Row: {
+          code: string | null
+          item_count: number | null
+          name: string | null
+          pack_cost_per_person: number | null
+          pack_mode: string | null
+          people_per_container: number | null
+          unpriced_count: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
@@ -4029,13 +4599,41 @@ export type Database = {
         }
         Returns: string
       }
+      portal_feedback: {
+        Args: {
+          p_category?: string
+          p_date: string
+          p_kind: string
+          p_meal: string
+          p_rating?: number
+          p_recipe_id?: string
+          p_text?: string
+          p_token: string
+        }
+        Returns: string
+      }
       portal_info: { Args: { p_token: string }; Returns: Json }
+      portal_info_v2: {
+        Args: { p_month?: string; p_token: string }
+        Returns: Json
+      }
       portal_link_open: {
         Args: { p_contact: string; p_user: string }
         Returns: string
       }
       portal_set_order: {
         Args: {
+          p_date: string
+          p_meal: string
+          p_note?: string
+          p_qty: number
+          p_token: string
+        }
+        Returns: Json
+      }
+      portal_set_order_v2: {
+        Args: {
+          p_customer_menu_id?: string
           p_date: string
           p_meal: string
           p_note?: string
@@ -4104,6 +4702,11 @@ export type Database = {
         Args: { p_header: Json; p_id: string | null; p_lines: Json }
         Returns: string
       }
+      set_portal_pin: {
+        Args: { p_customer: string; p_pin: string }
+        Returns: undefined
+      }
+      standing_order_generate: { Args: { p_id: string }; Returns: number }
       verify_approval_chain: { Args: never; Returns: boolean }
       verify_audit_chain: { Args: never; Returns: boolean }
       weighted_median: {
