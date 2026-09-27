@@ -3,7 +3,9 @@ import { askConfirm } from '@/ui/confirm';
 import { ArrowLeft, Calculator, History, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import { Link, useRouter } from '@/app/router';
 import { useCan } from '@/app/session';
-import { ALLERGENS, unitInfo, ROLES } from '@/lib/domain';
+import { ALLERGENS, CONTAINER_TYPES, CUT_STYLES, unitInfo, ROLES } from '@/lib/domain';
+import { useRows } from '@/lib/crud';
+import { RecipeSteps } from './RecipeSteps';
 import { lineCost } from '@/lib/cost';
 import { fmtDate, fmtMoney, fmtNum, fmtPct, fmtQty, parseNum } from '@/lib/format';
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
@@ -17,7 +19,7 @@ import {
   type Ingredient, type RecipeHeaderDraft,
 } from './api';
 
-interface DraftLine { ingredientId: string; net: string; wasteOverride: string; note: string }
+interface DraftLine { ingredientId: string; net: string; wasteOverride: string; note: string; cutStyle: string }
 
 const EMPTY_HEADER: RecipeHeaderDraft = {
   code: '', name: '', category_code: 'ana_yemek', portion_label: '', portion_served_g: null, instructions: '', active: true,
@@ -26,10 +28,12 @@ const EMPTY_HEADER: RecipeHeaderDraft = {
 export function RecipeEditor({ id }: { id: string | null }) {
   const recipe = useRecipe(id);
   const lines = useRecipeLines(id);
+  const extras = useRows('recipe_ingredients', { key: ['yapilis', id ?? ''], enabled: Boolean(id), filter: (q) => q.eq('recipe_id', id!) });
   const ingredients = useIngredients();
   const r = recipe.data;
   const lineData = lines.data;
-  if (id && (recipe.isLoading || lines.isLoading)) return <Loading />;
+  if (id && (recipe.isLoading || lines.isLoading || extras.isLoading)) return <Loading />;
+  const cutOf = (ingId: string) => (extras.data ?? []).find((x) => x.ingredient_id === ingId)?.cut_style ?? '';
   if (ingredients.isLoading) return <Loading />;
   if (id && recipe.error) return <ErrorNote>Reçete bulunamadı.</ErrorNote>;
   return (
@@ -40,9 +44,11 @@ export function RecipeEditor({ id }: { id: string | null }) {
         code: r.code ?? '', name: r.name, category_code: r.category_code,
         portion_label: r.portion_label ?? '', portion_served_g: r.portion_served_g,
         instructions: r.instructions ?? '', active: r.active,
+        storage_container: r.storage_container ?? '', storage_temp: r.storage_temp ?? '', shelf_life_hours: r.shelf_life_hours,
       } : EMPTY_HEADER}
       initialLines={(lineData ?? []).map((l) => ({
         ingredientId: l.ingredient_id!, net: fmtInput(l.net_qty), wasteOverride: l.waste_pct_override === null ? '' : fmtInput(l.waste_pct_override), note: l.note ?? '',
+        cutStyle: cutOf(l.ingredient_id!),
       }))}
       ingredients={ingredients.data ?? []}
     />
@@ -110,7 +116,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
         id,
         header: { ...h, name: h.name.trim() },
         lines: computed.map((c) => ({
-          ingredient_id: c.l.ingredientId, net_qty: c.net!, note: c.l.note.trim(),
+          ingredient_id: c.l.ingredientId, net_qty: c.net!, note: c.l.note.trim(), cut_style: c.l.cutStyle,
           waste_pct_override: c.l.wasteOverride.trim() ? parseNum(c.l.wasteOverride) : null,
         })),
       });
@@ -256,9 +262,16 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
                     <tr key={c.l.ingredientId} className="border-b border-line">
                       <td className="px-4 py-2.5">
                         <div className="font-semibold text-ink">{c.ing?.name ?? 'Silinmiş hammadde'}</div>
-                        <input className="mt-1 w-full bg-transparent text-[11px] text-ink-3 placeholder:text-ink-3/60 focus:outline-none"
-                          placeholder="not ekle (ör. küp doğranmış)" value={c.l.note} disabled={!canEdit}
-                          onChange={(e) => updLine(idx, { note: e.target.value })} />
+                        <div className="mt-1 flex items-center gap-2">
+                          <select className="bg-transparent text-[11px] text-ink-2 focus:outline-none" value={c.l.cutStyle} disabled={!canEdit}
+                            onChange={(e) => updLine(idx, { cutStyle: e.target.value })} aria-label="Doğrama biçimi">
+                            <option value="">doğrama —</option>
+                            {CUT_STYLES.map((x) => <option key={x} value={x}>{x}</option>)}
+                          </select>
+                          <input className="flex-1 min-w-0 bg-transparent text-[11px] text-ink-3 placeholder:text-ink-3/60 focus:outline-none"
+                            placeholder="not ekle (ör. ayıklanmış)" value={c.l.note} disabled={!canEdit}
+                            onChange={(e) => updLine(idx, { note: e.target.value })} />
+                        </div>
                       </td>
                       <td className="px-2 py-2.5">
                         <div className="flex items-center gap-1">
@@ -302,7 +315,7 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
                   {available.map((i) => <option key={i.id} value={i.id}>{i.name} ({unitInfo(i.stock_unit).base})</option>)}
                 </select>
                 <Button icon={<Plus className="w-4 h-4" />} disabled={!adding}
-                  onClick={() => { setDraft((xs) => [...xs, { ingredientId: adding, net: '', wasteOverride: '', note: '' }]); setAdding(''); setDirty(true); }}>
+                  onClick={() => { setDraft((xs) => [...xs, { ingredientId: adding, net: '', wasteOverride: '', note: '', cutStyle: '' }]); setAdding(''); setDirty(true); }}>
                   Satır ekle
                 </Button>
               </div>
@@ -311,7 +324,18 @@ function EditorBody({ id, initialHeader, initialLines, ingredients }: {
 
           <Panel title="Hazırlanış" subtitle="Aşçı notları, pişirme sırası, servis talimatı">
             <textarea className="tc-input" rows={4} value={h.instructions} disabled={!canEdit} onChange={(e) => upd({ instructions: e.target.value })} />
+            <fieldset disabled={!canEdit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+              <Field label="Saklama / sevk kabı">
+                <select className="tc-input" value={h.storage_container ?? ''} onChange={(e) => upd({ storage_container: e.target.value })}>
+                  <option value="">—</option>{CONTAINER_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
+                </select>
+              </Field>
+              <Field label="Saklama sıcaklığı"><input className="tc-input" value={h.storage_temp ?? ''} placeholder="ör. 65 °C üstü" onChange={(e) => upd({ storage_temp: e.target.value })} /></Field>
+              <Field label="Raf ömrü (saat)"><NumInput value={h.shelf_life_hours ?? null} onValue={(v) => upd({ shelf_life_hours: v === null ? null : Math.round(v) })} aria-label="Raf ömrü" /></Field>
+            </fieldset>
           </Panel>
+
+          {id ? <RecipeSteps recipeId={id} canEdit={canEdit} /> : null}
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-6">

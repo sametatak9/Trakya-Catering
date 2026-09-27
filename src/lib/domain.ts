@@ -103,3 +103,10 @@ export const ROLES = {
   customersWrite: ['yonetici', 'muhasebe', 'pazarlamaci'] as AppRole[],
   production: ['yonetici', 'asci_basi', 'diyetisyen'] as AppRole[],
 };
+
+/** Doğrama biçimleri (iş emrine basılır) */
+export const CUT_STYLES = ['küp', 'julyen', 'halka', 'yarım ay', 'rende', 'kıyım', 'brunoise', 'dilim', 'bütün', 'parça'] as const;
+/** Saklama / sevk kapları */
+export const CONTAINER_TYPES = ['GN 1/1 (65 mm)', 'GN 1/1 (100 mm)', 'GN 1/2', 'GN 1/3', 'Küvet', 'Termobox', '3 bölmeli kap', 'Çorba kasesi', 'Sefer tası'] as const;
+/** Üretim istasyonları */
+export const STATIONS: Record<string, string> = { hazirlik: 'Hazırlık', pisirme: 'Pişirme', soguk: 'Soğuk mutfak', paketleme: 'Paketleme' };

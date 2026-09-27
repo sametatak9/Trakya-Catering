@@ -59,7 +59,7 @@ export function ProductionOrderPage() {
   const [date, setDate] = useState(todayISO);
   const [meal, setMeal] = useState('ogle');
   const [forceNote, setForceNote] = useState('');
-  const [deliverOrders, setDeliverOrders] = useState(false);
+  const [deliverOrders, setDeliverOrders] = useState(true);
   const mayBuild = useCan(['yonetici', 'asci_basi', 'diyetisyen']);
   const mayApprove = useCan(ROLE_APPROVER);
   const mayCancel = useCan(['yonetici']);
@@ -136,8 +136,8 @@ export function ProductionOrderPage() {
   const closeOrder = async () => {
     if (!order.data) return;
     const deliveryText = deliverOrders
-      ? ' Ayrıca bekleyen/onaylı siparişler teslim edildi işaretlenecek ve otomatik gelir kayıtları oluşabilecek.'
-      : ' Sipariş teslim durumları değiştirilmeyecek.';
+      ? ' Bekleyen/onaylı siparişler teslim edildi işaretlenecek ve gelir kaydı oluşacak (gider yazılmaz; gider yalnız faturadan).'
+      : ' Sipariş teslim durumları değiştirilmeyecek; gelir oluşmaz.';
     const message = `Üretim emri kapatılacak; stok çıkışı ve reçete kalibrasyonu kaydedilecek.${deliveryText} Bu adım üretim maliyetini de kesinleştirir. Devam edilsin mi?`;
     if (!(await askConfirm(message))) return;
     await run(() => close.mutateAsync({ id: order.data!.id, deliver: deliverOrders }), 'Üretim kapatıldı; stok ve kalibrasyon güncellendi');
@@ -312,7 +312,7 @@ export function ProductionOrderPage() {
                   {mayApprove && order.data && (status === 'onaylandi' || status === 'uretildi') && <>
                     <label className="flex cursor-pointer items-start gap-2 rounded-xl bg-surface-2 p-3 text-xs text-ink-2">
                       <input className="mt-0.5 accent-brand" type="checkbox" checked={deliverOrders} onChange={(event) => setDeliverOrders(event.target.checked)} />
-                      <span><b>Siparişleri teslim edildi işaretle.</b> Kapama sırasında gelir kaydı oluşturabilecek yan etkiyi açıkça etkinleştirir.</span>
+                      <span><b>Siparişleri teslim edildi işaretle ve gelir yaz.</b> Varsayılan açık: üretim onayı stok, sipariş ve geliri birlikte günceller. Yalnız teslim ayrı yapılacaksa kaldırın.</span>
                     </label>
                     <Button className="w-full justify-between" icon={<PackageCheck className="h-4 w-4" />} onClick={closeOrder} loading={close.isPending}>
                       Üretimi kapat <ArrowRight className="h-4 w-4" />

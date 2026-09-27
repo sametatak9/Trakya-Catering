@@ -59,11 +59,16 @@ begin
   exception when check_violation then null;
   end;
 
-  -- Hazırlıktan reçete türet: net = 144000 g / 1200 × (1 − %10) = 108 g
+  -- Reçete doluysa hazırlık reçeteyi ezmez (B-6): kalibrasyon önerisi = 144000 g / 1200 × (1 − %10) = 108 g
   r2 := public.recipe_from_prep(b);
-  assert r2 = r, 'bağlı reçete güncellenmeli';
+  assert r2 = r, 'bağlı reçete dönmeli';
+  select net_qty, calib_qty into v, n from public.recipe_ingredients where recipe_id = r and ingredient_id = i_et;
+  assert v = 120, format('reçete ezilmemeli (120 g): %s', v);
+  assert n = 108, format('öneri 108 g olmalı: %s', n);
+  -- Öneri uygulanınca reçete 108 g olur
+  perform public.apply_calibration(r);
   select net_qty into v from public.recipe_ingredients where recipe_id = r and ingredient_id = i_et;
-  assert v = 108, format('türetilen net gramaj 108 olmalı: %s', v);
+  assert v = 108, format('uygulanan net gramaj 108 olmalı: %s', v);
   select cost_last into v from public.v_recipe_costs where recipe_id = r;
   assert round(v, 2) = 72.05, format('türetilen reçete maliyeti hazırlıkla aynı (72,05) olmalı: %s', v);
 

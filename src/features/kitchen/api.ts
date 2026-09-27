@@ -129,8 +129,9 @@ export function useRecipeLines(id: string | null) {
 export interface RecipeHeaderDraft {
   code: string; name: string; category_code: string; portion_label: string;
   portion_served_g: number | null; instructions: string; active: boolean;
+  storage_container?: string; storage_temp?: string; shelf_life_hours?: number | null;
 }
-export interface RecipeLineDraft { ingredient_id: string; net_qty: number; waste_pct_override: number | null; note: string }
+export interface RecipeLineDraft { ingredient_id: string; net_qty: number; waste_pct_override: number | null; note: string; cut_style?: string }
 
 export function useSaveRecipe() {
   const invalidate = useInvalidateCosts();

@@ -26,9 +26,9 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 - ✅ Üretim emri + malzeme çıkış raporu (karnıyarık 850 kişi → kaç kg patlıcan), istasyon bazlı
 - ✅ Mutfak ekranı: ilkokul seviyesine uygun büyük yazı, simge, adım adım, sesli okuma
 - ✅ Hazırlıktan malzemeleri stoktan düşme (tek tuş; aynı yemek iki kez düşülmez)
-- 🔨 **Üretim emri ver → son onay → stok düşer, sipariş teslim olur, gelir oluşur** (Faz 3C UI/RPC bağlantısı eklendi; teslim seçeneği varsayılan kapalı. Canlı migration'lar repoda eksik, SQL/RLS/idempotency testleri bekliyor.)
+- ✅ **Üretim emri ver → son onay → stok düşer, sipariş teslim olur, gelir oluşur** (Faz 3C; gider yalnız faturadan; teslim varsayılan açık)
 - ⏳ **Menü formatı tasarımı — ÇOK ÖNEMLİ:** firmalara gönderilecek HTML + PDF menü; 2 tip: standart ve kalori hesaplı; ayrıca kahvaltı menüsü (Faz 3D, kalori verisi 3H)
-- 🔨 1 kişilik reçete, gramaj kalibrasyonu, basılı iş emri (kalibrasyon + A4 UI var; gerçek rol/DB testleri ve snapshot kapsamı Claude kontrolünde.)
+- ✅ 1 kişilik reçete, gramaj kalibrasyonu, basılı iş emri (Faz 3C; kap/ambalaj sayısı 3D'de)
 
 ## 2. Finans — işletmenin finansal yönetim ekranları
 - ✅ Gider ekranı: elektrik, su, kira, mazot, bakım… yan yana, artış/azalışa duyarlı, ucu açık kategoriler
@@ -96,7 +96,7 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 1. ✅ Faz 3A — güvenlik ve bütünlük
 2. ✅ Faz 3B — navigasyon 30 → 14, rol çalışma alanı
 3. ✅ Faz 3C-0 — onay merkezi + avans → bakiye canlı bağlantısı
-4. 🔨 Faz 3C — üretim emri UI + mevcut RPC bağlantısı hazır (`docs/guncellenen/DEVIR-CLAUDE-2026-09-27.md`); migration geri-kazanımı, SQL senaryoları ve uçtan uca kabul Claude'da
+4. ✅ Faz 3C — üretim emri → stok/sipariş/gelir, kalibrasyon, iş emri (Grok UI denetlendi, 2 hata düzeltildi)
 5. ⏳ Faz 3D — menü tipleri, müşteri menüsü, **menü kartı HTML/PDF (standart, kalorili, kahvaltı)**
 6. ⏳ Faz 3E — stok partileri, depolar, sayım, güncellenen stoklar, satınalma talep formu, stok/yemek iskeleti
 7. ⏳ 3F → 3H → 3G → 4 (cari/fatura) → 5 (lojistik, filo kartviziti) → 6 → 7 → 8A → 8 → 8B → 9 → 10
