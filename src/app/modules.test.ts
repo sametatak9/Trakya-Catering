@@ -25,6 +25,8 @@ describe('sade navigasyon (30 → 14)', () => {
   it('sekme düzeyi: satınalma Finans\'ta yalnız gelen faturaları, şoför Stok\'ta yalnız firmalara gideni görür', () => {
     expect(tabsOf('/finans', 'satinalma')).toEqual(['faturalar']);
     expect(tabsOf('/stok', 'sofor')).toEqual(['sevk']);
+    expect(tabsOf('/uretim', 'yonetici')).toEqual(['gunluk', 'emir', 'kalibrasyon', 'mutfak']);
+    expect(tabsOf('/uretim', 'depo')).toEqual(['gunluk', 'mutfak']);
     expect(tabsOf('/ayarlar', 'yonetici')).toEqual(['ekip']);
     expect(tabsOf('/ayarlar', 'kurucu')).toEqual(['ekip', 'yetkiler']);
   });

@@ -16,8 +16,10 @@ import { StockPage } from '@/features/stock/StockPage';
 import { SuppliersPage } from '@/features/stock/SuppliersPage';
 import { SuppliesPage } from '@/features/stock/SuppliesPage';
 import { KitchenScreen } from '@/features/production/KitchenScreen';
+import { CalibrationPage } from '@/features/production/CalibrationPage';
 import { MenuPlanPage } from '@/features/production/MenuPlanPage';
 import { PrepPage } from '@/features/production/PrepPage';
+import { ProductionOrderPage } from '@/features/production/ProductionOrderPage';
 import { CustomersPage } from '@/features/sales/CustomersPage';
 import { OrdersPage } from '@/features/sales/OrdersPage';
 import { IngredientsPage } from '@/features/kitchen/IngredientsPage';
@@ -39,7 +41,7 @@ import { applyTheme, readTheme } from './theme';
 function pageFor(mod: string, tab: string | undefined, rest: string[]) {
   switch (mod) {
     case '/': return <HomePage />;
-    case '/uretim': return tab === 'mutfak' ? <KitchenScreen /> : <PrepPage initialMeal={rest[0]} />;
+    case '/uretim': return tab === 'mutfak' ? <KitchenScreen /> : tab === 'emir' ? <ProductionOrderPage /> : tab === 'kalibrasyon' ? <CalibrationPage /> : <PrepPage initialMeal={rest[0]} />;
     case '/menuler': return tab === 'plan' ? <MenuPlanPage /> : <MenusPage />;
     case '/receteler': return rest[0] ? <RecipeEditor id={rest[0] === 'yeni' ? null : rest[0]} /> : <RecipesPage />;
     case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'hammaddeler' ? <IngredientsPage /> : <StockPage />;

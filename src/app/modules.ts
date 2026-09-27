@@ -38,7 +38,12 @@ export const MODULES: ModuleDef[] = [
   { path: '/', label: 'Bugün', hint: 'Rolünüze göre iş masanız', icon: LayoutDashboard, group: 'genel' },
 
   { path: '/uretim', label: 'Üretim', hint: 'Günlük üretim, porsiyon maliyeti', icon: ChefHat, group: 'mutfak', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'depo'],
-    tabs: [{ id: 'gunluk', label: 'Günlük üretim' }, { id: 'mutfak', label: 'Mutfak ekranı' }] },
+    tabs: [
+      { id: 'gunluk', label: 'Günlük üretim' },
+      { id: 'emir', label: 'Üretim emri', roles: ['yonetici', 'asci_basi', 'diyetisyen'] },
+      { id: 'kalibrasyon', label: 'Gramaj kalibrasyonu', roles: ['yonetici', 'asci_basi', 'diyetisyen'] },
+      { id: 'mutfak', label: 'Mutfak ekranı' },
+    ] },
   { path: '/menuler', label: 'Menüler', hint: 'Menü kartları ve menü planı', icon: UtensilsCrossed, group: 'mutfak', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'pazarlamaci', 'muhasebe', 'satinalma'],
     tabs: [
       { id: 'kartlar', label: 'Menü kartları', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'pazarlamaci', 'muhasebe'] },
