@@ -33,7 +33,7 @@ export function CompanyPanel() {
       action={<Button variant="holo" size="sm" onClick={submit} loading={save.isPending}>Kaydet</Button>}>
       {company.isLoading ? <Loading /> : (
         <div className="grid md:grid-cols-[auto_1fr] gap-5">
-          <div className="rounded-2xl bg-surface-2 p-4 grid place-items-center"><LogoLockup size={48} /></div>
+          <div className="rounded-2xl bg-surface-2 p-4 grid place-items-center gap-2"><LogoLockup size={48} /><a className="text-xs text-brand underline" href={`${import.meta.env.BASE_URL}iletisim.html`} target="_blank" rel="noopener">Girişsiz iletişim sayfası</a></div>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Ticari unvan" className="sm:col-span-2"><input className="tc-input" value={f.legal_name ?? ''} onChange={set('legal_name')} placeholder="Trakya Catering Gıda San. ve Tic. Ltd. Şti." /></Field>
             <Field label="Vergi dairesi"><input className="tc-input" value={f.tax_office ?? ''} onChange={set('tax_office')} /></Field>

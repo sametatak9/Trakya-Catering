@@ -34,6 +34,7 @@ function AuthFrame({ children }: { children: ReactNode }) {
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center mb-8"><LogoFull height={52} /></div>
           {children}
+          <a className="mt-8 block text-center text-xs text-ink-3 hover:text-brand" href={`${import.meta.env.BASE_URL}iletisim.html`} target="_blank" rel="noopener">İletişim kartı · 0505 036 49 36</a>
         </div>
       </div>
     </div>

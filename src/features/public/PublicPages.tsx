@@ -99,7 +99,7 @@ export function OrderPortalPage({ token }: { token: string }) {
 
   return (
     <Frame>
-      <div className="flex items-center gap-3 mb-5"><Logo size={44} /><div><div className="font-display font-extrabold text-lg tracking-tight text-ink">TRAKYA CATERING</div><div className="text-xs text-ink-3">Yemek sipariş formu</div></div></div>
+      <div className="flex items-center gap-3 mb-5"><Logo size={44} /><div><div className="font-display font-extrabold text-lg tracking-tight text-ink">TRAKYA CATERING</div><div className="text-xs text-ink-3">Yemek sipariş formu · <a className="underline hover:text-brand" href={`${import.meta.env.BASE_URL}iletisim.html`} target="_blank" rel="noopener">iletişim</a></div></div></div>
       <div className="tc-card p-5">
         <div className="text-xs font-semibold uppercase tracking-wider text-brand">Firma</div>
         <h1 className="text-xl font-bold text-ink">{info.customer}</h1>
