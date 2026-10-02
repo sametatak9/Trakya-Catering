@@ -43,7 +43,7 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 | 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ✅ (rapor: `raporlar/faz-3C0.md`) |
 | 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ✅ (rapor: `raporlar/faz-3C.md`; Grok UI denetlendi) |
 | 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ✅ (rapor: `raporlar/faz-3D.md`) |
-| 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | ⏳ |
+| 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | 🗄️ veritabanı ✅ (rapor: `raporlar/faz-3E.md`) · ekranlar ⏳ |
 | 3F | Finans › Maliyet (gün/ay/yıl, sürümlü), menüden sürümlü satınalma planı, teklif analizi | ⏳ |
 | 3H | Üretimden öğrenen reçete, öğün bazlı genel gider dağıtımı | ⏳ |
 | 3G | Kurucu paneli: kullanıcı sil/kısıtla, modül aç/kapat | ⏳ |

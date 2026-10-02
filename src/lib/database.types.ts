@@ -1569,15 +1569,111 @@ export type Database = {
           },
         ]
       }
+      ingredient_aliases: {
+        Row: {
+          alias_norm: string | null
+          alias_raw: string
+          confirmed: boolean
+          created_at: string
+          created_by: string | null
+          factor_to_stock: number
+          id: string
+          ingredient_id: string
+          seller_item_code: string | null
+          supplier_id: string | null
+          unit_code: string | null
+        }
+        Insert: {
+          alias_norm?: string | null
+          alias_raw: string
+          confirmed?: boolean
+          created_at?: string
+          created_by?: string | null
+          factor_to_stock?: number
+          id?: string
+          ingredient_id: string
+          seller_item_code?: string | null
+          supplier_id?: string | null
+          unit_code?: string | null
+        }
+        Update: {
+          alias_norm?: string | null
+          alias_raw?: string
+          confirmed?: boolean
+          created_at?: string
+          created_by?: string | null
+          factor_to_stock?: number
+          id?: string
+          ingredient_id?: string
+          seller_item_code?: string | null
+          supplier_id?: string | null
+          unit_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_aliases_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_aliases_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_aliases_unit_code_fkey"
+            columns: ["unit_code"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      ingredient_pack_units: {
+        Row: {
+          factor_to_stock: number
+          id: string
+          ingredient_id: string
+          pack_name: string
+        }
+        Insert: {
+          factor_to_stock: number
+          id?: string
+          ingredient_id: string
+          pack_name: string
+        }
+        Update: {
+          factor_to_stock?: number
+          id?: string
+          ingredient_id?: string
+          pack_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_pack_units_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredient_prices: {
         Row: {
           created_at: string
           created_by: string | null
           id: string
           ingredient_id: string
+          invoice_line_no: number | null
           noted_at: string
           price: number
+          purchase_invoice_id: string | null
           source: string
+          supplier_id: string | null
           supplier_name: string | null
         }
         Insert: {
@@ -1585,9 +1681,12 @@ export type Database = {
           created_by?: string | null
           id?: string
           ingredient_id: string
+          invoice_line_no?: number | null
           noted_at?: string
           price: number
+          purchase_invoice_id?: string | null
           source?: string
+          supplier_id?: string | null
           supplier_name?: string | null
         }
         Update: {
@@ -1595,9 +1694,12 @@ export type Database = {
           created_by?: string | null
           id?: string
           ingredient_id?: string
+          invoice_line_no?: number | null
           noted_at?: string
           price?: number
+          purchase_invoice_id?: string | null
           source?: string
+          supplier_id?: string | null
           supplier_name?: string | null
         }
         Relationships: [
@@ -1606,6 +1708,20 @@ export type Database = {
             columns: ["ingredient_id"]
             isOneToOne: false
             referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_prices_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_prices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -2616,6 +2732,48 @@ export type Database = {
           },
         ]
       }
+      price_variance_decisions: {
+        Row: {
+          decided_at: string
+          decided_by: string | null
+          decision: string
+          id: string
+          note: string | null
+          price_id: string
+        }
+        Insert: {
+          decided_at?: string
+          decided_by?: string | null
+          decision: string
+          id?: string
+          note?: string | null
+          price_id: string
+        }
+        Update: {
+          decided_at?: string
+          decided_by?: string | null
+          decision?: string
+          id?: string
+          note?: string | null
+          price_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_variance_decisions_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: true
+            referencedRelation: "ingredient_prices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_variance_decisions_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: true
+            referencedRelation: "v_price_variances"
+            referencedColumns: ["price_id"]
+          },
+        ]
+      }
       production_orders: {
         Row: {
           actual_cost: number | null
@@ -2699,6 +2857,7 @@ export type Database = {
           purchase_order_id: string | null
           source: string
           status: string
+          supplier_id: string | null
           supplier_name: string
           supplier_tax_no: string | null
           total_amount: number
@@ -2721,6 +2880,7 @@ export type Database = {
           purchase_order_id?: string | null
           source?: string
           status?: string
+          supplier_id?: string | null
           supplier_name: string
           supplier_tax_no?: string | null
           total_amount: number
@@ -2743,6 +2903,7 @@ export type Database = {
           purchase_order_id?: string | null
           source?: string
           status?: string
+          supplier_id?: string | null
           supplier_name?: string
           supplier_tax_no?: string | null
           total_amount?: number
@@ -2760,6 +2921,55 @@ export type Database = {
           {
             foreignKeyName: "purchase_invoices_purchase_order_id_fkey"
             columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_order_lines: {
+        Row: {
+          id: string
+          ingredient_id: string
+          po_id: string
+          qty: number
+          received_qty: number | null
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          ingredient_id: string
+          po_id: string
+          qty: number
+          received_qty?: number | null
+          unit_price?: number
+        }
+        Update: {
+          id?: string
+          ingredient_id?: string
+          po_id?: string
+          qty?: number
+          received_qty?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_lines_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_lines_po_id_fkey"
+            columns: ["po_id"]
             isOneToOne: false
             referencedRelation: "purchase_orders"
             referencedColumns: ["id"]
@@ -2809,6 +3019,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_requests: {
+        Row: {
+          channel: string
+          id: string
+          message: string | null
+          po_id: string | null
+          sent_at: string
+          sent_by: string | null
+          supplier_id: string | null
+        }
+        Insert: {
+          channel: string
+          id?: string
+          message?: string | null
+          po_id?: string | null
+          sent_at?: string
+          sent_by?: string | null
+          supplier_id?: string | null
+        }
+        Update: {
+          channel?: string
+          id?: string
+          message?: string | null
+          po_id?: string | null
+          sent_at?: string
+          sent_by?: string | null
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_requests_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_requests_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
@@ -3267,6 +3522,7 @@ export type Database = {
           created_at: string
           id: string
           instructions: string | null
+          meals: string[]
           name: string
           portion_label: string | null
           portion_served_g: number | null
@@ -3282,6 +3538,7 @@ export type Database = {
           created_at?: string
           id?: string
           instructions?: string | null
+          meals?: string[]
           name: string
           portion_label?: string | null
           portion_served_g?: number | null
@@ -3297,6 +3554,7 @@ export type Database = {
           created_at?: string
           id?: string
           instructions?: string | null
+          meals?: string[]
           name?: string
           portion_label?: string | null
           portion_served_g?: number | null
@@ -3642,16 +3900,176 @@ export type Database = {
           },
         ]
       }
+      stock_lot_allocations: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string
+          lot_id: string | null
+          movement_id: string
+          qty: number
+          unit_cost: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          lot_id?: string | null
+          movement_id: string
+          qty: number
+          unit_cost?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          lot_id?: string | null
+          movement_id?: string
+          qty?: number
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_lot_allocations_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lot_allocations_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "stock_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lot_allocations_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "v_lot_trace"
+            referencedColumns: ["lot_id"]
+          },
+          {
+            foreignKeyName: "stock_lot_allocations_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "stock_movements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lot_allocations_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "v_lot_trace"
+            referencedColumns: ["movement_id"]
+          },
+        ]
+      }
+      stock_lots: {
+        Row: {
+          created_at: string
+          expiry_date: string | null
+          id: string
+          ingredient_id: string
+          lot_no: string | null
+          note: string | null
+          purchase_invoice_id: string | null
+          purchase_order_id: string | null
+          qty_in: number
+          qty_remaining: number
+          received_on: string
+          source: string
+          source_movement_id: string | null
+          status: string
+          supplier_id: string | null
+          unit_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          ingredient_id: string
+          lot_no?: string | null
+          note?: string | null
+          purchase_invoice_id?: string | null
+          purchase_order_id?: string | null
+          qty_in: number
+          qty_remaining: number
+          received_on?: string
+          source?: string
+          source_movement_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          ingredient_id?: string
+          lot_no?: string | null
+          note?: string | null
+          purchase_invoice_id?: string | null
+          purchase_order_id?: string | null
+          qty_in?: number
+          qty_remaining?: number
+          received_on?: string
+          source?: string
+          source_movement_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_lots_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           created_at: string
           created_by: string | null
           customer_id: string | null
+          expiry_date: string | null
           id: string
           ingredient_id: string
           kind: string
+          lot_id: string | null
+          lot_no: string | null
           move_date: string
           note: string | null
+          purchase_invoice_id: string | null
+          purchase_order_id: string | null
           qty: number
           reason: string | null
           reason_note: string | null
@@ -3664,11 +4082,16 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          expiry_date?: string | null
           id?: string
           ingredient_id: string
           kind: string
+          lot_id?: string | null
+          lot_no?: string | null
           move_date?: string
           note?: string | null
+          purchase_invoice_id?: string | null
+          purchase_order_id?: string | null
           qty: number
           reason?: string | null
           reason_note?: string | null
@@ -3681,11 +4104,16 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          expiry_date?: string | null
           id?: string
           ingredient_id?: string
           kind?: string
+          lot_id?: string | null
+          lot_no?: string | null
           move_date?: string
           note?: string | null
+          purchase_invoice_id?: string | null
+          purchase_order_id?: string | null
           qty?: number
           reason?: string | null
           reason_note?: string | null
@@ -3707,6 +4135,34 @@ export type Database = {
             columns: ["ingredient_id"]
             isOneToOne: false
             referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "stock_lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "v_lot_trace"
+            referencedColumns: ["lot_id"]
+          },
+          {
+            foreignKeyName: "stock_movements_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
             referencedColumns: ["id"]
           },
           {
@@ -3805,6 +4261,7 @@ export type Database = {
           city: string | null
           contact_name: string | null
           created_at: string
+          default_category_code: string | null
           email: string | null
           id: string
           name: string
@@ -3821,6 +4278,7 @@ export type Database = {
           city?: string | null
           contact_name?: string | null
           created_at?: string
+          default_category_code?: string | null
           email?: string | null
           id?: string
           name: string
@@ -3837,6 +4295,7 @@ export type Database = {
           city?: string | null
           contact_name?: string | null
           created_at?: string
+          default_category_code?: string | null
           email?: string | null
           id?: string
           name?: string
@@ -4094,6 +4553,60 @@ export type Database = {
           },
         ]
       }
+      yield_tests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          gross_qty: number
+          id: string
+          ingredient_id: string
+          net_qty: number
+          note: string | null
+          supplier_id: string | null
+          test_date: string
+          yield_pct: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          gross_qty: number
+          id?: string
+          ingredient_id: string
+          net_qty: number
+          note?: string | null
+          supplier_id?: string | null
+          test_date?: string
+          yield_pct?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          gross_qty?: number
+          id?: string
+          ingredient_id?: string
+          net_qty?: number
+          note?: string | null
+          supplier_id?: string | null
+          test_date?: string
+          yield_pct?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_tests_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_tests_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_account_balances: {
@@ -4137,6 +4650,67 @@ export type Database = {
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_lot_trace: {
+        Row: {
+          customer_id: string | null
+          customer_name: string | null
+          expiry_date: string | null
+          ingredient_id: string | null
+          ingredient_name: string | null
+          kind: string | null
+          lot_id: string | null
+          lot_no: string | null
+          move_date: string | null
+          movement_id: string | null
+          note: string | null
+          purchase_invoice_id: string | null
+          purchase_order_id: string | null
+          qty: number | null
+          received_on: string | null
+          source: string | null
+          source_id: string | null
+          supplier_id: string | null
+          supplier_name: string | null
+          unit_cost: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_lots_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -4305,6 +4879,54 @@ export type Database = {
           {
             foreignKeyName: "prep_batch_items_unit_fkey"
             columns: ["unit"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_price_variances: {
+        Row: {
+          change_pct: number | null
+          decided_at: string | null
+          decision: string | null
+          decision_note: string | null
+          ingredient_id: string | null
+          ingredient_name: string | null
+          noted_at: string | null
+          prev_price: number | null
+          price: number | null
+          price_id: string | null
+          purchase_invoice_id: string | null
+          stock_unit: string | null
+          supplier_id: string | null
+          supplier_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_prices_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_prices_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_prices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredients_stock_unit_fkey"
+            columns: ["stock_unit"]
             isOneToOne: false
             referencedRelation: "units"
             referencedColumns: ["code"]
@@ -4486,6 +5108,43 @@ export type Database = {
         }
         Relationships: []
       }
+      v_stock_by_supplier: {
+        Row: {
+          ingredient_id: string | null
+          ingredient_name: string | null
+          lot_count: number | null
+          nearest_expiry: string | null
+          oldest_received: string | null
+          qty_remaining: number | null
+          stock_unit: string | null
+          supplier_id: string | null
+          supplier_name: string | null
+          value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredients_stock_unit_fkey"
+            columns: ["stock_unit"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "stock_lots_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_lots_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       ai_spend_status: { Args: never; Returns: Json }
@@ -4509,6 +5168,32 @@ export type Database = {
       can_decide: {
         Args: { p_amount: number; p_policy: string }
         Returns: boolean
+      }
+      confirm_alias: {
+        Args: {
+          p_factor?: number
+          p_ingredient: string
+          p_raw: string
+          p_seller_code?: string
+          p_supplier: string
+          p_unit?: string
+        }
+        Returns: string
+      }
+      consume_stock: {
+        Args: {
+          p_customer?: string
+          p_date?: string
+          p_ingredient: string
+          p_kind?: string
+          p_note?: string
+          p_qty: number
+          p_reason?: string
+          p_reason_note?: string
+          p_source?: string
+          p_source_id?: string
+        }
+        Returns: Json
       }
       current_app_role: { Args: never; Returns: string }
       current_customer_id: { Args: never; Returns: string }
@@ -4559,6 +5244,20 @@ export type Database = {
       }
       log_client_error: { Args: { p: Json }; Returns: undefined }
       mask_pii: { Args: { p: string }; Returns: string }
+      match_invoice_line: {
+        Args: { p_raw: string; p_seller_code?: string; p_supplier_id: string }
+        Returns: {
+          factor_to_stock: number
+          ingredient_id: string
+          kaynak: string
+          name: string
+          score: number
+        }[]
+      }
+      merge_ingredients: {
+        Args: { p_drop: string; p_keep: string }
+        Returns: Json
+      }
       monthly_menu_violations: {
         Args: { p_id: string }
         Returns: {
@@ -4570,6 +5269,7 @@ export type Database = {
         }[]
       }
       needs_bootstrap: { Args: never; Returns: boolean }
+      norm_tr: { Args: { p: string }; Returns: string }
       order_is_open: { Args: { p_service_date: string }; Returns: boolean }
       plan_prep_from_orders: {
         Args: { p_date: string; p_meal: string }
@@ -4662,6 +5362,23 @@ export type Database = {
       }
       publish_monthly_menu: { Args: { p_id: string }; Returns: Json }
       recalibrate_recipe: { Args: { p_recipe_id: string }; Returns: number }
+      receive_stock: {
+        Args: {
+          p_date?: string
+          p_expiry?: string
+          p_ingredient: string
+          p_lot_no?: string
+          p_note?: string
+          p_qty: number
+          p_reason?: string
+          p_reason_note?: string
+          p_source?: string
+          p_source_id?: string
+          p_supplier?: string
+          p_unit_cost?: number
+        }
+        Returns: Json
+      }
       recipe_from_first_production: {
         Args: { p_items: Json; p_people: number; p_recipe_id: string }
         Returns: number
