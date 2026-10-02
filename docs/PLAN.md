@@ -42,7 +42,7 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 | 3B | Navigasyon 30 → 14 modül, sekmeler, eski yolların yönlendirmesi, rol çalışma alanı | ✅ (rapor: `raporlar/faz-3B.md`) |
 | 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ✅ (rapor: `raporlar/faz-3C0.md`) |
 | 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ✅ (rapor: `raporlar/faz-3C.md`; Grok UI denetlendi) |
-| 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ⏳ sıradaki (veritabanının yarısı canlıda hazır) |
+| 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ✅ (rapor: `raporlar/faz-3D.md`) |
 | 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | ⏳ |
 | 3F | Finans › Maliyet (gün/ay/yıl, sürümlü), menüden sürümlü satınalma planı, teklif analizi | ⏳ |
 | 3H | Üretimden öğrenen reçete, öğün bazlı genel gider dağıtımı | ⏳ |
@@ -63,11 +63,11 @@ Her not ilgili fazın **içinde** uygulanır; ayrı faz açılmaz. Durum: ✅ bi
 | Hemen | EK-1 / Not 13 | Girişsiz iletişim sayfası `public/iletisim.html` + uygulama içi link |✅ |
 | Hemen | EK-1 / Not 8 | Cari › müşteri › "Sipariş linki" sekmesi (kopyala, WhatsApp, QR, yenile) |✅ |
 | Hemen | EK-1 / Not 2 | "Hammadde" → **Stok kartı**; `/stok/kartlar` (eski adres yönlenir); sarf kategorileri |✅ |
-| 3D | EK-1 / Not 1 · 3 | Aylık menü (sürümlü), müşteri yasak/tercih kuralları, yemek etiketleri, `publish_monthly_menu` | 🗄️ (canlıda, `external_tables.sql` ✅) |
-| 3D | EK-1 / Not 14 | `<MonthMenuCalendar mode="menu">`, maket birebir (sürükle/kopyala, undo, mobil ajanda) | ⏳ |
-| 3D | EK-1 / Not 1 | AI menü önerisi (`menu-suggest` 🔌 + kural motoru yedeği), `ai_budget`/`ai_usage` freni | 🗄️ (tablolar canlıda) |
-| 3D | EK-1 / Not 7 · 8 | Portal v2: Sipariş, Aylık menü, Geri bildirim (`customer_feedback`), PIN; portal yetkilisi TC+telefon | 🗄️ (tablolar canlıda; Vault anahtarı kullanıcıda) |
-| 3D | Kullanıcı notu D · E · H | Müşteriye menü atama (`customer_menus`), kap tipi/maliyeti, tepsi/küvet, Bugün öğün geçiş saatleri | 🗄️ |
+| 3D | EK-1 / Not 1 · 3 | Aylık menü (sürümlü), müşteri yasak/tercih kuralları, yemek etiketleri, `publish_monthly_menu` | ✅ |
+| 3D | EK-1 / Not 14 | `<MonthMenuCalendar mode="menu">`, maket birebir (sürükle/kopyala, undo, mobil ajanda) | ✅ |
+| 3D | EK-1 / Not 1 | AI menü önerisi (`menu-suggest` 🔌 + kural motoru yedeği), `ai_budget`/`ai_usage` freni | ✅ kural motoru · ⏳ AI 🔌 |
+| 3D | EK-1 / Not 7 · 8 | Portal v2: Sipariş, Aylık menü, Geri bildirim (`customer_feedback`), PIN; portal yetkilisi TC+telefon | ✅ (Vault anahtarı kullanıcıda) |
+| 3D | Kullanıcı notu D · E · H | Müşteriye menü atama (`customer_menus`), kap tipi/maliyeti, tepsi/küvet, Bugün öğün geçiş saatleri | ✅ |
 | 3E | EK-1 / Not 4 | Depolar, açılış sayımı, 15 günde bir kör sayım, fark = zayiat | ⏳ |
 | 3E | EK-1 / Not 5 | FEFO (Ç-2), haftalık SKT bildirimi, onaylı imha | ⏳ |
 | 3E | Kullanıcı notu B · C | Elle stok nedeni zorunlu, faturasız pazar alımı → tedarikçiye borç | 🗄️ (canlıda, test ✅) |

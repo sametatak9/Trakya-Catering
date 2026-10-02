@@ -22,6 +22,10 @@ import {
   type CalCourse, type CalMeal, type CustomerRule, type Dish, type DishIndex, type Plan,
 } from './rules';
 import { useCalendarHistory } from './useCalendarHistory';
+import { ReportButton } from '@/reports/ReportButton';
+import { useQuery } from '@tanstack/react-query';
+import { supabase, unwrap } from '@/lib/supabase';
+import { menuCardSpec, MENU_CARD_LABELS, type MenuCardVariant } from './menuCard';
 import './menu-calendar.css';
 
 const DOW = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -75,6 +79,9 @@ export function MonthMenuCalendar({ mode = 'menu', readOnly = false, initialPeri
   }, [recipes.data, tags.data]);
   const rules: CustomerRule[] = useMemo(() => (rulesQ.data ?? []) as CustomerRule[], [rulesQ.data]);
 
+  const kcalQ = useQuery({ queryKey: ['t', 'v_recipe_kcal'], queryFn: async () => unwrap(await supabase.from('v_recipe_kcal').select('*')) });
+  const kcal = useMemo(() => new Map((kcalQ.data ?? []).map((k) => [k.recipe_id!, { kcal: k.kcal_per_portion == null ? null : Number(k.kcal_per_portion), missing: Number(k.missing_kcal ?? 0) }])), [kcalQ.data]);
+  const [cardVariant, setCardVariant] = useState<MenuCardVariant>('standart');
   const hist = useCalendarHistory<Plan>({});
   const plan = hist.value;
   const dirty = hist.steps > 0;
@@ -266,6 +273,13 @@ export function MonthMenuCalendar({ mode = 'menu', readOnly = false, initialPeri
         {status ? <Pill tone={status.tone}>Sürüm {current!.version} · {status.label}</Pill> : <Pill>Henüz kayıt yok</Pill>}
         {dirty && <Pill tone="wait">Kaydedilmemiş değişiklik</Pill>}
         <span className="flex-1" />
+        <span className="inline-flex items-center gap-1">
+          <select className="tc-input !h-9 !w-auto !py-0 text-xs" value={cardVariant} onChange={(e) => setCardVariant(e.target.value as MenuCardVariant)} aria-label="Menü kartı türü">
+            {(Object.keys(MENU_CARD_LABELS) as MenuCardVariant[]).map((v) => <option key={v} value={v}>{MENU_CARD_LABELS[v]}</option>)}
+          </select>
+          <ReportButton size="sm" label="Menü kartı" disabled={!Object.keys(plan).length}
+            spec={() => menuCardSpec({ variant: cardVariant, plan, period, periodLabel: monthLabel(period), customerName: custName, kindLabel: MENU_KIND_LABELS[kind], kcal })} />
+        </span>
         {canWrite && <>
           <Button size="sm" icon={<Undo2 className="h-4 w-4" />} onClick={() => { hist.undo(); }} disabled={!hist.canUndo} title="Geri al (Ctrl+Z)" aria-label="Geri al"><span className="hidden sm:inline">Geri al</span></Button>
           <Button size="sm" icon={<Redo2 className="h-4 w-4" />} onClick={() => { hist.redo(); }} disabled={!hist.canRedo} title="Yinele (Ctrl+Shift+Z)" aria-label="Yinele"><span className="hidden sm:inline">Yinele</span></Button>

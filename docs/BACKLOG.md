@@ -27,7 +27,7 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 - ✅ Mutfak ekranı: ilkokul seviyesine uygun büyük yazı, simge, adım adım, sesli okuma
 - ✅ Hazırlıktan malzemeleri stoktan düşme (tek tuş; aynı yemek iki kez düşülmez)
 - ✅ **Üretim emri ver → son onay → stok düşer, sipariş teslim olur, gelir oluşur** (Faz 3C; gider yalnız faturadan; teslim varsayılan açık)
-- ⏳ **Menü formatı tasarımı — ÇOK ÖNEMLİ:** firmalara gönderilecek HTML + PDF menü; 2 tip: standart ve kalori hesaplı; ayrıca kahvaltı menüsü (Faz 3D, kalori verisi 3H)
+- ✅ **Menü formatı tasarımı — ÇOK ÖNEMLİ:** firmalara gönderilecek HTML + PDF menü; 2 tip: standart ve kalori hesaplı; ayrıca kahvaltı menüsü (Faz 3D: Menüler › Aylık menü › Menü kartı; toplu kalori verisi 3H)
 - ✅ 1 kişilik reçete, gramaj kalibrasyonu, basılı iş emri (Faz 3C; kap/ambalaj sayısı 3D'de)
 
 ## 2. Finans — işletmenin finansal yönetim ekranları
@@ -98,6 +98,6 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 3. ✅ Faz 3C-0 — onay merkezi + avans → bakiye canlı bağlantısı
 4. ✅ Faz 3C — üretim emri → stok/sipariş/gelir, kalibrasyon, iş emri (Grok UI denetlendi, 2 hata düzeltildi)
 5. ✅ EK-1 hemen işleri: logo (seçenek 1), iletişim sayfası, müşteri kartında sipariş linki, "Stok kartı" terimi
-6. ⏳ Faz 3D — menü tipleri, müşteri menüsü, **menü kartı HTML/PDF (standart, kalorili, kahvaltı)**
-6. ⏳ Faz 3E — stok partileri, depolar, sayım, güncellenen stoklar, satınalma talep formu, stok/yemek iskeleti
-7. ⏳ 3F → 3H → 3G → 4 (cari/fatura) → 5 (lojistik, filo kartviziti) → 6 → 7 → 8A → 8 → 8B → 9 → 10
+6. ✅ Faz 3D — menü tipleri, müşteri menüsü, **menü kartı HTML/PDF (standart, kalorili, kahvaltı)**
+7. ⏳ Faz 3E — stok partileri, depolar, sayım, güncellenen stoklar, satınalma talep formu, stok/yemek iskeleti
+8. ⏳ 3F → 3H → 3G → 4 (cari/fatura) → 5 (lojistik, filo kartviziti) → 6 → 7 → 8A → 8 → 8B → 9 → 10

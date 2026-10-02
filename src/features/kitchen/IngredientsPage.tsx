@@ -157,6 +157,8 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
   const [waste, setWaste] = useState(ingredient ? String(ingredient.waste_pct).replace('.', ',') : '0');
   const [vat, setVat] = useState(ingredient ? String(ingredient.vat_rate) : '1');
   const [minStock, setMinStock] = useState(ingredient ? String(ingredient.min_stock).replace('.', ',') : '0');
+  const [kcal100, setKcal100] = useState(ingredient?.kcal_100 != null ? String(ingredient.kcal_100).replace('.', ',') : '');
+  const [kcalUnit, setKcalUnit] = useState(ingredient?.kcal_unit != null ? String(ingredient.kcal_unit).replace('.', ',') : '');
   const [allergens, setAllergens] = useState<string[]>(ingredient?.allergens ?? []);
   const [notes, setNotes] = useState(ingredient?.notes ?? '');
   const [active, setActive] = useState(ingredient?.active ?? true);
@@ -173,6 +175,9 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
     if (canEdit && !name.trim()) return setErr('Ad zorunlu.');
     if (!canEdit && !price.trim()) return setErr('Yeni fiyat girin.');
     if (canEdit && (wasteN === null || wasteN < 0 || wasteN >= 100)) return setErr('Fire oranı 0 ile 99,99 arasında olmalı.');
+    const kcalA = kcal100.trim() ? parseNum(kcal100) : null;
+    const kcalB = kcalUnit.trim() ? parseNum(kcalUnit) : null;
+    if ((kcal100.trim() && (kcalA === null || kcalA < 0)) || (kcalUnit.trim() && (kcalB === null || kcalB < 0))) return setErr('Kalori değeri geçersiz.');
     const priceN = price.trim() ? parseNum(price) : null;
     if (price.trim() && (priceN === null || priceN < 0)) return setErr('Fiyat geçersiz.');
     if (canEdit && ingredient && unit !== ingredient.stock_unit) {
@@ -188,6 +193,7 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
         draft: !canEdit ? null : {
           name: name.trim(), code: code.trim() || null, category, stock_unit: unit, waste_pct: wasteN ?? 0,
           vat_rate: parseNum(vat) ?? 1, min_stock: parseNum(minStock) ?? 0, allergens, notes: notes.trim() || null, active,
+          kcal_100: kcalA, kcal_unit: kcalB,
         },
         newPrice: canPrice ? priceN : null,
         supplier,
@@ -236,6 +242,12 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
           </Field>
           <Field label="KDV %"><input className="tc-input tc-num" inputMode="decimal" value={vat} onChange={(e) => setVat(e.target.value)} /></Field>
           <Field label={`Min. stok (${unit})`}><input className="tc-input tc-num" inputMode="decimal" value={minStock} onChange={(e) => setMinStock(e.target.value)} /></Field>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {u.base === 'adet'
+            ? <Field label="Enerji (kcal / 1 adet)" hint="Menü kartı kalori hesabı için"><input className="tc-input tc-num" inputMode="decimal" value={kcalUnit} onChange={(e) => setKcalUnit(e.target.value)} placeholder="ör. 75" /></Field>
+            : <Field label={`Enerji (kcal / 100 ${u.base === 'ml' ? 'ml' : 'g'})`} hint="Ambalaj etiketindeki değer; menü kartı kalori hesabı için"><input className="tc-input tc-num" inputMode="decimal" value={kcal100} onChange={(e) => setKcal100(e.target.value)} placeholder="ör. 250" /></Field>}
         </div>
 
         <Field label="Alerjenler">

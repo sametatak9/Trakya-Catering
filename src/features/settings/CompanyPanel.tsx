@@ -15,12 +15,14 @@ export function CompanyPanel() {
     if (!company.data) return;
     const c = company.data;
     setF({ legal_name: c.legal_name, short_name: c.short_name, slogan: c.slogan ?? '', tax_office: c.tax_office ?? '', tax_no: c.tax_no ?? '',
-      address: c.address ?? '', city: c.city ?? '', phone: c.phone ?? '', email: c.email ?? '', website: c.website ?? '', report_footer: c.report_footer ?? '' });
+      address: c.address ?? '', city: c.city ?? '', phone: c.phone ?? '', email: c.email ?? '', website: c.website ?? '', report_footer: c.report_footer ?? '',
+      home_breakfast_until: c.home_breakfast_until ?? '07:00', home_lunch_until: c.home_lunch_until ?? '11:00', home_dinner_until: c.home_dinner_until ?? '23:59' });
   }, [company.data]);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   const submit = async () => {
     if (!f.legal_name?.trim()) return toast.error('Unvan zorunlu');
+    if (['home_breakfast_until', 'home_lunch_until', 'home_dinner_until'].some((k) => f[k] && !/^([01]\d|2[0-3]):[0-5]\d$/.test(f[k]))) return toast.error('Öğün geçiş saatleri SS:DD olmalı');
     try {
       await save.mutateAsync(Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v.trim() || (k === 'legal_name' || k === 'short_name' ? f.legal_name : null)])));
       toast.ok('Firma bilgileri kaydedildi');
@@ -44,6 +46,11 @@ export function CompanyPanel() {
             <Field label="E-posta"><input className="tc-input" value={f.email ?? ''} onChange={set('email')} /></Field>
             <Field label="Web"><input className="tc-input" value={f.website ?? ''} onChange={set('website')} /></Field>
             <Field label="Rapor alt notu" className="sm:col-span-2"><input className="tc-input" value={f.report_footer ?? ''} onChange={set('report_footer')} /></Field>
+            <div className="sm:col-span-2 grid grid-cols-3 gap-3">
+              <Field label="Kahvaltı geçişi" hint="Sonra yarının kahvaltısı"><input type="time" className="tc-input tc-num" value={f.home_breakfast_until ?? ''} onChange={set('home_breakfast_until')} /></Field>
+              <Field label="Öğle → akşam" hint="Bugün ekranı"><input type="time" className="tc-input tc-num" value={f.home_lunch_until ?? ''} onChange={set('home_lunch_until')} /></Field>
+              <Field label="Akşam → yarın öğle"><input type="time" className="tc-input tc-num" value={f.home_dinner_until ?? ''} onChange={set('home_dinner_until')} /></Field>
+            </div>
           </div>
         </div>
       )}

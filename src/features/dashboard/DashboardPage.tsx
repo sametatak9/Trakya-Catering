@@ -14,6 +14,8 @@ import { Loading, ModuleHero, Money, Panel, Pill, cx } from '@/ui/primitives';
 import { useAccounts, useEntries, useOpenItems } from '../finance/api';
 import { useIngredients, useMenuCosts, useRecipeCosts } from '../kitchen/api';
 import { usePrepBatches } from '../production/api';
+import { useCompany } from '../settings/api';
+import { istanbulHHMM, mealFocus, type MealFocus } from '@/lib/mealFocus';
 import { orderPeople, useCustomers, useOrders } from '../sales/api';
 
 function greeting() {
@@ -36,6 +38,7 @@ export function DashboardPage() {
   const entries = useEntries(from, to, isFinance);
   const open = useOpenItems(isFinance);
   const accounts = useAccounts();
+  const company = useCompany();
   const [showRoadmap, setShowRoadmap] = useState(false);
   const [panelReport, setPanelReport] = useState<ReportSpec | null>(null);
 
@@ -143,6 +146,13 @@ export function DashboardPage() {
   ];
   const setupDone = steps.every((s) => s.done);
 
+  const focus = mealFocus(istanbulHHMM(), { breakfastUntil: company.data?.home_breakfast_until, lunchUntil: company.data?.home_lunch_until, dinnerUntil: company.data?.home_dinner_until });
+  const focusRow = (f: MealFocus) => {
+    const list = (f.tomorrow ? tomorrowOrders : todayOrders).filter((o) => o.meal === f.meal);
+    return { label: `${f.tomorrow ? 'Yarın' : 'Bugün'} · ${MEALS[f.meal]}`, people: list.reduce((s, o) => s + orderPeople(o), 0), firms: new Set(list.map((o) => o.customer_id)).size };
+  };
+  const nowCards = [focusRow(focus.main), focusRow(focus.breakfast)];
+
   const byMeal = Object.keys(MEALS).map((m) => ({
     m, people: todayOrders.filter((o) => o.meal === m).reduce((s, o) => s + orderPeople(o), 0),
     cost: (prod.data ?? []).filter((b) => b.meal === m).reduce((s, b) => s + Number(b.total_cost ?? 0), 0),
@@ -180,6 +190,16 @@ export function DashboardPage() {
           </ol>
         </Panel>
       )}
+
+      <div className="mb-4 grid grid-cols-2 gap-3" aria-label="Şimdiki öğün">
+        {nowCards.map((c, i) => (
+          <Link key={i} to="/uretim" className="rounded-2xl bg-card ring-1 ring-line p-3 hover:ring-brand/40">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-3">{i === 0 ? 'Şimdi hazırlanan' : 'Kahvaltı'}</div>
+            <div className="mt-0.5 text-sm font-semibold text-ink">{c.label}</div>
+            <div className="text-xl font-bold text-brand tc-num">{fmtNum(c.people, 0)} <span className="text-xs font-medium text-ink-3">kişi · {c.firms} firma</span></div>
+          </Link>
+        ))}
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
         <Panel title={<span className="inline-flex items-center gap-2"><ChefHat className="w-4 h-4 text-brand" />Bugün mutfakta</span>}
