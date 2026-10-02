@@ -1,0 +1,20 @@
+diff --git a/supabase/tests/security_fixes.sql b/supabase/tests/security_fixes.sql
+index e9cfbf1..d4377f2 100644
+--- a/supabase/tests/security_fixes.sql
++++ b/supabase/tests/security_fixes.sql
+@@ -110,11 +110,10 @@ begin
+   assert sup is not null, 'B-3: sipariş girişi tedarikçi etiketi taşımalı';
+   insert into public.purchase_invoices (supplier_name, supplier_tax_no, invoice_no, invoice_date, category_code, kind, net_amount, vat_amount, total_amount, status, source, purchase_order_id)
+     values ('T Kasap', '1234567890', 'TK-1', current_date, 'gida_hammadde', 'gider', 3800, 38, 3838, 'onaylandi', 'manuel', po) returning id into inv;
+-  begin
+-    insert into public.stock_movements (ingredient_id, kind, qty, unit_cost, source, source_id) values (ing, 'giris', 10, 380, 'fatura', inv);
+-    assert false, 'B-3: aynı mal faturayla ikinci kez stoğa girmemeli';
+-  exception when unique_violation then null;
+-  end;
++  -- Faz 3E: fatura, sipariş teslimiyle açılan partiyi tamamlar; ikinci stok girişi yazılmaz
++  insert into public.stock_movements (ingredient_id, kind, qty, unit_cost, source, source_id) values (ing, 'giris', 10, 380, 'fatura', inv);
++  select count(*) into n from public.stock_movements where ingredient_id = ing and source = 'fatura';
++  assert n = 0, 'B-3: aynı mal faturayla ikinci kez stoğa girmemeli';
+   begin
+     insert into public.stock_movements (ingredient_id, kind, qty, unit_cost, source, source_id) values (ing, 'giris', 1, 380, 'siparis', po);
+     assert false, 'B-3: aynı sipariş aynı malı iki kez sokmamalı';
