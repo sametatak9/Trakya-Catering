@@ -186,6 +186,8 @@ export function StockPage() {
             { key: 'qty', label: 'Miktar (stok biriminde)', type: 'number', required: true },
             { key: 'unit_cost', label: 'Birim maliyet ₺ (giriş)', type: 'money', show: (v) => v.kind === 'giris', hint: 'Boşsa son alış fiyatı' },
             { key: 'move_date', label: 'Tarih', type: 'date', required: true },
+            { key: 'expiry_date', label: 'Son kullanma tarihi', type: 'date', show: (v) => v.kind === 'giris', hint: 'Varsa; çıkışlar SKT’si en yakın partiden düşer' },
+            { key: 'lot_no', label: 'Lot / parti no', show: (v) => v.kind === 'giris' },
             { key: 'note', label: 'Not', span: 2 },
           ]}
           initial={{ kind: adding, move_date: today }}

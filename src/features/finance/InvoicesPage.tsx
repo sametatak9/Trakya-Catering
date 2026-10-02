@@ -18,7 +18,8 @@ import { useIngredients, type Ingredient } from '../kitchen/api';
 import { BulkBar, SelectBox, useSelection } from '@/ui/Selection';
 import { useDeleteInvoice, useFinanceCategories, useInvoices, useSaveInvoice, useSupplierMemory, type PurchaseInvoice } from './api';
 import { CategorySelect } from './EntryDrawer';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { cardNameFromLine, matchTone, type MatchTone } from '@/lib/purchasing';
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
 import { ReportStats } from '@/reports/ReportFrame';
 import { ListToolbar, matches } from '@/ui/ListToolbar';
@@ -276,6 +277,9 @@ export function InvoicesPage() {
 }
 
 // ---------------------------------------------------------------------------- Detay + fiyat aktarımı
+const TONE_DOT: Record<MatchTone, string> = { yesil: 'bg-ok', sari: 'bg-wait', kirmizi: 'bg-stop' };
+const TONE_LABEL: Record<MatchTone, string> = { yesil: 'Otomatik eşleşti', sari: 'Benzerlik: kontrol edin', kirmizi: 'Eşleşme yok: seçin ya da yeni kart açın' };
+const KAYNAK: Record<string, string> = { kod: '· satıcı kodu', alias_tedarikci: '· bu tedarikçinin adı', ad: '· aynı ad', alias_genel: '· bilinen ad', benzerlik: '· benzer' };
 function matchIngredient(line: UblLine, ings: Ingredient[]): Ingredient | undefined {
   const n = line.name.toLocaleLowerCase('tr');
   return ings.filter((i) => i.active).sort((a, b) => b.name.length - a.name.length)
@@ -293,13 +297,45 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
   const lines = (Array.isArray(invoice.lines) ? invoice.lines : []) as unknown as UblLine[];
   const ings = ingredients.data ?? [];
   const [map, setMap] = useState<Record<number, string>>(() => ({}));
-  const auto = useMemo(() => Object.fromEntries(lines.map((l, i) => [i, matchIngredient(l, ings)?.id ?? ''])), [lines, ings]);
-  const chosen = (i: number) => map[i] ?? auto[i] ?? '';
-  const [busy, setBusy] = useState(false);
   // Tek kapı: fatura bir satınalma siparişine bağlıysa ve o sipariş teslim alınırken stoğa girdiyse fatura yalnız fiyatı günceller
   const suppliers = useRows('suppliers', { order: 'name' });
   const supplier = (suppliers.data ?? []).find((x) => (invoice.supplier_tax_no && x.tax_no === invoice.supplier_tax_no)
     || x.name.toLocaleLowerCase('tr') === invoice.supplier_name.toLocaleLowerCase('tr'));
+  // Faz 3E: satır başına veritabanı adayları (satıcı kodu → tedarikçi adı → birebir ad → genel takma ad → benzerlik)
+  const isFood = category === 'gida_hammadde';
+  const cands = useQuery({
+    queryKey: ['invoice-match', invoice.id, supplier?.id ?? '-', lines.length],
+    enabled: isFood && lines.length > 0 && !suppliers.isLoading,
+    queryFn: async () => Promise.all(lines.map(async (l) => unwrap(await supabase.rpc('match_invoice_line', { p_supplier_id: (supplier?.id ?? null) as string, p_raw: l.name })) ?? [])),
+  });
+  const candFor = (i: number) => cands.data?.[i] ?? [];
+  const auto = useMemo(() => Object.fromEntries(lines.map((l, i) => {
+    const top = cands.data?.[i]?.[0];
+    if (top && matchTone(top.score) !== 'kirmizi') return [i, top.ingredient_id];
+    return [i, cands.data ? '' : matchIngredient(l, ings)?.id ?? ''];
+  })), [lines, ings, cands.data]);
+  const chosen = (i: number) => map[i] ?? auto[i] ?? '';
+  const toneFor = (i: number): MatchTone => {
+    const id = chosen(i); if (!id) return 'kirmizi';
+    const c = candFor(i).find((x) => x.ingredient_id === id);
+    return map[i] !== undefined ? 'yesil' : matchTone(c?.score ?? null);
+  };
+  const [busy, setBusy] = useState(false);
+  const newCard = async (i: number) => {
+    const l = lines[i];
+    const similar = candFor(i).slice(0, 5);
+    const name = window.prompt(`Yeni stok kartı adı (faturadaki: "${l.name}")${similar.length ? `\n\nBenzer kartlar var — önce bunlardan biri olmadığından emin olun:\n${similar.map((x) => `• ${x.name}`).join('\n')}` : ''}`, cardNameFromLine(l.name));
+    if (!name?.trim()) return;
+    if (similar.some((x) => x.name.toLocaleLowerCase('tr') === name.trim().toLocaleLowerCase('tr'))) return toast.error('Bu adla kart zaten var; listeden seçin');
+    const unit = UNIT_CODES[l.unitCode] ?? 'adet';
+    try {
+      const row = unwrap(await supabase.from('ingredients').insert({ name: name.trim(), stock_unit: ['kg', 'g', 'lt', 'ml', 'adet'].includes(unit) ? unit : 'adet', category: 'diger' }).select('id').single());
+      if (supplier) await supabase.rpc('confirm_alias', { p_ingredient: row.id, p_supplier: supplier.id, p_raw: l.name });
+      await qc.invalidateQueries({ queryKey: ['ingredients'] });
+      setMap((m) => ({ ...m, [i]: row.id }));
+      toast.ok('Stok kartı açıldı ve faturadaki adı tedarikçi adı olarak kaydedildi; kategorisini kartından düzeltin');
+    } catch (e) { toast.error(e); }
+  };
   const pos = useRows('purchase_orders', { key: ['fatura-bag', supplier?.id ?? '-'], order: 'order_date', ascending: false, enabled: Boolean(supplier),
     filter: (q) => q.eq('supplier_id', supplier!.id).neq('status', 'iptal') });
   const [poId, setPoId] = useState(invoice.purchase_order_id ?? '');
@@ -316,8 +352,8 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
     const rows = lines.map((l, i) => {
       const ing = ings.find((x) => x.id === chosen(i));
       const price = ing ? pricePerStockUnit(l, ing.stock_unit) : null;
-      return ing && price !== null ? { ingredient_id: ing.id, price: Math.round(price * 10000) / 10000, source: 'alis_faturasi', supplier_name: invoice.supplier_name, noted_at: `${invoice.invoice_date}T12:00:00+03:00` } : null;
-    }).filter(Boolean) as Array<{ ingredient_id: string; price: number; source: string; supplier_name: string; noted_at: string }>;
+      return ing && price !== null ? { ingredient_id: ing.id, price: Math.round(price * 10000) / 10000, source: 'alis_faturasi', supplier_name: invoice.supplier_name, supplier_id: supplier?.id ?? null, purchase_invoice_id: invoice.id, invoice_line_no: i + 1, noted_at: `${invoice.invoice_date}T12:00:00+03:00` } : null;
+    }).filter(Boolean) as Array<{ ingredient_id: string; price: number; source: string; supplier_name: string; supplier_id: string | null; purchase_invoice_id: string; invoice_line_no: number; noted_at: string }>;
     if (rows.length === 0) return toast.error('Eşleşen ve birimi uyumlu kalem yok');
     // Stok girişi: faturadaki miktar hammaddenin stok birimine çevrilir (aynı fatura ikinci kez stoğa girmez)
     const stock = lines.map((l, i) => {
@@ -335,13 +371,24 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
       if ((invoice.purchase_order_id ?? '') !== poId) unwrap(await supabase.from('purchase_invoices').update({ purchase_order_id: poId || null }).eq('id', invoice.id).select('id'));
       unwrap(await supabase.from('ingredient_prices').insert(rows).select('id'));
       const already = unwrap(await supabase.from('stock_movements').select('id').eq('source', 'fatura').eq('source_id', invoice.id).limit(1));
-      // Sipariş teslimiyle zaten stoğa girmiş mallar atlanır (çift giriş yok)
-      const viaPo = poId ? unwrap(await supabase.from('stock_movements').select('ingredient_id').eq('source', 'siparis').eq('source_id', poId)) : [];
-      const skip = new Set(viaPo.map((m) => m.ingredient_id));
-      const toStock = already.length === 0 ? mergeByIngredient(stock).filter((r) => !skip.has(r.ingredient_id)).map((r) => ({ ...r, supplier_id: supplier?.id ?? null })) : [];
-      if (toStock.length) unwrap(await supabase.from('stock_movements').insert(toStock as never).select('id'));
-      await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['recipe_costs'] }), qc.invalidateQueries({ queryKey: ['menu_costs'] }), qc.invalidateQueries({ queryKey: ['t', 'stock_movements'] }), qc.invalidateQueries({ queryKey: ['t', 'purchase_invoices'] })]);
-      toast.ok(`${rows.length} stok kartının fiyatı güncellendi${toStock.length ? `, ${toStock.length} kalem stoğa girdi` : ''}${skip.size ? `; ${skip.size} kalem sipariş teslimiyle zaten stokta` : ''}; reçete maliyetleri yenilendi`);
+      // Tedarikçi adını öğren: bir sonraki faturada bu satır otomatik eşleşir
+      if (supplier) {
+        for (let i = 0; i < lines.length; i++) {
+          const id = chosen(i); const top = candFor(i)[0];
+          if (!id || (top && top.ingredient_id === id && (top.kaynak === 'kod' || top.kaynak === 'alias_tedarikci'))) continue;
+          await supabase.rpc('confirm_alias', { p_ingredient: id, p_supplier: supplier.id, p_raw: lines[i].name });
+        }
+      }
+      // Faz 3E tek kapı: her kalem receive_stock ile tedarikçi etiketli partiye girer; sipariş teslimiyle zaten girdiyse parti tamamlanır
+      let entered = 0, matched = 0;
+      if (already.length === 0) {
+        for (const r of mergeByIngredient(stock)) {
+          const res = unwrap(await supabase.rpc('receive_stock', { p_ingredient: r.ingredient_id, p_qty: r.qty, p_unit_cost: r.unit_cost ?? undefined, p_source: 'fatura', p_source_id: invoice.id, p_supplier: supplier?.id, p_date: invoice.invoice_date, p_note: `${invoice.supplier_name} · ${invoice.invoice_no}` })) as { durum?: string } | null;
+          if (res?.durum === 'eslesti') matched++; else entered++;
+        }
+      }
+      await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['recipe_costs'] }), qc.invalidateQueries({ queryKey: ['menu_costs'] }), qc.invalidateQueries({ queryKey: ['t'] }), qc.invalidateQueries({ queryKey: ['t', 'purchase_invoices'] })]);
+      toast.ok(`${rows.length} stok kartının fiyatı güncellendi${entered ? `, ${entered} kalem stoğa girdi` : ''}${matched ? `; ${matched} kalem sipariş teslimiyle zaten stoktaydı, partisi faturaya bağlandı` : ''}; reçete maliyetleri yenilendi`);
     } catch (e) { toast.error(e); } finally { setBusy(false); }
   };
 
@@ -380,7 +427,7 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
       {invoice.note && <p className="text-xs text-ink-3 mb-4">{invoice.note}</p>}
 
       {lines.length > 0 && (
-        <Panel pad={false} title="Kalemler" subtitle={category === 'gida_hammadde' ? 'Kalemleri stok kartlarıyla eşleştirip alış fiyatlarını tek tuşla güncelleyin' : undefined}
+        <Panel pad={false} title="Kalemler" subtitle={category === 'gida_hammadde' ? 'Yeşil: otomatik eşleşti · Sarı: benzerlik, kontrol edin · Kırmızı: seçin ya da yeni kart açın. Onayladığınız adlar bu tedarikçinin sonraki faturalarında otomatik eşleşir.' : undefined}
           action={canEdit && category === 'gida_hammadde' && <Button size="sm" variant="primary" onClick={pushPrices} loading={busy}>Fiyat ve stoğa işle</Button>}>
           <div className="overflow-x-auto tc-scroll">
             <table className="w-full text-sm min-w-[620px]">
@@ -405,10 +452,19 @@ function InvoiceDrawer({ invoice, canEdit, onClose }: { invoice: PurchaseInvoice
                       <td className="px-2 py-2 text-right font-semibold"><Money value={l.lineTotal} /></td>
                       {category === 'gida_hammadde' && (
                         <td className="px-4 py-2">
-                          <select className="tc-input !py-1.5" value={chosen(i)} disabled={!canEdit} onChange={(e) => setMap({ ...map, [i]: e.target.value })} aria-label="Stok kartı">
-                            <option value="">— eşleştirme yok —</option>
-                            {ings.filter((x) => x.active).map((x) => <option key={x.id} value={x.id}>{x.name} ({x.stock_unit})</option>)}
-                          </select>
+                          <div className="flex items-center gap-1.5">
+                            <span className={cx('h-2.5 w-2.5 shrink-0 rounded-full', TONE_DOT[toneFor(i)])} title={TONE_LABEL[toneFor(i)]} aria-label={TONE_LABEL[toneFor(i)]} />
+                            <select className="tc-input !py-1.5" value={chosen(i)} disabled={!canEdit} onChange={(e) => setMap({ ...map, [i]: e.target.value })} aria-label="Stok kartı">
+                              <option value="">— eşleştirme yok —</option>
+                              {candFor(i).length > 0 && <optgroup label="Öneriler">
+                                {candFor(i).map((c) => <option key={`c${c.ingredient_id}`} value={c.ingredient_id}>{c.name} · %{Math.round(Number(c.score) * 100)} {KAYNAK[c.kaynak] ?? ''}</option>)}
+                              </optgroup>}
+                              <optgroup label="Tüm stok kartları">
+                                {ings.filter((x) => x.active).map((x) => <option key={x.id} value={x.id}>{x.name} ({x.stock_unit})</option>)}
+                              </optgroup>
+                            </select>
+                            {canEdit && toneFor(i) === 'kirmizi' && <Button size="sm" onClick={() => newCard(i)}>Yeni kart</Button>}
+                          </div>
                           {ing && (pp === null
                             ? <div className="text-[10px] text-stop mt-0.5">Birim uyumsuz ({UNIT_CODES[l.unitCode] ?? l.unitCode} → {ing.stock_unit})</div>
                             : <div className={cx('text-[10px] mt-0.5', ing.last_price && pp > Number(ing.last_price) ? 'text-stop' : 'text-ok')}>

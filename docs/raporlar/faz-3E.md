@@ -1,4 +1,4 @@
-# Faz 3E raporu (1. bölüm: veritabanı) — Stok partileri, fatura eşleştirme, 564 stok + 331 yemek iskeleti
+# Faz 3E raporu — Stok partileri, fatura eşleştirme, 564 stok + 331 yemek iskeleti
 
 2 Ekim 2026
 
@@ -47,8 +47,32 @@ Yeni panel ayarı yok. Faz 3D raporundaki iki ayar (Vault `portal_tc_pepper`, s�
 - Vitest 154 ✅ (`normTr` veritabanıyla aynı sonuç), tsc ✅.
 - Advisor: 0028 = 4, 0029 = 10 (önceden bilinen) ve leaked password uyarısı; yeni uyarı yok. Tetikleyici fonksiyonları `private` şemasına taşındı.
 
-## Sırada (Faz 3E, 2. bölüm: ekranlar)
-- Fatura içe aktarma sihirbazı: satır başına yeşil/sarı/kırmızı aday; "yeni kart" açmadan önce benzer 5 kalem gösterilir.
-- Stok kartında "Tedarikçi adları" ve "Fiyat geçmişi" sekmeleri.
-- Satınalma: Geçen ay / Bu ay ihtiyaç / Talepler & siparişler (PDF, WhatsApp, e-posta ile talep gönderimi).
-- Düzensiz fiyat listesi, lot geri izleme raporu, verim testi formu.
+## Ekranlar (2. bölüm)
+- **Gelen faturalar › fatura detayı:**
+  - Her satır için veritabanından en fazla 5 aday gelir. Renk durumu gösterir:
+    - **yeşil:** otomatik eşleşti (satıcı kodu, bu tedarikçinin adı, aynı ad veya bilinen ad);
+    - **sarı:** benzerlik var, kontrol edin;
+    - **kırmızı:** eşleşme yok.
+  - Kırmızı satırda **"Yeni kart"** açılmadan önce benzer 5 kart gösterilir. Aynı adla ikinci kart açılamaz.
+  - "Fiyat ve stoğa işle":
+    - onaylanan adları tedarikçi adı olarak öğrenir;
+    - fiyatı tedarikçi + fatura + satır no ile kaydeder;
+    - stoğu `receive_stock` ile partiye sokar.
+  - Sipariş teslimiyle zaten girmiş mal ikinci kez girmez; partisi faturaya bağlanır.
+- **Stok kartı:** dört sekme eklendi:
+  - **Tedarikçi adları:** ekle/kaldır, ürün kodu; koli/kasa birimleri de burada görünür.
+  - **Fiyat geçmişi:** tarih · fiyat · tedarikçi · belge, %3 üstü değişim işaretli.
+  - **Teklifler:** en uygun fiyat kupayla işaretli.
+  - **Verim:** brüt → net test, tedarikçiye göre ortalama verim ve net maliyet.
+- **Stok › Partiler & izleme (yeni sekme):** tedarikçi bazında kalan, SKT yaklaşan, lot geri izleme (parti → firma), partisiz çıkışlar. Elle girişte SKT ve lot no alanları var.
+- **Satınalma:** sekmeler Bu ay ihtiyaç / Geçen ay / Talepler & siparişler / Fiyat sapması.
+  - **Geçen ay:** günlük kişi tablosu, aylık toplam, tüketilen hammadde, rapor/Excel.
+  - **Siparişe talep gönderme:** WhatsApp, e-posta veya PDF; her gönderim kayıt altına alınır ve son gönderim görünür.
+  - **Fiyat sapması:** kabul/red; red için gerekçe zorunlu, kimin karar verdiği kayıtlı.
+  - **"En uygun fiyat" sekmesi kaldırıldı:** en uygun tedarikçi ihtiyaç satırında (kupa) ve stok kartının "Teklifler" sekmesinde. Teklif girişi "Teklif / fiyat kaydı" butonunda.
+  - Sipariş teslimi `receive_stock` ile partiye girer.
+
+## Faz 3E'den sonraki fazlara kalanlar
+- e-Fatura XML'indeki satıcı ürün kodunun otomatik okunması: kod şimdilik stok kartında elle girilir.
+- Fiyat değişiminin SMM etkisi raporu: Faz 3F (maliyet sekmesi).
+- Depolar, kör sayım ve onaylı imha akışı (EK-1 Not 4–5): FEFO ve SKT listesi bu fazda hazır; sayım ekranı Faz 3F/3G'de.

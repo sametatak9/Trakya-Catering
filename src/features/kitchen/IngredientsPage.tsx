@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { askConfirm } from '@/ui/confirm';
 import { AlertTriangle, Plus, Search, Trash2, Wheat } from 'lucide-react';
+import { IngredientExtras } from './IngredientExtras';
 import { useCan } from '@/app/session';
 import { ALLERGENS, INGREDIENT_CATEGORIES, PRICE_STALE_DAYS, STOCK_UNITS, unitInfo } from '@/lib/domain';
 import { daysSince, fmtDate, fmtPct, parseNum } from '@/lib/format';
@@ -8,7 +9,7 @@ import { Button, Drawer, EmptyState, ErrorNote, Field, Loading, ModuleHero, Mone
 import { useToast } from '@/ui/toast';
 import { ReportButton, type ReportSpec } from '@/reports/ReportButton';
 import { fmtMoney } from '@/lib/format';
-import { useDeleteIngredient, useIngredients, usePriceHistory, useSaveIngredient, type Ingredient } from './api';
+import { useDeleteIngredient, useIngredients, useSaveIngredient, type Ingredient } from './api';
 
 export function IngredientsPage() {
   const { data, isLoading, error } = useIngredients();
@@ -148,7 +149,6 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
   const save = useSaveIngredient();
   const del = useDeleteIngredient();
   const canPrice = useCan(['yonetici', 'satinalma', 'muhasebe']);
-  const history = usePriceHistory(ingredient?.id ?? null);
 
   const [name, setName] = useState(ingredient?.name ?? '');
   const [code, setCode] = useState(ingredient?.code ?? '');
@@ -289,24 +289,9 @@ function IngredientDrawer({ ingredient, onClose, canEdit }: { ingredient: Ingred
         ) : (
           <p className="text-xs text-ink-3">Fiyat girişi satınalma, muhasebe ve yönetici rollerine açıktır.</p>
         )}
-        {ingredient && (
-          <div className="mt-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-3 mb-2">Geçmiş</div>
-            {history.isLoading ? <Loading /> : (history.data ?? []).length === 0
-              ? <p className="text-xs text-ink-3">Henüz fiyat girilmemiş.</p>
-              : (
-                <ul className="divide-y divide-line">
-                  {(history.data ?? []).map((h) => (
-                    <li key={h.id} className="flex items-center justify-between py-2 text-sm">
-                      <span className="text-ink-3">{fmtDate(h.noted_at)}{h.supplier_name ? ` · ${h.supplier_name}` : ''}</span>
-                      <Money value={h.price} className="text-ink font-semibold" />
-                    </li>
-                  ))}
-                </ul>
-              )}
-          </div>
-        )}
       </div>
+
+      {ingredient && <IngredientExtras ingredient={ingredient} />}
 
       {err && <div className="mt-4"><ErrorNote>{err}</ErrorNote></div>}
       {readOnly && (

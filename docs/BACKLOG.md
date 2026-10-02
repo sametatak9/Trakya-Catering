@@ -99,5 +99,5 @@ Son güncelleme: 27 Eylül 2026 · Faz sırası ve ayrıntı: `docs/PLAN.md` ve 
 4. ✅ Faz 3C — üretim emri → stok/sipariş/gelir, kalibrasyon, iş emri (Grok UI denetlendi, 2 hata düzeltildi)
 5. ✅ EK-1 hemen işleri: logo (seçenek 1), iletişim sayfası, müşteri kartında sipariş linki, "Stok kartı" terimi
 6. ✅ Faz 3D — menü tipleri, müşteri menüsü, **menü kartı HTML/PDF (standart, kalorili, kahvaltı)**
-7. ⏳ Faz 3E — stok partileri, depolar, sayım, güncellenen stoklar, satınalma talep formu, stok/yemek iskeleti
+7. ✅ Faz 3E — stok partileri, depolar, sayım, güncellenen stoklar, satınalma talep formu, stok/yemek iskeleti
 8. ⏳ 3F → 3H → 3G → 4 (cari/fatura) → 5 (lojistik, filo kartviziti) → 6 → 7 → 8A → 8 → 8B → 9 → 10

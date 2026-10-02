@@ -43,7 +43,7 @@ Her faz: migration (önce `begin … rollback` denemesi) → SQL testi → istem
 | 3C-0 | Onay merkezi (talep → karar, değişmez kayıt, sürüm altyapısı); avans/izin talebi → onay → canlı bakiye | ✅ (rapor: `raporlar/faz-3C0.md`) |
 | 3C | Üretim emri (taslak → kontrol → onay → kapanış), kalibrasyon, 1 kişilik reçete, basılı iş emri | ✅ (rapor: `raporlar/faz-3C.md`; Grok UI denetlendi) |
 | 3D | Menü tipi, tabla/küvet sunum, müşteri menüsü, aylık sipariş, portal v2, hassasiyet/şikâyet, menü kartı HTML/PDF | ✅ (rapor: `raporlar/faz-3D.md`) |
-| 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | 🗄️ veritabanı ✅ (rapor: `raporlar/faz-3E.md`) · ekranlar ⏳ |
+| 3E | Stok partileri (FIFO), tek giriş kapısı, fatura eşleştirme (takma ad), 564 stok + 331 yemek iskeleti, depolar/etiketler/sayım, güncellenen stoklar, satınalma talep formu | ✅ (rapor: `raporlar/faz-3E.md`; sayım/depolar 3F-3G) |
 | 3F | Finans › Maliyet (gün/ay/yıl, sürümlü), menüden sürümlü satınalma planı, teklif analizi | ⏳ |
 | 3H | Üretimden öğrenen reçete, öğün bazlı genel gider dağıtımı | ⏳ |
 | 3G | Kurucu paneli: kullanıcı sil/kısıtla, modül aç/kapat | ⏳ |
@@ -69,7 +69,7 @@ Her not ilgili fazın **içinde** uygulanır; ayrı faz açılmaz. Durum: ✅ bi
 | 3D | EK-1 / Not 7 · 8 | Portal v2: Sipariş, Aylık menü, Geri bildirim (`customer_feedback`), PIN; portal yetkilisi TC+telefon | ✅ (Vault anahtarı kullanıcıda) |
 | 3D | Kullanıcı notu D · E · H | Müşteriye menü atama (`customer_menus`), kap tipi/maliyeti, tepsi/küvet, Bugün öğün geçiş saatleri | ✅ |
 | 3E | EK-1 / Not 4 | Depolar, açılış sayımı, 15 günde bir kör sayım, fark = zayiat | ⏳ |
-| 3E | EK-1 / Not 5 | FEFO (Ç-2), haftalık SKT bildirimi, onaylı imha | ⏳ |
+| 3E | EK-1 / Not 5 | FEFO (Ç-2), haftalık SKT bildirimi, onaylı imha | ✅ FEFO + SKT listesi · ⏳ bildirim/onaylı imha |
 | 3E | Kullanıcı notu B · C | Elle stok nedeni zorunlu, faturasız pazar alımı → tedarikçiye borç | 🗄️ (canlıda, test ✅) |
 | 3F | EK-1 / Not 14 | Takvim `mode="satinalma"` + ihtiyaç paneli | ⏳ |
 | 3F | EK-1 / Not 6 | Tedarikçi teklif isteme (RFQ, tokenlı link) — **MUST** (Ç-3) | ⏳ |

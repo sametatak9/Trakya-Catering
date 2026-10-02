@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PackageCheck, Plus, ShoppingCart, Trophy } from 'lucide-react';
 import { useCan } from '@/app/session';
 import { useInsertRows, useRows, useSaveRow } from '@/lib/crud';
@@ -19,6 +19,7 @@ import { useIngredients } from '../kitchen/api';
 import { effectiveMenu, useMenuItemsIndex, useMenuPlans } from '../production/api';
 import { orderPeople, useCustomers, useOrders } from '../sales/api';
 import { useStockMoves } from './StockPage';
+import { LastMonthPanel, PriceVariancePanel, RequestActions } from './purchasingPanels';
 
 interface Line { ingredient_id: string; qty: number; unit_price: number }
 const PO_STATUS: Record<string, { label: string; tone: 'idle' | 'info' | 'ok' | 'stop' }> = {
@@ -36,7 +37,7 @@ export function PurchasingPage() {
   const [month, setMonth] = useState(() => monthKey(today));
   const { from: mFrom, to } = monthRange(month);
   const from = mFrom < today ? today : mFrom;
-  const [tab, setTab] = useState<'ihtiyac' | 'fiyat' | 'siparis'>('ihtiyac');
+  const [tab, setTab] = useState<'ihtiyac' | 'gecen' | 'siparis' | 'sapma'>('ihtiyac');
   const [q, setQ] = useState('');
 
   const ingredients = useIngredients();
@@ -54,8 +55,8 @@ export function PurchasingPage() {
   });
   const savePo = useSaveRow('purchase_orders');
   const insertPos = useInsertRows('purchase_orders');
-  const insertMoves = useInsertRows('stock_movements', ['ingredients']);
-  const saveQuote = useSaveRow('supplier_quotes');
+    const saveQuote = useSaveRow('supplier_quotes');
+  const qc = useQueryClient();
   const [addingQuote, setAddingQuote] = useState(false);
 
   const ings = (ingredients.data ?? []).filter((i) => i.active);
@@ -108,7 +109,7 @@ export function PurchasingPage() {
     const bySup = new Map<string, Line[]>();
     for (const r of rows.filter((x) => x.toBuy > 0 && x.supplier)) bySup.set(r.supplier!, [...(bySup.get(r.supplier!) ?? []), { ingredient_id: r.id, qty: Math.ceil(r.toBuy * 10) / 10, unit_price: r.price }]);
     const noSupplier = rows.filter((x) => x.toBuy > 0 && !x.supplier).length;
-    if (bySup.size === 0) return toast.error('Tedarikçi fiyatı olan kalem yok. “En uygun fiyat” sekmesinden fiyat kaydı girin.');
+    if (bySup.size === 0) return toast.error('Tedarikçi fiyatı olan kalem yok. “Teklif / fiyat kaydı” ile tedarikçi fiyatı girin.');
     if (!(await askConfirm(`${bySup.size} tedarikçiye taslak satınalma siparişi oluşturulsun mu?${noSupplier ? ` (${noSupplier} kalemin tedarikçi fiyatı yok, dışarıda kalır)` : ''}`))) return;
     try {
       await insertPos.mutateAsync({ rows: [...bySup.entries()].map(([supplier_id, lines]) => ({
@@ -123,16 +124,15 @@ export function PurchasingPage() {
     const lines = (po.lines as unknown as Line[]) ?? [];
     if (!(await askConfirm(`${supName(po.supplier_id)} siparişi teslim alındı mı? ${lines.length} kalem stoğa girer.`))) return;
     try {
-      // Tek kapı: bu siparişe bağlı fatura malı zaten stoğa soktuysa o kalemler tekrar girmez
-      const invs = unwrap(await supabase.from('purchase_invoices').select('id').eq('purchase_order_id', po.id));
-      const viaInvoice = invs.length ? unwrap(await supabase.from('stock_movements').select('ingredient_id').eq('source', 'fatura').in('source_id', invs.map((x) => x.id))) : [];
-      const skip = new Set(viaInvoice.map((m) => m.ingredient_id));
-      const rows = mergeByIngredient(lines.map((l) => ({ ingredient_id: l.ingredient_id, qty: Number(l.qty), unit_cost: l.unit_price })))
-        .filter((l) => !skip.has(l.ingredient_id))
-        .map((l) => ({ ...l, move_date: today, kind: 'giris', source: 'siparis', source_id: po.id, supplier_id: po.supplier_id, note: supName(po.supplier_id) }));
-      if (rows.length) await insertMoves.mutateAsync({ rows });
+      // Tek kapı (Faz 3E): her kalem receive_stock ile partiye girer; faturayla zaten girmişse veritabanı eşleştirir, ikinci kez stok eklemez
+      let matched = 0;
+      for (const l of mergeByIngredient(lines.map((x) => ({ ingredient_id: x.ingredient_id, qty: Number(x.qty), unit_cost: x.unit_price })))) {
+        const r = unwrap(await supabase.rpc('receive_stock', { p_ingredient: l.ingredient_id, p_qty: l.qty, p_unit_cost: l.unit_cost ?? undefined, p_source: 'siparis', p_source_id: po.id, p_supplier: po.supplier_id, p_date: today, p_note: supName(po.supplier_id) })) as { durum?: string } | null;
+        if (r?.durum === 'eslesti') matched++;
+      }
+      await Promise.all([qc.invalidateQueries({ queryKey: ['ingredients'] }), qc.invalidateQueries({ queryKey: ['t'] })]);
       await savePo.mutateAsync({ id: po.id, row: { status: 'teslim', delivery_date: today } });
-      toast.ok(skip.size ? `Stoğa girdi (${skip.size} kalem faturayla zaten girmişti)` : 'Stoğa girdi; fatura gelince Gelen Faturalar’da bu siparişe bağlayın');
+      toast.ok(matched ? `Stoğa girdi (${matched} kalem faturayla zaten girmişti; partiye bağlandı)` : 'Stoğa girdi (tedarikçi etiketli parti açıldı); fatura gelince Gelen Faturalar’da bu siparişe bağlayın');
     } catch (e) { toast.error(e); }
   };
 
@@ -161,6 +161,7 @@ export function PurchasingPage() {
         description="Menü planı ve beklenen kişi sayısından neyden ne kadar alınacağını hesaplar, eldeki stoğu düşer ve her kalem için en uygun tedarikçiyi önerir."
         actions={<>
           <ReportButton spec={report} disabled={rows.length === 0} />
+          {canEdit && <Button icon={<Plus className="w-4 h-4" />} onClick={() => setAddingQuote(true)}>Teklif / fiyat kaydı</Button>}
           {canEdit && tab === 'ihtiyac' && <Button variant="primary" icon={<ShoppingCart className="w-4 h-4" />} onClick={createOrders} loading={insertPos.isPending}>Sipariş taslağı oluştur</Button>}
         </>}
         stats={[
@@ -171,7 +172,7 @@ export function PurchasingPage() {
         ]} />
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <Tabs value={tab} onChange={setTab} items={[{ id: 'ihtiyac', label: 'Aylık ihtiyaç' }, { id: 'fiyat', label: 'En uygun fiyat' }, { id: 'siparis', label: 'Siparişler', count: (pos.data ?? []).length }]} />
+        <Tabs value={tab} onChange={setTab} items={[{ id: 'ihtiyac', label: 'Bu ay ihtiyaç' }, { id: 'gecen', label: 'Geçen ay' }, { id: 'siparis', label: 'Talepler & siparişler', count: (pos.data ?? []).length }, { id: 'sapma', label: 'Fiyat sapması' }]} />
         {tab === 'ihtiyac' && <MonthNav value={month} onChange={setMonth} />}
       </div>
 
@@ -204,28 +205,8 @@ export function PurchasingPage() {
         </Panel>
       )}
 
-      {tab === 'fiyat' && (
-        <Panel pad={false} title="Tedarikçi fiyatları (son 60 gün)" subtitle="Her kalemde en düşük fiyat kupa ile işaretli; tedarikçi logları buradan izlenir"
-          action={canEdit && <Button size="sm" variant="primary" icon={<Plus className="w-3.5 h-3.5" />} onClick={() => setAddingQuote(true)}>Fiyat kaydı</Button>}>
-          {(quotes.data ?? []).length === 0 ? <EmptyState title="Fiyat kaydı yok">Tedarikçiden aldığınız teklifleri, telefon fiyatlarını veya fatura fiyatlarını girin; en uygun olanı sistem seçer.</EmptyState> : (
-            <ul className="divide-y divide-line">
-              {[...best.entries()].filter(([id]) => ing(id) && matches(q, ing(id)!.name)).map(([id, b]) => (
-                <li key={id} className="px-4 py-3">
-                  <div className="font-semibold text-ink">{ing(id)!.name} <span className="text-xs text-ink-3 font-normal">/ {ing(id)!.stock_unit}</span></div>
-                  <div className="flex flex-wrap gap-2 mt-1.5">
-                    {(quotes.data ?? []).filter((x) => x.ingredient_id === id).sort((a, c) => Number(a.price) - Number(c.price)).slice(0, 6).map((x) => (
-                      <span key={x.id} className={cx('inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs ring-1', x.supplier_id === b.best.supplier_id && Number(x.price) === Number(b.best.price) ? 'ring-accent bg-accent-soft font-semibold' : 'ring-line')}>
-                        {x.supplier_id === b.best.supplier_id && Number(x.price) === Number(b.best.price) && <Trophy className="w-3 h-3 text-accent-strong" />}
-                        {supName(x.supplier_id)} · <Money value={x.price} precise /> · {shortDay(x.quoted_at)}
-                      </span>
-                    ))}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-      )}
+      {tab === 'gecen' && <LastMonthPanel />}
+      {tab === 'sapma' && <PriceVariancePanel />}
 
       {tab === 'siparis' && (
         <Panel pad={false} title="Satınalma siparişleri">
@@ -242,6 +223,12 @@ export function PurchasingPage() {
                       <Money value={po.total} className="ml-auto font-bold" />
                     </div>
                     <div className="text-xs text-ink-2 mt-1">{lines.map((l) => `${ing(l.ingredient_id)?.name ?? '?'} ${fmtNum(l.qty, 1)} ${ing(l.ingredient_id)?.stock_unit ?? ''}`).join(' · ')}</div>
+                    {canEdit && (po.status === 'taslak' || po.status === 'verildi') && (
+                      <div className="mt-2">
+                        <RequestActions poId={po.id} supplier={(suppliers.data ?? []).find((x) => x.id === po.supplier_id)} date={po.order_date} deliveryDate={po.delivery_date} note={po.note}
+                          lines={lines.map((l) => ({ name: ing(l.ingredient_id)?.name ?? '?', qty: Number(l.qty), unit: ing(l.ingredient_id)?.stock_unit ?? '' }))} />
+                      </div>
+                    )}
                     {canEdit && po.status !== 'teslim' && po.status !== 'iptal' && (
                       <div className="flex flex-wrap gap-2 mt-2">
                         {po.status === 'taslak' && <Button size="sm" onClick={() => savePo.mutate({ id: po.id, row: { status: 'verildi' } }, { onError: toast.error })}>Sipariş verildi</Button>}

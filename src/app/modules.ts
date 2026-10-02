@@ -57,6 +57,7 @@ export const MODULES: ModuleDef[] = [
       { id: 'durum', label: 'Stok durumu', roles: ['yonetici', 'depo', 'satinalma', 'asci_basi'] },
       { id: 'sevk', label: 'Firmalara giden', roles: ['yonetici', 'depo', 'sofor', 'muhasebe'] },
       { id: 'kartlar', label: 'Stok kartları', roles: ['yonetici', 'asci_basi', 'diyetisyen', 'satinalma', 'depo', 'muhasebe'] },
+      { id: 'partiler', label: 'Partiler & izleme', roles: ['yonetici', 'depo', 'satinalma', 'asci_basi', 'muhasebe'] },
     ] },
   { path: '/satinalma', label: 'Satınalma', hint: 'Menüye göre ihtiyaç, teklif, sipariş', icon: ShoppingCart, group: 'depo', roles: ['yonetici', 'satinalma', 'depo'] },
 

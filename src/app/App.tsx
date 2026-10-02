@@ -14,6 +14,7 @@ import { CardPage, OrderPortalPage } from '@/features/public/PublicPages';
 import { PurchasingPage } from '@/features/stock/PurchasingPage';
 import { StockPage } from '@/features/stock/StockPage';
 import { SuppliersPage } from '@/features/stock/SuppliersPage';
+import { LotsPage } from '@/features/stock/LotsPage';
 import { SuppliesPage } from '@/features/stock/SuppliesPage';
 import { KitchenScreen } from '@/features/production/KitchenScreen';
 import { CalibrationPage } from '@/features/production/CalibrationPage';
@@ -47,7 +48,7 @@ function pageFor(mod: string, tab: string | undefined, rest: string[]) {
     case '/uretim': return tab === 'mutfak' ? <KitchenScreen /> : tab === 'emir' ? <ProductionOrderPage /> : tab === 'kalibrasyon' ? <CalibrationPage /> : <PrepPage initialMeal={rest[0]} />;
     case '/menuler': return tab === 'plan' ? <MenuPlanPage /> : tab === 'aylik' ? <MonthlyMenuPage /> : <MenusPage />;
     case '/receteler': return rest[0] ? <RecipeEditor id={rest[0] === 'yeni' ? null : rest[0]} /> : <RecipesPage />;
-    case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'kartlar' ? <IngredientsPage /> : <StockPage />;
+    case '/stok': return tab === 'sevk' ? <SuppliesPage /> : tab === 'kartlar' ? <IngredientsPage /> : tab === 'partiler' ? <LotsPage /> : <StockPage />;
     case '/satinalma': return <PurchasingPage />;
     case '/siparisler': return tab === 'aylik' ? <MonthlyOrdersPage /> : tab === 'rapor' ? <OrderReportPage /> : <OrdersPage />;
     case '/cari': return tab === 'tedarikciler' ? <SuppliersPage /> : <CustomersPage />;
